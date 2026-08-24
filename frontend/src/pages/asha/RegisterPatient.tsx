@@ -136,18 +136,22 @@ export const AshaRegisterPatientPage: React.FC = () => {
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
           {/* Stepper Header */}
-          <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-center divide-x divide-slate-200">
-            <div className={`p-3.5 ${step === 1 ? 'bg-gov-700 text-white font-bold' : step > 1 ? 'text-gov-800' : 'text-slate-400'}`}>
-              1. Demographics & ABHA
+          <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200 text-[11px] sm:text-xs font-semibold text-center divide-x divide-slate-200">
+            <div className={`p-2 sm:p-3.5 ${step === 1 ? 'bg-gov-700 text-white font-bold' : step > 1 ? 'text-gov-800' : 'text-slate-400'}`}>
+              <span className="sm:hidden">1. Details</span>
+              <span className="hidden sm:inline">1. Demographics &amp; ABHA</span>
             </div>
-            <div className={`p-3.5 ${step === 2 ? 'bg-gov-700 text-white font-bold' : step > 2 ? 'text-gov-800' : 'text-slate-400'}`}>
-              2. Address & Village
+            <div className={`p-2 sm:p-3.5 ${step === 2 ? 'bg-gov-700 text-white font-bold' : step > 2 ? 'text-gov-800' : 'text-slate-400'}`}>
+              <span className="sm:hidden">2. Address</span>
+              <span className="hidden sm:inline">2. Address &amp; Village</span>
             </div>
-            <div className={`p-3.5 ${step === 3 ? 'bg-gov-700 text-white font-bold' : step > 3 ? 'text-gov-800' : 'text-slate-400'}`}>
-              3. Baseline Vitals
+            <div className={`p-2 sm:p-3.5 ${step === 3 ? 'bg-gov-700 text-white font-bold' : step > 3 ? 'text-gov-800' : 'text-slate-400'}`}>
+              <span className="sm:hidden">3. Vitals</span>
+              <span className="hidden sm:inline">3. Baseline Vitals</span>
             </div>
-            <div className={`p-3.5 ${step === 4 ? 'bg-gov-700 text-white font-bold' : 'text-slate-400'}`}>
-              4. Emergency & Consent
+            <div className={`p-2 sm:p-3.5 ${step === 4 ? 'bg-gov-700 text-white font-bold' : 'text-slate-400'}`}>
+              <span className="sm:hidden">4. Consent</span>
+              <span className="hidden sm:inline">4. Emergency &amp; Consent</span>
             </div>
           </div>
 

@@ -47,10 +47,6 @@ function setSessionCookie(res, user) {
 }
 
 // ─── POST /api/auth/phone-login ─────────────────────────────────────────────
-// Frontend verifies the phone number + OTP with Firebase, then hands us the
-// resulting ID token. We verify it server-side, then either log the matching
-// user in or (for a brand-new phone number) create the account using the
-// profile fields the client sends along.
 router.post('/phone-login', phoneLoginLimiter, async (req, res) => {
   const { idToken, name, role, district, taluka, village, abhaId, email } = req.body || {};
 

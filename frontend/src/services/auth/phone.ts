@@ -1,5 +1,3 @@
-// Normalizes common Indian phone input formats to E.164 (+91XXXXXXXXXX).
-// Returns null if the input doesn't look like a valid number.
 export function normalizePhoneToE164(raw: string): string | null {
   const digits = raw.replace(/[^\d+]/g, '');
 

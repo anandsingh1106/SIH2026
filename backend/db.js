@@ -45,8 +45,6 @@ db.exec(`
   );
 `);
 
-// Older builds of this app used email+password accounts. Phone number is now
-// the identity key, so that schema can't carry forward — rebuild cleanly.
 function migrateLegacyUsersTable() {
   const columns = db.prepare('PRAGMA table_info(users)').all();
   const isLegacySchema = columns.some((c) => c.name === 'password_hash');

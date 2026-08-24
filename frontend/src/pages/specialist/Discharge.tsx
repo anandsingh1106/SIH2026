@@ -95,8 +95,8 @@ export const SpecialistDischarge: React.FC = () => {
 
           <div>
             <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Discharge Medications & Regimen</h3>
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left">
+            <div className="border border-slate-200 rounded-xl overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left">
                 <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
                   <tr>
                     <th className="p-2.5">Medicine Name</th>
