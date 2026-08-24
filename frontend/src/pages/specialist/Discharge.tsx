@@ -1,0 +1,197 @@
+import React, { useState } from 'react';
+import { FileCheck2, Download, Printer, Share2, Plus, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Card } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { Modal } from '../../components/ui/Modal';
+import { INITIAL_PATIENTS } from '../../data/mockData';
+
+export const SpecialistDischarge: React.FC = () => {
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState('Anandi Devi Patil');
+
+  return (
+    <div className="space-y-6">
+      <Breadcrumbs items={[{ label: 'Specialist Workspace' }, { label: 'Discharge Summaries & FHIR Handoff' }]} />
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <FileCheck2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">ABDM FHIR Electronic Discharge Summaries</h1>
+            <p className="text-sm text-slate-500">Author standardized discharge summaries, bundle digital Rx, and auto-dispatch to patient health locker</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowGenerateModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 shadow-sm transition-all self-start md:self-auto"
+        >
+          <Plus className="w-4 h-4" /> Author New Discharge Summary
+        </button>
+      </div>
+
+      {/* Discharge Summary Preview Card */}
+      <Card className="p-6 md:p-8 space-y-6 border-slate-300">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-xs uppercase tracking-wider text-emerald-700">Govt. of Maharashtra • Public Health Department</span>
+              <Badge variant="success" className="text-[10px]">FHIR R4 Validated</Badge>
+            </div>
+            <h2 className="text-xl font-extrabold text-slate-900 mt-1">Sassoon General Hospital & Medical College, Pune</h2>
+            <p className="text-xs text-slate-500">Tertiary Center Discharge Summary • Dept. of Cardiology & Medicine</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50">
+              <Printer className="w-4 h-4" /> Print
+            </button>
+            <button className="flex items-center gap-1.5 px-3 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg hover:bg-gov-700">
+              <Download className="w-4 h-4" /> Export Signed PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Patient metadata */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <span className="text-slate-400">Patient Name:</span>
+            <p className="font-bold text-slate-900 mt-0.5">Anandi Devi Patil</p>
+          </div>
+          <div>
+            <span className="text-slate-400">ABHA Address:</span>
+            <p className="font-mono font-semibold text-slate-800 mt-0.5">91-8273-1928-4491</p>
+          </div>
+          <div>
+            <span className="text-slate-400">Admission / Discharge:</span>
+            <p className="font-semibold text-slate-800 mt-0.5">14 Aug 2026 / 18 Aug 2026</p>
+          </div>
+          <div>
+            <span className="text-slate-400">Attending Consultant:</span>
+            <p className="font-semibold text-slate-800 mt-0.5">Dr. Priya Kulkarni, MD, DM</p>
+          </div>
+        </div>
+
+        {/* Clinical sections */}
+        <div className="space-y-4 text-xs">
+          <div>
+            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Final Discharge Diagnosis</h3>
+            <p className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-800 font-medium">
+              1. Severe Refractory Essential Hypertension (Controlled at Discharge: 130/82 mmHg)<br />
+              2. Type 2 Diabetes Mellitus with Mild Microalbuminuria<br />
+              3. Mild Diastolic Dysfunction (E/A 0.8, preserved EF 58%)
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Hospital Course & Interventions</h3>
+            <p className="text-slate-700 leading-relaxed">
+              Patient was transferred from PHC Paud with hypertensive urgency. Initiated on dual antihypertensive therapy. Tele-ECG and 2D Echo ruled out acute ischemic changes. Renal parameters stabilized (Serum Creatinine 1.05 mg/dL). Discharged in hemodynamically stable condition.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Discharge Medications & Regimen</h3>
+            <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <table className="w-full text-left">
+                <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="p-2.5">Medicine Name</th>
+                    <th className="p-2.5">Dosage</th>
+                    <th className="p-2.5">Frequency</th>
+                    <th className="p-2.5">Instructions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="p-2.5 font-bold text-slate-900">Tab Telmisartan 40mg</td>
+                    <td className="p-2.5">1 Tab</td>
+                    <td className="p-2.5 font-semibold text-gov-700">1-0-0 (Morning)</td>
+                    <td className="p-2.5 text-slate-600">After breakfast (सकाळी नाष्ट्यानंतर)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-bold text-slate-900">Tab Metformin 500mg ER</td>
+                    <td className="p-2.5">1 Tab</td>
+                    <td className="p-2.5 font-semibold text-gov-700">1-0-1 (Morning & Night)</td>
+                    <td className="p-2.5 text-slate-600">With meals (जेवणासोबत)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-bold text-slate-900">Tab Atorvastatin 20mg</td>
+                    <td className="p-2.5">1 Tab</td>
+                    <td className="p-2.5 font-semibold text-gov-700">0-0-1 (Night)</td>
+                    <td className="p-2.5 text-slate-600">At bedtime (रात्री झोपताना)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Handoff Directives to ASHA & PHC Paud</h3>
+            <ul className="list-disc list-inside space-y-1 text-slate-700">
+              <li>Paud ASHA worker Sunita Patil to conduct weekly home visit for BP recording.</li>
+              <li>PHC Paud Medical Officer to recheck serum potassium after 3 weeks of ARB therapy.</li>
+              <li>SOS red flags: Severe headache, chest pressure, dizziness — call 108 immediately.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+          <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Digitally Signed via Ayushman Bharat Health Account (ABHA Token Valid)
+          </span>
+          <span>Dispatched to Patient ABHA Locker</span>
+        </div>
+      </Card>
+
+      {/* Generate Modal */}
+      <Modal
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        title="Author Discharge Summary"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Select Admitted Patient</label>
+            <select
+              value={selectedPatient}
+              onChange={e => setSelectedPatient(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+            >
+              <option value="Anandi Devi Patil">Anandi Devi Patil (ABHA: 91-8273-1928-4491)</option>
+              <option value="Suresh More">Suresh More (ABHA: 91-1102-4829-0021)</option>
+              <option value="Eknath Shinde">Eknath Shinde (ABHA: 91-9921-5582-7721)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Discharge Condition & Summary</label>
+            <textarea
+              rows={3}
+              placeholder="Record final clinical outcome, response to interventions, and stability metrics..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setShowGenerateModal(false)}
+              className="flex-1 px-4 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700"
+            >
+              Sign & Push to ABDM Locker
+            </button>
+            <button
+              onClick={() => setShowGenerateModal(false)}
+              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};

@@ -1,0 +1,16 @@
+{
+  "name": "mahaarogya-sangam",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "server": "npm --prefix backend run start",
+    "dev:all": "concurrently -n API,WEB -c blue,green \"npm:server\" \"npm:dev\"",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

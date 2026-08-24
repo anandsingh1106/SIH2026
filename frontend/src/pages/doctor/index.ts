@@ -1,0 +1,11 @@
+export { DoctorDashboard } from './Dashboard';
+export { DoctorLiveQueuePage } from './LiveQueue';
+export { DoctorPatientRecordsPage } from './PatientRecords';
+export { DoctorConsultationPage } from './Consultation';
+export { DoctorAITriagePage } from './AITriage';
+export { DoctorPrescriptionsPage } from './Prescriptions';
+export { DoctorLabOrdersPage } from './LabOrders';
+export { DoctorReferralCenterPage } from './ReferralCenter';
+export { DoctorTelemedicinePage } from './Telemedicine';
+export { DoctorDrugInventoryPage } from './DrugInventory';
+export { DoctorAnalyticsPage } from './DoctorAnalytics';

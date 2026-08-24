@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MahaAarogya Sangam — Homepage Concept (CarePlus-style)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          gov: {
+            50: '#f0fdf9', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+            400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+            800: '#115e59', 900: '#134e4a', 950: '#042f2e',
+          },
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          card: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05)',
+          elevated: '0 20px 40px -12px rgba(15,118,110,0.25)',
+        },
+      },
+    },
+  };
+</script>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(0px);
+  }
+</style>
+</head>
+
+<body class="bg-white text-slate-900 antialiased">
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gov-700 text-white flex items-center justify-center shadow-card">
+          <i data-lucide="shield-plus" class="w-5 h-5"></i>
+        </div>
+        <div class="leading-tight">
+          <p class="font-extrabold text-sm text-slate-900">MahaAarogya <span class="text-gov-700">Sangam</span></p>
+          <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Care Portal</p>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+        <a href="#home" class="px-3 py-2 rounded-lg text-gov-700 bg-gov-50">Home</a>
+        <a href="#services" class="px-3 py-2 rounded-lg text-slate-600 hover:text-gov-700 hover:bg-gov-50 transition-colors">Services</a>
+        <a href="#departments" class="px-3 py-2 rounded-lg text-slate-600 hover:text-gov-700 hover:bg-gov-50 transition-colors">Departments</a>
+        <a href="#doctors" class="px-3 py-2 rounded-lg text-slate-600 hover:text-gov-700 hover:bg-gov-50 transition-colors">Doctors</a>
+        <a href="#contact" class="px-3 py-2 rounded-lg text-slate-600 hover:text-gov-700 hover:bg-gov-50 transition-colors">Contact</a>
+      </nav>
+
+      <button class="hidden sm:inline-flex items-center gap-2 bg-gov-700 hover:bg-gov-800 text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-card transition-colors">
+        <i data-lucide="calendar-check" class="w-4 h-4"></i>
+        Book Appointment
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section id="home" class="relative overflow-hidden bg-gradient-to-b from-gov-50 via-cyan-50/60 to-white pt-10 pb-24 sm:pt-16">
+    <!-- decorative blobs -->
+    <div class="blob w-72 h-72 bg-gov-200/40 -top-10 -left-16"></div>
+    <div class="blob w-96 h-96 bg-cyan-200/30 -bottom-24 -right-24"></div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-white/70 backdrop-blur-sm rounded-[2rem] border border-white shadow-elevated p-6 sm:p-10 grid lg:grid-cols-2 gap-10 items-center">
+
+        <!-- Left: headline + CTAs -->
+        <div>
+          <span class="inline-flex items-center gap-2 bg-gov-100 text-gov-800 text-xs font-bold px-3 py-1.5 rounded-full">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            Trusted by 36 Districts of Maharashtra
+          </span>
+          <h1 class="mt-5 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
+            Your Health,<br />
+            <span class="text-gov-700">Our Priority</span>
+          </h1>
+          <p class="mt-4 text-slate-600 text-base sm:text-lg max-w-md">
+            Compassionate, government-backed healthcare for you and your family — from local ASHA visits to specialist referrals, all in one place.
+          </p>
+
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button class="inline-flex items-center gap-2 bg-gov-700 hover:bg-gov-800 text-white font-semibold text-sm px-5 py-3 rounded-xl shadow-card transition-colors">
+              <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+              Book Now
+            </button>
+            <button class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm px-5 py-3 rounded-xl border border-slate-200 transition-colors">
+              <i data-lucide="phone-call" class="w-4 h-4 text-red-500"></i>
+              Emergency 108
+            </button>
+          </div>
+
+          <div class="mt-8 flex items-center gap-6">
+            <div>
+              <p class="text-2xl font-extrabold text-slate-900">12,000+</p>
+              <p class="text-xs text-slate-500 font-medium">Facilities Connected</p>
+            </div>
+            <div class="w-px h-10 bg-slate-200"></div>
+            <div>
+              <p class="text-2xl font-extrabold text-slate-900">65,800+</p>
+              <p class="text-xs text-slate-500 font-medium">ASHA Workers</p>
+            </div>
+            <div class="w-px h-10 bg-slate-200"></div>
+            <div>
+              <p class="text-2xl font-extrabold text-slate-900">98.4%</p>
+              <p class="text-xs text-slate-500 font-medium">Referral Safety</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: illustrated consultation panel (no external photos) -->
+        <div class="relative">
+          <div class="relative rounded-3xl bg-gradient-to-br from-gov-600 to-gov-800 aspect-[4/5] sm:aspect-[5/4] overflow-hidden shadow-elevated">
+            <div class="blob w-40 h-40 bg-white/10 -top-8 -right-8"></div>
+            <div class="blob w-56 h-56 bg-white/5 bottom-0 -left-16"></div>
+
+            <div class="relative h-full flex flex-col items-center justify-center gap-4 p-8 text-center">
+              <div class="w-24 h-24 rounded-full bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                <i data-lucide="stethoscope" class="w-12 h-12 text-white"></i>
+              </div>
+              <p class="text-white font-bold text-lg">Doctor Consultation</p>
+              <p class="text-gov-100 text-sm max-w-[220px]">Live video &amp; in-person consults with verified specialists</p>
+            </div>
+
+            <!-- floating badge cards -->
+            <div class="absolute top-5 left-5 bg-white rounded-xl shadow-card px-3 py-2 flex items-center gap-2">
+              <i data-lucide="heart-pulse" class="w-4 h-4 text-red-500"></i>
+              <span class="text-xs font-bold text-slate-700">Vitals Normal</span>
+            </div>
+            <div class="absolute bottom-5 right-5 bg-white rounded-xl shadow-card px-3 py-2 flex items-center gap-2">
+              <i data-lucide="badge-check" class="w-4 h-4 text-gov-600"></i>
+              <span class="text-xs font-bold text-slate-700">ABHA Verified</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick-book widget bar -->
+      <div class="relative -mt-8 sm:-mt-9 mx-4 sm:mx-10">
+        <div class="bg-white rounded-2xl shadow-elevated border border-slate-100 p-4 sm:p-5 grid sm:grid-cols-4 gap-3 items-end">
+          <label class="block">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Department</span>
+            <select class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-gov-200 focus:border-gov-500">
+              <option>Cardiology</option>
+              <option>Pediatrics</option>
+              <option>General Medicine</option>
+              <option>Obstetrics</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Doctor</span>
+            <select class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-gov-200 focus:border-gov-500">
+              <option>Dr. Rajesh Deshmukh</option>
+              <option>Dr. Priya Kulkarni</option>
+              <option>Dr. S. Joshi</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Date</span>
+            <input type="date" class="mt-1 w-full rounded-lg border border-slate-200 text-sm px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-gov-200 focus:border-gov-500" />
+          </label>
+          <button class="inline-flex items-center justify-center gap-2 bg-gov-700 hover:bg-gov-800 text-white font-semibold text-sm px-4 py-2.5 rounded-lg shadow-card transition-colors">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DEPARTMENTS ============ -->
+  <section id="departments" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="text-center max-w-xl mx-auto mb-12">
+      <span class="text-gov-700 text-xs font-bold tracking-widest uppercase">What We Offer</span>
+      <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Our Departments</h2>
+      <p class="mt-2 text-slate-500 text-sm">Specialized care teams for every stage of life</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="group bg-white border border-slate-100 rounded-2xl p-6 text-center shadow-card hover:shadow-elevated hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <i data-lucide="ambulance" class="w-7 h-7"></i>
+        </div>
+        <p class="font-bold text-slate-800 text-sm">Emergency Care</p>
+        <p class="text-xs text-slate-500 mt-1">24×7 rapid response &amp; ambulance dispatch</p>
+      </div>
+
+      <div class="group bg-white border border-slate-100 rounded-2xl p-6 text-center shadow-card hover:shadow-elevated hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <i data-lucide="baby" class="w-7 h-7"></i>
+        </div>
+        <p class="font-bold text-slate-800 text-sm">Pediatric Department</p>
+        <p class="text-xs text-slate-500 mt-1">Immunization &amp; child health tracking</p>
+      </div>
+
+      <div class="group bg-white border border-slate-100 rounded-2xl p-6 text-center shadow-card hover:shadow-elevated hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gov-50 text-gov-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <i data-lucide="heart-pulse" class="w-7 h-7"></i>
+        </div>
+        <p class="font-bold text-slate-800 text-sm">Cardiology</p>
+        <p class="text-xs text-slate-500 mt-1">ECG, angiography &amp; long-term follow-up</p>
+      </div>
+
+      <div class="group bg-white border border-slate-100 rounded-2xl p-6 text-center shadow-card hover:shadow-elevated hover:-translate-y-1 transition-all">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <i data-lucide="flask-conical" class="w-7 h-7"></i>
+        </div>
+        <p class="font-bold text-slate-800 text-sm">Diagnostics &amp; Lab</p>
+        <p class="text-xs text-slate-500 mt-1">Pathology, radiology &amp; same-day reports</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURED SERVICES ============ -->
+  <section id="services" class="bg-gov-50/60 py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-xl mx-auto mb-12">
+        <span class="text-gov-700 text-xs font-bold tracking-widest uppercase">Featured</span>
+        <h2 class="mt-2 text-3xl font-extrabold text-slate-900">Featured Services</h2>
+        <p class="mt-2 text-slate-500 text-sm">Modern tools built for accessible, offline-first healthcare</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-shadow">
+          <div class="h-40 bg-gradient-to-br from-gov-600 to-gov-800 flex items-center justify-center">
+            <i data-lucide="scan-line" class="w-14 h-14 text-white/90"></i>
+          </div>
+          <div class="p-5">
+            <p class="font-bold text-slate-800">Advanced Diagnostics</p>
+            <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">Modern imaging &amp; lab equipment with rapid, accurate reporting.</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-shadow">
+          <div class="h-40 bg-gradient-to-br from-cyan-600 to-cyan-800 flex items-center justify-center">
+            <i data-lucide="syringe" class="w-14 h-14 text-white/90"></i>
+          </div>
+          <div class="p-5">
+            <p class="font-bold text-slate-800">Specialized Surgeries</p>
+            <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">Trained surgical teams with cutting-edge medical equipment.</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-shadow">
+          <div class="h-40 bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center">
+            <i data-lucide="volume-2" class="w-14 h-14 text-white/90"></i>
+          </div>
+          <div class="p-5">
+            <p class="font-bold text-slate-800">Voice Prescriptions</p>
+            <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">Marathi, Hindi &amp; English audio explanations for every prescription.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER (minimal) ============ -->
+  <footer id="contact" class="bg-slate-900 text-slate-300 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gov-700 text-white flex items-center justify-center">
+          <i data-lucide="shield-plus" class="w-4 h-4"></i>
+        </div>
+        <p class="font-bold text-white text-sm">MahaAarogya Sangam</p>
+      </div>
+      <p class="text-xs text-slate-400">Design concept · frontend/ui-ux/homepage-concept.html · Not wired into the app router</p>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

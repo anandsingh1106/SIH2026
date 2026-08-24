@@ -1,0 +1,10 @@
+export { PatientDashboard } from './Dashboard';
+export { PatientTimeline } from './Timeline';
+export { PatientPrescriptions } from './Prescriptions';
+export { PatientLabReports } from './LabReports';
+export { PatientAppointments } from './Appointments';
+export { PatientReferralStatus } from './ReferralStatus';
+export { PatientAudioPrescription } from './AudioPrescription';
+export { PatientVaccinations } from './Vaccinations';
+export { PatientEmergency } from './Emergency';
+export { PatientFamilyMembers } from './FamilyMembers';

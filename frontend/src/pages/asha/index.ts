@@ -1,0 +1,12 @@
+export { AshaDashboard } from './Dashboard';
+export { AshaTasksPage } from './Tasks';
+export { AshaVillageMapPage } from './VillageMap';
+export { AshaRegisterPatientPage } from './RegisterPatient';
+export { AshaHomeVisitsPage } from './HomeVisits';
+export { AshaImmunizationPage } from './Immunization';
+export { AshaMaternalCarePage } from './MaternalCare';
+export { AshaNcdScreeningPage } from './NcdScreening';
+export { AshaReferralsPage } from './Referrals';
+export { AshaOfflineSyncPage } from './OfflineSync';
+export { AshaDocumentsPage } from './Documents';
+export { AshaReportsPage } from './Reports';
