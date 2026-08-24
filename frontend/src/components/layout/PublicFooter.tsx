@@ -46,7 +46,7 @@ export const PublicFooter: React.FC = () => {
               <li><Link to="/specialist/dashboard" className="hover:text-white transition-colors">Tertiary Specialist & Bed Allocation</Link></li>
               <li><Link to="/admin/dashboard" className="hover:text-white transition-colors">State Health Command Center</Link></li>
               <li><Link to="/patient/dashboard" className="hover:text-white transition-colors">Citizen Personal Health Record</Link></li>
-              <li><Link to="/select-role" className="hover:text-white transition-colors">Interactive Role Switchboard</Link></li>
+              <li><Link to="/register" className="hover:text-white transition-colors">Create an Account</Link></li>
             </ul>
           </div>
 

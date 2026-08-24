@@ -1,7 +1,36 @@
 # MahaAarogya Sangam (ArogyaSetu)
 
-Digital public health platform — React + TypeScript frontend, Express + SQLite backend,
-with real phone-OTP authentication via Firebase.
+Digital public health platform for Maharashtra — React + TypeScript frontend,
+Express + SQLite backend, phone-OTP authentication via Firebase.
+
+**42 database tables · 72 API operations · 162 passing tests**
+
+---
+
+## ⚠️ Migration status — read this first
+
+A migration from Firebase/SQLite to **Supabase + Vercel** is **in progress and
+incomplete**. What is true today:
+
+| Component | Status |
+| --- | --- |
+| Supabase PostgreSQL schema (42 tables) | ✅ Written, `supabase/migrations/` |
+| Row Level Security (50 policies) | ✅ Written |
+| Indexes incl. concurrency constraints | ✅ Written |
+| Supabase client wrappers | ✅ Written |
+| **SQL executed against a real database** | ❌ **Never run — no Postgres available locally** |
+| **Running backend data layer** | ❌ **Still SQLite** |
+| **Auth** | ❌ **Still Firebase** (and Firebase keys were never supplied) |
+| **Deployment model** | ❌ Still `app.listen()` — not Vercel-compatible |
+
+The running application is unchanged and fully working on SQLite + Express;
+all 162 tests pass. The Supabase files are **new, additive, and not yet wired
+in**. Nothing has been deleted.
+
+**Blocker:** `node:sqlite` is synchronous, Supabase's client is async-only.
+Switching requires converting **243 call sites across 20 files** to `async`, and
+re-implementing 15 transactional flows as PostgreSQL functions, because the
+Supabase JS client has no client-side transaction API. See "Remaining work".
 
 ---
 
@@ -12,21 +41,62 @@ with real phone-OTP authentication via Firebase.
 npm install
 npm run install:all
 
-# 2. Create the env files (see "Environment Setup" below — the app will not
-#    let you log in until the Firebase values are filled in)
+# 2. Create the env files (see "Environment Setup" below — login is blocked
+#    until the Firebase values are filled in)
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 
-# 3. Run backend + frontend together
+# 3. Set up the database
+cd backend && npm run db:migrate && npm run db:seed && cd ..
+
+# 4. Run backend + frontend together
 npm run dev:all
 ```
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:4000
+- **API docs (Swagger): http://localhost:4000/api/docs**
 - Health check: http://localhost:4000/health
 
 Vite proxies `/api/*` to the backend on port 4000, so the frontend calls
 relative URLs and there are no CORS issues in development.
+
+---
+
+## Architecture
+
+```
+Request → route → validator (Zod) → controller → service → repository → SQLite
+                       ↓                ↓
+                  RBAC guard      transaction + audit log
+```
+
+Business logic lives in services, never in route handlers. Repositories own all
+SQL. Controllers only translate between HTTP and services.
+
+**Backend layout** (`backend/src/`):
+
+| Directory | Responsibility |
+| --- | --- |
+| `config/` | Environment loading, rate-limit tiers |
+| `db/` | Connection (WAL, foreign keys), migrations, seeds, CLI |
+| `middleware/` | Auth/RBAC, Zod validation, error handler, request logging |
+| `repositories/` | All SQL — the only layer that touches the database |
+| `services/` | Business logic, transactions, audit, AI, CBAC scoring |
+| `controllers/` | HTTP ↔ service translation and response shaping |
+| `validators/` | Zod schemas for every request body/query/param |
+| `routes/` | Endpoint wiring only |
+| `docs/` | OpenAPI specification |
+
+### Where to change things
+
+| To do this… | Edit these files |
+| --- | --- |
+| Add a field to an existing table | `db/migrations/` (new file), the matching repository, its validator |
+| Change who may access something | `middleware/auth.js` or `services/accessControlService.js` |
+| Add a new endpoint | `validators/` → `services/` → `controllers/` → `routes/` |
+| Change an error message | The `throw` in the relevant service |
+| Adjust rate limits | `config/rateLimits.js` |
 
 ---
 
@@ -49,6 +119,14 @@ Inside `backend/`:
 | --- | --- |
 | `npm start` | Starts the API server |
 | `npm run dev` | Starts the API with auto-restart on file changes |
+| `npm run db:migrate` | Applies pending migrations (safe to re-run) |
+| `npm run db:seed` | Inserts demo data (idempotent — never duplicates) |
+| `npm run db:reset` | Deletes the database, re-migrates and re-seeds |
+| `npm test` | Runs the full test suite (162 tests) |
+| `npm run test:watch` | Runs tests in watch mode |
+
+> `db:reset` fails with a clear message if the API server is running — stop it
+> first, since Windows keeps the database file locked.
 
 Inside `frontend/`:
 
@@ -148,60 +226,114 @@ used to sign in.
 
 ## API Reference
 
-### Auth (`/api/auth`)
+Full interactive documentation with request/response schemas is at
+**http://localhost:4000/api/docs** (machine-readable at `/api/openapi.json`).
 
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/phone-login` | — | Verifies a Firebase ID token; logs in an existing user, or creates one when profile fields are supplied. Returns `NEW_USER` if the number is unregistered and no profile was sent. |
-| `GET` | `/me` | Cookie | Returns the current logged-in user |
-| `POST` | `/logout` | — | Clears the session cookie |
+### Conventions
 
-### Appointments (`/api/appointments`)
+Success: `{ "success": true, "data": ... }`
+Error: `{ "success": false, "error": { "code", "message", "details" } }`
+Lists: `{ items, pagination: { page, limit, total, totalPages } }` — accept `?page=&limit=`
 
-All require a valid session cookie and are **scoped to the logged-in user** —
-you can only read or modify your own appointments.
+Unauthorized reads return **404, not 403**, so record existence is never leaked.
 
-| Method | Endpoint | Description |
+### Endpoints by area
+
+| Area | Base path | Key operations |
 | --- | --- | --- |
-| `GET` | `/` | List your appointments |
-| `POST` | `/` | Book one. Requires `doctor`, `specialty`, `facility`, `date`, `time`, `type` (`in-person` \| `telemedicine`); optional `reason` |
-| `PATCH` | `/:id/cancel` | Cancel an upcoming appointment |
-| `PATCH` | `/:id/reschedule` | Change date/time. Requires `date` and `time` |
+| Auth | `/api/auth` | `POST /phone-login`, `GET /me`, `POST /logout` |
+| Patients | `/api/patients` | list/search, get, create, update, `+/allergies`, `+/chronic-conditions`, `+/family`, `+/vitals` |
+| Appointments | `/api/appointments` | list, book, `PATCH /:id/cancel`, `PATCH /:id/reschedule` |
+| Clinical | `/api/consultations`, `/api/prescriptions`, `/api/medicines` | record consultations, issue prescriptions, formulary |
+| Referrals | `/api/referrals` | create, `POST /:id/accept` `/reject` `/arrive` `/complete`, full timeline |
+| Labs | `/api/lab-orders` | order, status flow, `POST /:id/results` |
+| Beds | `/api/beds` | list, `/availability`, `POST /:id/allocate` `/release` |
+| ASHA | `/api/home-visits`, `/api/tasks`, `/api/vaccinations`, `/api/maternal-records`, `/api/ncd-screenings` | field workflows |
+| Inventory | `/api/inventory` | stock levels, `POST /:id/adjust`, `/transfer` |
+| Queue | `/api/queue` | `POST /token`, `GET /:facilityId`, call/start/complete/skip |
+| Notifications | `/api/notifications` | list, unread count, mark read, read-all |
+| Messaging | `/api/conversations`, `/api/messages` | conversations and messages |
+| Sync | `/api/sync/batch` | idempotent offline batch upload |
+| Analytics | `/api/analytics` | `/patient` `/asha` `/doctor` `/specialist` `/admin` `/heatmap` |
+| AI | `/api/ai` | `/triage`, `/assistant`, `/drug-interactions` |
+| Audit | `/api/audit-logs` | audit trail (admin only) |
+| Public | `/api/public` | facilities, medicines, bed availability, emergency, programmes — **no auth** |
+| Realtime | `/api/stream` | Server-Sent Events for notifications, queue, beds, referrals |
 
-### Reference data (`/api`)
+### Behaviours worth knowing
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/patients` · `/patients/:id` | Seeded patient records |
-| `GET` | `/prescriptions?patientId=` · `/prescriptions/:id` | Seeded prescriptions |
+- **Appointments** reject a double-booked doctor slot (409). Cancelling frees the slot.
+- **Referrals** follow a state machine; illegal jumps (e.g. `SENT` → `COMPLETED`) return 409.
+- **Beds** cannot be double-allocated — enforced by transaction *and* a partial unique index.
+- **Inventory** can never go negative — enforced by transaction *and* a `CHECK` constraint.
+- **Sync** is idempotent: replaying an `operationId` returns the original result, never a duplicate.
+- **CBAC scores** and **triage risk** are computed server-side, not trusted from the client.
 
 ---
 
 ## Database
 
-SQLite via Node's built-in `node:sqlite`, stored at `backend/arogyasetu.sqlite`
-(gitignored). Tables are created automatically on server start.
+SQLite via Node's built-in `node:sqlite` at `backend/arogyasetu.sqlite` (gitignored).
+WAL mode, foreign keys enforced, 42 tables, 154 indexes.
 
-| Table | Contents |
+| Group | Tables |
 | --- | --- |
-| `users` | Accounts. `phone` is the unique identity key; no passwords stored |
-| `appointments` | Booked appointments, linked to `users.id` via `patient_id` |
-| `patients` | Seeded demo patient records |
-| `prescriptions` | Seeded demo prescriptions |
+| Identity | `users`, `facilities`, `audit_logs` |
+| Patients | `patients`, `family_members`, `allergies`, `chronic_conditions` |
+| Clinical | `consultations`, `vitals`, `diagnoses`, `clinical_notes`, `prescriptions`, `prescription_items`, `medicines` |
+| Scheduling | `appointments`, `opd_tokens`, `telemedicine_sessions` |
+| Referrals | `referrals`, `referral_events` |
+| Labs | `lab_tests`, `lab_orders`, `lab_results` |
+| Beds | `beds`, `bed_allocations` |
+| ASHA field | `home_visits`, `tasks`, `vaccinations`, `maternal_records`, `anc_visits`, `ncd_screenings` |
+| Supply chain | `inventory`, `inventory_transactions`, `stock_transfers` |
+| Communication | `notifications`, `conversations`, `conversation_members`, `messages` |
+| Other | `documents`, `sync_operations`, `treatment_plans`, `discharge_summaries`, `follow_ups`, `lab_tests` |
+
+Migrations live in `backend/src/db/migrations/` and run in filename order. Applied
+migrations are tracked in `_migrations`, so `db:migrate` is always safe to re-run.
 
 Inspect the database directly:
 
 ```bash
 cd backend
-node -e "import('./db.js').then(({default:db})=>console.log(db.prepare('SELECT * FROM users').all()))"
+node -e "import('./src/db/connection.js').then(({getDb})=>console.log(getDb().prepare('SELECT * FROM users').all()))"
 ```
 
-Reset it completely by deleting `backend/arogyasetu.sqlite` and restarting the
-server — seed data is recreated, but registered users and appointments are lost.
+### Demo data and accounts
 
-> **Note:** other features (referrals, tasks, home visits, inventory, etc.) still
-> read/write **browser IndexedDB** through `frontend/src/services/api/dataService.ts`,
-> not this server database. Only auth and appointments are server-persisted so far.
+```bash
+cd backend
+npm run demo:full     # accounts + data + scale + link, in one step
+```
+
+That runs four steps, each of which can also be run on its own:
+
+| Command | What it creates |
+| --- | --- |
+| `npm run demo:accounts` | One pre-confirmed login per role (patient, ASHA, doctor, specialist, admin) |
+| `npm run demo:data` | Beds, inventory, tasks, vaccinations, lab orders, referrals, notifications |
+| `npm run demo:scale` | Scales each entity to ~120 rows across several districts |
+| `npm run demo:link` | Points the generated data at the login accounts |
+
+Accounts are created with `email_confirm: true`, so no confirmation email is
+sent and Supabase's email rate limit does not apply. Demo addresses use the
+reserved `.test` TLD and cannot receive mail — deliberate, so they can never be
+mistaken for real accounts.
+
+**Credentials are written to `DEMO_ACCOUNTS.md`, which is gitignored.** Working
+logins are never committed. Run `npm run demo:accounts` to regenerate the file
+and see the shared password.
+
+To demonstrate that authorization is enforced by the database and not just the
+interface:
+
+```bash
+cd backend && npm run supabase:rls-test
+```
+
+It proves a patient cannot read another patient's records, cannot modify them,
+and cannot escalate their own role — checked directly against PostgreSQL.
 
 ---
 
@@ -210,34 +342,80 @@ server — seed data is recreated, but registered users and appointments are los
 ```
 ArogyaSetu/
 ├── backend/
-│   ├── index.js                 # Express app entry, route mounting, CORS
-│   ├── db.js                    # SQLite schema, migrations, seeding
-│   ├── authRoutes.js            # Phone-OTP login, /me, logout
-│   ├── appointmentsRoutes.js    # Appointment CRUD
-│   ├── routes.js                # Seeded patients/prescriptions
-│   ├── seedData.js
-│   ├── lib/
-│   │   ├── firebaseAdmin.js     # Verifies Firebase ID tokens
-│   │   ├── token.js             # Session JWT signing
-│   │   └── mailer.js            # SendGrid welcome email (optional)
-│   └── middleware/auth.js       # requireAuth guard
+│   ├── src/
+│   │   ├── server.js            # Entry point — migrate, listen, graceful shutdown
+│   │   ├── app.js               # Express assembly: helmet, CORS, routes, errors
+│   │   ├── config/              # env.js, rateLimits.js
+│   │   ├── db/
+│   │   │   ├── connection.js    # WAL, foreign keys, transaction() helper
+│   │   │   ├── migrator.js      # Repeatable-safe migration runner
+│   │   │   ├── cli.js           # db:migrate / db:seed / db:reset
+│   │   │   ├── migrations/      # 001…008, applied in filename order
+│   │   │   └── seeds/           # Idempotent demo data
+│   │   ├── middleware/          # auth (RBAC), validate (Zod), errorHandler, requestContext
+│   │   ├── repositories/        # All SQL lives here
+│   │   ├── services/            # Business logic, transactions, audit
+│   │   │   ├── accessControlService.js  # Central patient-access policy
+│   │   │   ├── cbacService.js           # NCD risk scoring
+│   │   │   ├── syncService.js           # Idempotent offline batch
+│   │   │   ├── eventBus.js              # Real domain events for SSE
+│   │   │   └── ai/                      # Provider abstraction, triage, interactions
+│   │   ├── controllers/         # HTTP ↔ service translation
+│   │   ├── validators/          # Zod schemas
+│   │   ├── routes/              # Endpoint wiring
+│   │   └── docs/openapi.js      # Swagger specification
+│   ├── tests/                   # Vitest + Supertest (162 tests)
+│   └── _legacy/                 # Superseded pre-rewrite files (not loaded)
 └── frontend/
     └── src/
         ├── App.tsx              # Routes + role-based guards
         ├── pages/               # auth, patient, doctor, asha, specialist, admin, public
         ├── components/          # ui/, layout/, healthcare/, maps/, ai/
         ├── services/
-        │   ├── auth/            # Firebase client, auth context, API client
-        │   ├── api/             # backendApi, appointmentsApi, dataService
-        │   └── offline/         # IndexedDB + sync queue
+        │   ├── api/
+        │   │   ├── apiClient.ts       # Central fetch: cookies, envelope, ApiError, 401
+        │   │   ├── backendApi.ts      # Typed calls for every backend area
+        │   │   └── appointmentsApi.ts
+        │   ├── auth/            # Firebase client, auth context
+        │   ├── ai/              # Thin wrappers over /api/ai (no client-side logic)
+        │   └── offline/         # IndexedDB cache + real sync queue
         ├── hooks/               # useI18n, useToast, useOfflineStatus
-        └── data/                # mock/seed data, i18n (en/hi/mr)
+        └── data/                # Reference data, i18n (en/hi/mr)
 ```
 
 ### Roles
 
 `patient`, `asha`, `doctor`, `specialist`, `admin` — each has its own workspace and
 route guard. A user's role is chosen at registration and stored on their account.
+
+Roles are stored uppercase in the database and mapped to lowercase at the API
+boundary (`utils/mappers.js`) so the existing frontend contract is preserved.
+**A role sent by the client is never trusted** — it is always re-read from the
+database on each request, so a role change takes effect immediately.
+
+---
+
+## Testing
+
+```bash
+cd backend && npm test
+```
+
+162 tests across 7 files, using Vitest and Supertest against a throwaway database
+(`backend/tests/.tmp/`) — the development database is never touched.
+
+| File | Covers |
+| --- | --- |
+| `auth.test.js` | Session restore, forged/expired tokens, suspended accounts, audit on login |
+| `appointments.test.js` | RBAC isolation, double-booking, pagination, cancel/reschedule |
+| `patients.test.js` | Scoped visibility, search, ABHA uniqueness, record-view auditing |
+| `clinical.test.js` | Consultations, vitals (server-derived BMI), prescriptions, rollback |
+| `phase3.test.js` | Referral state machine, **concurrent bed allocation**, lab flow |
+| `asha.test.js` | CBAC scoring, home visits, tasks, immunisation, maternal alerts |
+| `phase5.test.js` | **Sync idempotency**, inventory races, queue, AI safety, privacy |
+
+Concurrency and idempotency are tested by actually racing the operations, not by
+assuming the constraint works.
 
 ---
 

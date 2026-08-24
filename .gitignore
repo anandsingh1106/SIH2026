@@ -9,3 +9,9 @@ backend/*.sqlite-*
 backend/.env
 frontend/.env
 *.log
+backend/tests/.tmp/
+supabase/.temp/
+
+# Generated demo credentials — never commit working logins.
+# Recreate with: cd backend && npm run demo:accounts
+DEMO_ACCOUNTS.md

@@ -1,52 +1,27 @@
+import { api, ApiError } from '../api/apiClient';
 import { User, UserRole } from '../../types';
 
-const BASE_URL = '/api/auth';
+export { ApiError as AuthApiError };
 
-export class AuthApiError extends Error {
-  status: number;
-  code?: string;
-
-  constructor(message: string, status: number, code?: string) {
-    super(message);
-    this.status = status;
-    this.code = code;
-  }
-}
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    throw new AuthApiError(body.message || body.error || 'Something went wrong.', res.status, body.error);
-  }
-
-  return body as T;
-}
-
-export interface PhoneLoginProfile {
+export interface SessionProfile {
   name: string;
   role: UserRole;
+  phone?: string;
   district?: string;
   taluka?: string;
   village?: string;
   abhaId?: string;
-  email?: string;
 }
 
 export const authApi = {
-  phoneLogin: (idToken: string, profile?: PhoneLoginProfile) =>
-    request<{ user: User }>('/phone-login', {
-      method: 'POST',
-      body: JSON.stringify({ idToken, ...profile }),
-    }),
+  /**
+   * Exchanges a Supabase access token for this app's session cookie.
+   * Profile fields are only needed the first time an account signs in.
+   */
+  createSession: (accessToken: string, profile?: SessionProfile) =>
+    api.post<{ user: User }>('/api/auth/session', { accessToken, ...profile }),
 
-  me: () => request<{ user: User }>('/me'),
+  me: () => api.get<{ user: User }>('/api/auth/me'),
 
-  logout: () => request<{ message: string }>('/logout', { method: 'POST' }),
+  logout: () => api.post<{ message: string }>('/api/auth/logout'),
 };

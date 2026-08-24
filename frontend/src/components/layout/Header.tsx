@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
 import { useI18n } from '../../hooks/useI18n';
-import { dataService } from '../../services/api/dataService';
-import { Notification } from '../../types';
+import { backendApi, NotificationRecord } from '../../services/api/backendApi';
 import {
   Shield,
   Bell,
@@ -26,27 +25,36 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   const { currentUser, currentRole, logout } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const fetchNotifs = useCallback(async () => {
+    try {
+      const { items } = await backendApi.getNotifications();
+      setNotifications(items);
+    } catch {
+      // A failed notification poll should not break the shell.
+      setNotifications([]);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchNotifs = async () => {
-      const list = await dataService.getNotifications(currentRole);
-      setNotifications(list);
-    };
     fetchNotifs();
 
-    const unsub = dataService.subscribe(({ entity }) => {
-      if (entity === 'notifications') fetchNotifs();
-    });
-    return () => unsub();
-  }, [currentRole]);
+    // Live updates arrive over SSE — no polling timer.
+    const source = new EventSource('/api/stream', { withCredentials: true });
+    source.addEventListener('notification', () => fetchNotifs());
+    source.onerror = () => source.close();
+
+    return () => source.close();
+  }, [fetchNotifs]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleMarkAllRead = async () => {
-    await dataService.markAllNotificationsRead();
+    await backendApi.markAllNotificationsRead().catch(() => undefined);
+    fetchNotifs();
   };
 
   const roleColors = {

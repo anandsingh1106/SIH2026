@@ -26,11 +26,11 @@ export const SpecialistReferralQueuePage: React.FC = () => {
 
   const handleUpdateStatus = async (newStatus: ReferralStatus) => {
     if (!selectedReferral) return;
+    // The acting user is taken from the session server-side.
     const updated = await dataService.updateReferralStatus(
       selectedReferral.id,
       newStatus,
-      `Status updated to ${newStatus.replace('_', ' ')} by Dr. Priya Kulkarni`,
-      'Dr. Priya Kulkarni'
+      `Status updated to ${newStatus.replace('_', ' ')}`
     );
     if (updated) {
       setSelectedReferral(updated);
@@ -46,8 +46,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
     const updated = await dataService.updateReferralStatus(
       selectedReferral.id,
       'accepted',
-      `Referral accepted and Bed ${selectedBedId} reserved by Dr. Priya Kulkarni`,
-      'Dr. Priya Kulkarni'
+      `Referral accepted and bed ${selectedBedId} reserved`
     );
 
     if (updated) {

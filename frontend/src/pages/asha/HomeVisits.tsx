@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient, HomeVisit, Vitals, Referral } from '../../types';
-import { Home, User, CheckCircle2, AlertTriangle, ArrowRightLeft, Calendar, Stethoscope, Heart } from 'lucide-react';
+import { Home, User, CheckCircle2, AlertTriangle, ArrowRightLeft, Calendar, Stethoscope, Heart, CloudOff, X } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
 import { PatientSummaryCard } from '../../components/healthcare/PatientSummaryCard';
 
 export const AshaHomeVisitsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('pat-102');
   const [vitals, setVitals] = useState<Vitals>({ bpSystolic: 138, bpDiastolic: 88, pulse: 90, spo2: 97, temperature: 98.6 });
@@ -16,6 +18,9 @@ export const AshaHomeVisitsPage: React.FC = () => {
   const [createReferral, setCreateReferral] = useState(true);
   const [nextVisitDate, setNextVisitDate] = useState('2026-08-30');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [receipt, setReceipt] = useState<{ token: string; queued: boolean; patient: string; date: string } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     dataService.getPatients().then(setPatients);
@@ -46,6 +51,9 @@ export const AshaHomeVisitsPage: React.FC = () => {
     e.preventDefault();
     if (!selectedPatient) return;
 
+    setSaveError('');
+    setIsSaving(true);
+
     const newVisit: HomeVisit = {
       id: 'visit-' + Date.now(),
       ashaId: 'usr-asha-1',
@@ -62,7 +70,14 @@ export const AshaHomeVisitsPage: React.FC = () => {
       syncStatus: 'pending',
     };
 
-    await dataService.recordHomeVisit(newVisit);
+    let result: Awaited<ReturnType<typeof dataService.recordHomeVisit>>;
+    try {
+      result = await dataService.recordHomeVisit(newVisit);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not record the visit.');
+      setIsSaving(false);
+      return;
+    }
 
     if (createReferral) {
       const ref: Referral = {
@@ -89,11 +104,18 @@ export const AshaHomeVisitsPage: React.FC = () => {
           { status: 'created', timestamp: new Date().toISOString(), note: 'Referral generated from ASHA home visit', updatedBy: 'Sunita Gaikwad' },
         ],
       };
-      await dataService.createReferral(ref);
+      // A failed referral must not discard the visit that was just recorded.
+      await dataService.createReferral(ref).catch(() => undefined);
     }
 
+    setReceipt({
+      token: result.token,
+      queued: result.queued,
+      patient: selectedPatient.name,
+      date: newVisit.date,
+    });
     setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 4000);
+    setIsSaving(false);
   };
 
   return (
@@ -115,12 +137,76 @@ export const AshaHomeVisitsPage: React.FC = () => {
         </p>
       </div>
 
-      {saveSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>
-            <strong>Home Visit Saved Offline!</strong> Observations and referral queued in local IndexedDB.
-          </span>
+      {saveError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+          {saveError}
+        </div>
+      )}
+
+      {saveSuccess && receipt && (
+        <div
+          className={`rounded-xl border p-4 animate-in fade-in ${
+            receipt.queued
+              ? 'bg-amber-50 border-amber-200'
+              : 'bg-emerald-50 border-emerald-200'
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            {receipt.queued ? (
+              <CloudOff className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            )}
+
+            <div className="flex-1 min-w-0 space-y-2">
+              <p className={`text-sm font-bold ${receipt.queued ? 'text-amber-900' : 'text-emerald-900'}`}>
+                {receipt.queued ? 'Visit saved offline' : 'Visit recorded'}
+              </p>
+
+              <p className={`text-xs ${receipt.queued ? 'text-amber-800' : 'text-emerald-800'}`}>
+                {receipt.patient} · {receipt.date}
+                {receipt.queued
+                  ? ' — queued on this device and will sync automatically when you are back online.'
+                  : ' — saved to the health record.'}
+              </p>
+
+              {/* The token is the worker's reference for this visit. */}
+              <div className="bg-white/80 border border-slate-200 rounded-lg p-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                    Visit Token
+                  </div>
+                  <div className="font-mono text-lg font-bold text-slate-900 tracking-wider">
+                    {receipt.token}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigator.clipboard?.writeText(receipt.token)}
+                  >
+                    Copy
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => navigate('/asha/visit-log')}>
+                    View Log
+                  </Button>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-500">
+                Note this token in the household register. It identifies this visit in the visit log.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setSaveSuccess(false)}
+              className="text-slate-400 hover:text-slate-700 shrink-0"
+              aria-label="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

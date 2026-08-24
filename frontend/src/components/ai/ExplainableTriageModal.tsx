@@ -28,10 +28,22 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
   const [age, setAge] = useState(52);
   const [result, setResult] = useState<TriageResult | null>(null);
 
-  const handleRunTriage = () => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleRunTriage = async () => {
     const symptomsList = symptomText.split(',').map((s) => s.trim()).filter(Boolean);
-    const triage = analyzeTriage(symptomsList, vitals, age, isPregnant);
-    setResult(triage);
+    setError('');
+    setIsAnalyzing(true);
+    try {
+      // Pregnancy is passed as a symptom so the server's obstetric rules apply.
+      const withContext = isPregnant ? [...symptomsList, 'pregnant'] : symptomsList;
+      setResult(await analyzeTriage(withContext, vitals, age));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Triage analysis failed.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -109,11 +121,18 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
               variant="primary"
               leftIcon={<Sparkles className="w-3.5 h-3.5" />}
               onClick={handleRunTriage}
+              isLoading={isAnalyzing}
             >
               Analyze Triage Score
             </Button>
           </div>
         </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+            {error}
+          </div>
+        )}
 
         {/* Explainable AI Results Breakdown */}
         {result && (

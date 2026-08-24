@@ -98,9 +98,9 @@ export const PublicNavbar: React.FC = () => {
               {t.common.login}
             </Button>
           </Link>
-          <Link to="/select-role" className="shrink-0">
+          <Link to="/register" className="shrink-0">
             <Button variant="primary" size="sm">
-              Explore Demo Portals
+              Create Account
             </Button>
           </Link>
         </div>
@@ -142,9 +142,9 @@ export const PublicNavbar: React.FC = () => {
                 {t.common.login} / ABHA Login
               </Button>
             </Link>
-            <Link to="/select-role" onClick={() => setMobileMenuOpen(false)}>
+            <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="primary" size="sm" className="w-full">
-                Explore Demo Workspaces
+                Create Account
               </Button>
             </Link>
           </div>

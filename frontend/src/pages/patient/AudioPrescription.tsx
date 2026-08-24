@@ -9,14 +9,11 @@ import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import { EmptyState, ErrorState } from '../../components/ui/EmptyState';
 import { AudioPrescriptionPlayer } from '../../components/healthcare/AudioPrescriptionPlayer';
 import { backendApi } from '../../services/api/backendApi';
-import { Patient, Prescription } from '../../types';
-
-// Demo patient portal is not tied to real login yet, so we mirror the rest of
-// the patient section by pointing at the seeded demo patient.
-const DEMO_PATIENT_ID = 'pat-101';
+import { useAuth } from '../../services/auth/authContext';
+import { Prescription } from '../../types';
 
 export const PatientAudioPrescription: React.FC = () => {
-  const [patient, setPatient] = useState<Patient | null>(null);
+  const { currentUser } = useAuth();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,12 +23,10 @@ export const PatientAudioPrescription: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [patientData, prescriptionData] = await Promise.all([
-        backendApi.getPatient(DEMO_PATIENT_ID),
-        backendApi.getPrescriptions(DEMO_PATIENT_ID),
-      ]);
-      setPatient(patientData);
-      setPrescriptions(prescriptionData);
+      // The backend scopes prescriptions to the logged-in user, so no patient
+      // id is needed here.
+      const { items } = await backendApi.getPrescriptions();
+      setPrescriptions(items as unknown as Prescription[]);
     } catch {
       setError('Could not reach the prescription service. Please check your connection and try again.');
     } finally {
@@ -158,7 +153,6 @@ export const PatientAudioPrescription: React.FC = () => {
             )}
 
             {!isLoading &&
-              patient &&
               filteredPrescriptions.map((pres) => (
                 <Card key={pres.id} className="overflow-hidden">
                   <div className="px-5 pt-5 pb-3 border-b border-slate-100">
@@ -167,7 +161,7 @@ export const PatientAudioPrescription: React.FC = () => {
                   </div>
                   <div className="p-5">
                     <AudioPrescriptionPlayer
-                      patientName={patient.name}
+                      patientName={currentUser?.name || 'Patient'}
                       doctorName={pres.doctorName}
                       facilityName={pres.facilityName}
                       date={pres.date}

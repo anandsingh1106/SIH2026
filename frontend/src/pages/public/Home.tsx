@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { backendApi } from '../../services/api/backendApi';
 import {
   Shield,
   PhoneCall,
@@ -24,17 +25,36 @@ import { Button } from '../../components/ui/Button';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
+interface PlatformStats {
+  patients: number;
+  facilities: number;
+  consultations: number;
+  prescriptions: number;
+  referrals: number;
+  emergencyReferrals: number;
+  bedsAvailable: number;
+  bedsTotal: number;
+  vaccinationsGiven: number;
+  screenings: number;
+  healthWorkers: number;
+  districts: number;
+}
+
+type TrendPoint = { month: string; consultations: number; referrals: number };
+
 export const HomePage: React.FC = () => {
-  const impactData = [
-    { month: 'Jan', consultations: 12000, referrals: 1800 },
-    { month: 'Feb', consultations: 18500, referrals: 2400 },
-    { month: 'Mar', consultations: 24000, referrals: 3100 },
-    { month: 'Apr', consultations: 32000, referrals: 4200 },
-    { month: 'May', consultations: 41000, referrals: 5600 },
-    { month: 'Jun', consultations: 52000, referrals: 7100 },
-    { month: 'Jul', consultations: 68000, referrals: 8900 },
-    { month: 'Aug', consultations: 84500, referrals: 11200 },
-  ];
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [impactData, setImpactData] = useState<TrendPoint[]>([]);
+
+  useEffect(() => {
+    // Live platform figures. If unreachable the cards fall back to a dash
+    // rather than showing a number that was never real.
+    backendApi.getPlatformStats().then(setStats).catch(() => setStats(null));
+    backendApi
+      .getPlatformTrends()
+      .then((t) => setImpactData(t.points))
+      .catch(() => setImpactData([]));
+  }, []);
 
   const challenges = [
     {
@@ -165,9 +185,9 @@ export const HomePage: React.FC = () => {
                     Find Nearest Facility
                   </Button>
                 </Link>
-                <Link to="/select-role">
+                <Link to="/register">
                   <Button size="lg" variant="secondary" rightIcon={<ArrowRight className="w-5 h-5" />}>
-                    Explore Role Workspaces
+                    Create Your Account
                   </Button>
                 </Link>
                 <Link to="/emergency">
@@ -206,29 +226,38 @@ export const HomePage: React.FC = () => {
                 <div className="flex items-center justify-between border-b border-gov-700/60 pb-4 mb-6">
                   <div>
                     <h3 className="font-bold text-base text-white">Maharashtra Health Pulse</h3>
-                    <p className="text-xs text-gov-300">Live Telemetry Across 36 Districts</p>
+                    <p className="text-xs text-gov-300">
+                      {stats
+                        ? `Live across ${stats.districts} ${stats.districts === 1 ? 'district' : 'districts'}`
+                        : 'Connecting to the network…'}
+                    </p>
                   </div>
                   <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[10px] font-mono font-bold animate-pulse">
                     ● LIVE GRID
                   </span>
                 </div>
 
+                {/* Every figure below is a live count from the platform. */}
                 <div className="grid grid-cols-2 gap-4 text-left">
                   <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40">
-                    <div className="text-2xl font-bold text-white">12,450+</div>
-                    <div className="text-[11px] text-gov-300 font-medium">PHCs, CHCs & Hospitals</div>
+                    <div className="text-2xl font-bold text-white">{stats ? stats.facilities : '—'}</div>
+                    <div className="text-[11px] text-gov-300 font-medium">PHCs, CHCs &amp; Hospitals</div>
                   </div>
                   <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40">
-                    <div className="text-2xl font-bold text-white">65,800+</div>
-                    <div className="text-[11px] text-gov-300 font-medium">Active ASHA Workers</div>
+                    <div className="text-2xl font-bold text-white">{stats ? stats.healthWorkers : '—'}</div>
+                    <div className="text-[11px] text-gov-300 font-medium">Health Workers Onboard</div>
                   </div>
                   <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40">
-                    <div className="text-2xl font-bold text-white">18,200+</div>
-                    <div className="text-[11px] text-gov-300 font-medium">Doctors & Specialists</div>
+                    <div className="text-2xl font-bold text-white">{stats ? stats.consultations : '—'}</div>
+                    <div className="text-[11px] text-gov-300 font-medium">Consultations Recorded</div>
                   </div>
                   <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40">
-                    <div className="text-2xl font-bold text-emerald-400">98.4%</div>
-                    <div className="text-[11px] text-gov-300 font-medium">Referral Transit Safety</div>
+                    <div className="text-2xl font-bold text-emerald-400">
+                      {stats && stats.bedsTotal > 0
+                        ? `${Math.round((stats.bedsAvailable / stats.bedsTotal) * 100)}%`
+                        : '—'}
+                    </div>
+                    <div className="text-[11px] text-gov-300 font-medium">Bed Capacity Free</div>
                   </div>
                 </div>
 
@@ -237,8 +266,8 @@ export const HomePage: React.FC = () => {
                     <CloudOff className="w-3.5 h-3.5 text-gov-300" />
                     Offline Sync Queue Active
                   </span>
-                  <Link to="/select-role" className="font-bold text-white hover:underline flex items-center gap-1">
-                    Try Demo Mode →
+                  <Link to="/login" className="font-bold text-white hover:underline flex items-center gap-1">
+                    Sign in →
                   </Link>
                 </div>
               </div>
@@ -252,43 +281,39 @@ export const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900">
-              State-Wide Healthcare Impact & Performance
+              Platform Activity
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-2">
-              Real-time aggregated metrics connecting primary frontline care to super-specialty interventions
+              Live counts from this deployment, connecting frontline care to specialist services
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <MetricCard
-              title="Total Patients Served"
-              value="1,482,900+"
-              change={18.4}
-              changeLabel="increase in rural coverage"
+              title="Patients Registered"
+              value={stats ? stats.patients.toLocaleString('en-IN') : '—'}
+              changeLabel="across linked facilities"
               variant="teal"
               icon={<Users className="w-5 h-5 text-gov-700" />}
             />
             <MetricCard
-              title="Active Tele-Referrals"
-              value="11,240"
-              change={12.1}
-              changeLabel="average transit < 45 mins"
+              title="Referrals Tracked"
+              value={stats ? stats.referrals.toLocaleString('en-IN') : '—'}
+              changeLabel={stats ? `${stats.emergencyReferrals} marked emergency` : 'live referral pipeline'}
               variant="blue"
               icon={<ArrowRight className="w-5 h-5 text-sky-700" />}
             />
             <MetricCard
-              title="Essential Drugs Tracked"
-              value="4,850,000"
-              change={-2.4}
-              changeLabel="stockout risk minimized"
+              title="Prescriptions Issued"
+              value={stats ? stats.prescriptions.toLocaleString('en-IN') : '—'}
+              changeLabel="with trilingual audio playback"
               variant="emerald"
               icon={<Pill className="w-5 h-5 text-emerald-700" />}
             />
             <MetricCard
-              title="Emergency Transfers"
-              value="9,420"
-              change={24.6}
-              changeLabel="via 108 ambulance grid"
+              title="Beds Available"
+              value={stats ? `${stats.bedsAvailable} / ${stats.bedsTotal}` : '—'}
+              changeLabel="live ICU and ward capacity"
               variant="red"
               icon={<PhoneCall className="w-5 h-5 text-red-700" />}
             />
@@ -298,8 +323,12 @@ export const HomePage: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-soft">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h4 className="font-display font-bold text-slate-800 text-sm">Monthly Consultations & Tele-Referrals Trend (2026)</h4>
-                <p className="text-xs text-slate-500">Longitudinal service volume expansion across Maharashtra</p>
+                <h4 className="font-display font-bold text-slate-800 text-sm">
+                  Consultations &amp; Referrals — last 8 months
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Monthly totals recorded on the platform
+                </p>
               </div>
               <div className="flex items-center gap-4 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-gov-700">
@@ -488,9 +517,9 @@ export const HomePage: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link to="/select-role">
+            <Link to="/register">
               <Button size="lg" variant="primary" className="bg-white text-gov-900 hover:bg-gov-50 border-none font-bold">
-                Launch Role Workspaces →
+                Get Started →
               </Button>
             </Link>
           </div>

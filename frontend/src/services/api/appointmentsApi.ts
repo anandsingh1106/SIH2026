@@ -1,3 +1,5 @@
+import { api, Paginated } from './apiClient';
+
 export interface Appointment {
   id: string;
   date: string;
@@ -12,44 +14,36 @@ export interface Appointment {
 }
 
 export interface NewAppointmentInput {
-  doctor: string;
-  specialty: string;
-  facility: string;
+  doctor?: string;
+  doctorId?: string;
+  facility?: string;
+  facilityId?: string;
+  specialty?: string;
   date: string;
   time: string;
   type: 'in-person' | 'telemedicine';
   reason?: string;
 }
 
-const BASE_URL = '/api/appointments';
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    throw new Error(body.error || 'Something went wrong.');
-  }
-
-  return body as T;
+export interface ListAppointmentsParams {
+  page?: number;
+  limit?: number;
+  from?: string;
+  to?: string;
 }
 
 export const appointmentsApi = {
-  list: () => request<Appointment[]>(''),
+  list: (params: ListAppointmentsParams = {}) =>
+    api.get<Paginated<Appointment>>('/api/appointments', {
+      query: { page: params.page ?? 1, limit: params.limit ?? 50, from: params.from, to: params.to },
+    }),
 
-  create: (input: NewAppointmentInput) =>
-    request<Appointment>('', { method: 'POST', body: JSON.stringify(input) }),
+  get: (id: string) => api.get<Appointment>(`/api/appointments/${id}`),
 
-  cancel: (id: string) => request<Appointment>(`/${id}/cancel`, { method: 'PATCH' }),
+  create: (input: NewAppointmentInput) => api.post<Appointment>('/api/appointments', input),
+
+  cancel: (id: string) => api.patch<Appointment>(`/api/appointments/${id}/cancel`),
 
   reschedule: (id: string, date: string, time: string) =>
-    request<Appointment>(`/${id}/reschedule`, {
-      method: 'PATCH',
-      body: JSON.stringify({ date, time }),
-    }),
+    api.patch<Appointment>(`/api/appointments/${id}/reschedule`, { date, time }),
 };

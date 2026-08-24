@@ -48,10 +48,12 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       case 'asha':
         return [
           { label: t.nav.dashboard, to: '/asha/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.tasks, to: '/asha/tasks', icon: <CheckSquare className="w-4 h-4" />, count: 4 },
+          { label: t.nav.tasks, to: '/asha/tasks', icon: <CheckSquare className="w-4 h-4" /> },
           { label: t.nav.map, to: '/asha/map', icon: <MapPin className="w-4 h-4" /> },
+          { label: 'My Patients', to: '/asha/patients', icon: <Users className="w-4 h-4" /> },
           { label: t.nav.registerPatient, to: '/asha/register-patient', icon: <UserPlus className="w-4 h-4" /> },
           { label: t.nav.homeVisits, to: '/asha/home-visits', icon: <Home className="w-4 h-4" /> },
+          { label: 'Visit Log', to: '/asha/visit-log', icon: <FileCheck className="w-4 h-4" /> },
           { label: t.nav.immunization, to: '/asha/immunization', icon: <Syringe className="w-4 h-4" /> },
           { label: t.nav.maternalCare, to: '/asha/maternal-care', icon: <Baby className="w-4 h-4" /> },
           { label: t.nav.ncdScreening, to: '/asha/ncd-screening', icon: <Activity className="w-4 h-4" /> },

@@ -15,11 +15,24 @@ export const DoctorAITriagePage: React.FC = () => {
   const [isPregnant, setIsPregnant] = useState(false);
   const [result, setResult] = useState<TriageResult | null>(null);
 
-  const handleAnalyze = (e: React.FormEvent) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     const list = symptomInput.split(',').map((s) => s.trim()).filter(Boolean);
-    const res = analyzeTriage(list, vitals, age, isPregnant);
-    setResult(res);
+    // Pregnancy is passed as a symptom so the server's obstetric rules apply.
+    const withContext = isPregnant ? [...list, 'pregnant'] : list;
+
+    setError('');
+    setIsAnalyzing(true);
+    try {
+      setResult(await analyzeTriage(withContext, vitals, age));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Triage analysis failed.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -84,13 +97,19 @@ export const DoctorAITriagePage: React.FC = () => {
               <span>Patient is Pregnant (Maternal Scoring)</span>
             </label>
           </div>
-          <div className="flex items-center justify-end pt-5">
+          <div className="space-y-3 pt-5">
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+                {error}
+              </div>
+            )}
             <Button
               type="submit"
               variant="primary"
               size="md"
               leftIcon={<Sparkles className="w-4 h-4" />}
               className="font-bold bg-gov-700 hover:bg-gov-800 w-full"
+              isLoading={isAnalyzing}
             >
               Compute Triage Weights
             </Button>
@@ -144,19 +163,23 @@ export const DoctorAITriagePage: React.FC = () => {
             <p className="leading-relaxed">{result.recommendedAction}</p>
           </div>
 
-          {/* Differential ICD-11 */}
-          <div>
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Differential Diagnosis Suggestions:
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {result.icd11Suggestions?.map((s, idx) => (
-                <span key={idx} className="text-xs bg-slate-100 text-slate-800 font-semibold px-3 py-1 rounded-full border border-slate-200 font-mono">
-                  {s}
-                </span>
-              ))}
+          {/* Narrative explanation, when an AI provider is configured */}
+          {result.explanation && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Explanation {result.aiAssisted && <span className="text-gov-600">(AI-assisted)</span>}:
+              </h4>
+              <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">
+                {result.explanation}
+              </p>
             </div>
-          </div>
+          )}
+
+          {result.disclaimer && (
+            <p className="text-[11px] text-slate-500 italic border-t border-slate-200 pt-3">
+              {result.disclaimer}
+            </p>
+          )}
         </div>
       )}
     </div>

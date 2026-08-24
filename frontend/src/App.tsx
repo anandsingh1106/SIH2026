@@ -29,6 +29,7 @@ import { ContactPage } from './pages/public/Contact';
 // --- Auth Pages ---
 import { LoginPage } from './pages/auth/Login';
 import { RegisterPage } from './pages/auth/Register';
+import { ForgotPasswordPage } from './pages/auth/ForgotPassword';
 import { SelectRolePage } from './pages/auth/SelectRole';
 
 // --- Shared Workspace (lazy) ---
@@ -45,6 +46,8 @@ const AshaDashboard = lazy(() => import('./pages/asha/Dashboard').then(m => ({ d
 const AshaTasks = lazy(() => import('./pages/asha/Tasks').then(m => ({ default: m.AshaTasksPage })));
 const AshaVillageMap = lazy(() => import('./pages/asha/VillageMap').then(m => ({ default: m.AshaVillageMapPage })));
 const AshaRegisterPatient = lazy(() => import('./pages/asha/RegisterPatient').then(m => ({ default: m.AshaRegisterPatientPage })));
+const AshaMyPatients = lazy(() => import('./pages/asha/MyPatients').then(m => ({ default: m.AshaMyPatientsPage })));
+const AshaVisitLog = lazy(() => import('./pages/asha/VisitLog').then(m => ({ default: m.AshaVisitLogPage })));
 const AshaHomeVisits = lazy(() => import('./pages/asha/HomeVisits').then(m => ({ default: m.AshaHomeVisitsPage })));
 const AshaImmunization = lazy(() => import('./pages/asha/Immunization').then(m => ({ default: m.AshaImmunizationPage })));
 const AshaMaternalCare = lazy(() => import('./pages/asha/MaternalCare').then(m => ({ default: m.AshaMaternalCarePage })));
@@ -179,6 +182,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/select-role', element: <SelectRolePage /> },
     ],
   },
@@ -215,6 +219,8 @@ const router = createBrowserRouter([
               { path: '/asha/tasks', element: <Suspense fallback={<PageLoader />}><AshaTasks /></Suspense> },
               { path: '/asha/map', element: <Suspense fallback={<PageLoader />}><AshaVillageMap /></Suspense> },
               { path: '/asha/register-patient', element: <Suspense fallback={<PageLoader />}><AshaRegisterPatient /></Suspense> },
+              { path: '/asha/patients', element: <Suspense fallback={<PageLoader />}><AshaMyPatients /></Suspense> },
+              { path: '/asha/visit-log', element: <Suspense fallback={<PageLoader />}><AshaVisitLog /></Suspense> },
               { path: '/asha/home-visits', element: <Suspense fallback={<PageLoader />}><AshaHomeVisits /></Suspense> },
               { path: '/asha/immunization', element: <Suspense fallback={<PageLoader />}><AshaImmunization /></Suspense> },
               { path: '/asha/maternal-care', element: <Suspense fallback={<PageLoader />}><AshaMaternalCare /></Suspense> },

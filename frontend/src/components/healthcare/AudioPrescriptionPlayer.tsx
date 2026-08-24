@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Globe, FastForward, RotateCcw } from 'lucide-react';
 import { SpeechService } from '../../services/audio/speechSynthesisService';
 import { PrescribedMedicine } from '../../types';
@@ -28,6 +28,19 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedLang, setSelectedLang] = useState<'mr' | 'hi' | 'en'>('mr');
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(null);
+  const [audioError, setAudioError] = useState('');
+  const [availableLangs, setAvailableLangs] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    // Devices vary widely in which Indian-language voices are installed, so
+    // check rather than assume Marathi will be available.
+    SpeechService.availableLanguages()
+      .then(setAvailableLangs)
+      .catch(() => setAvailableLangs([]));
+
+    // Stop narration if the user navigates away mid-playback.
+    return () => SpeechService.stop();
+  }, []);
 
   const buildMarathiScript = () => {
     let script = `नमस्कार ${patientName} जी. हे डॉक्टर ${doctorName}, ${facilityName} यांच्याकडून आपले औषधोपचार मार्गदर्शन आहे. तारीख ${date}. `;
@@ -72,14 +85,22 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
       return;
     }
 
+    setAudioError('');
     setIsPlaying(true);
+
     let fullText = '';
     if (selectedLang === 'mr') fullText = buildMarathiScript();
     else if (selectedLang === 'hi') fullText = buildHindiScript();
     else fullText = buildEnglishScript();
 
-    await SpeechService.speak(fullText, selectedLang);
-    setIsPlaying(false);
+    try {
+      await SpeechService.speak(fullText, selectedLang);
+    } catch (err) {
+      setAudioError(err instanceof Error ? err.message : 'Audio playback failed.');
+    } finally {
+      // Must always clear, or the button stays stuck showing "Pause".
+      setIsPlaying(false);
+    }
   };
 
   const handleStop = () => {
@@ -151,6 +172,25 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
           {isPlaying ? '🔊 Speaking prescription instructions clearly...' : 'Press play to listen to dosage timings and advice.'}
         </span>
       </div>
+
+      {audioError && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+          {audioError}
+        </div>
+      )}
+
+      {/* Warn only once voices are known and the chosen language is absent. */}
+      {availableLangs !== null &&
+        !availableLangs.includes(selectedLang) &&
+        !audioError && (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+            No {selectedLang === 'mr' ? 'Marathi' : selectedLang === 'hi' ? 'Hindi' : 'English'} voice
+            is installed on this device, so playback will fall back to an available voice.
+            {availableLangs.length > 0 && (
+              <> Voices available here: {availableLangs.join(', ')}.</>
+            )}
+          </div>
+        )}
     </div>
   );
 };

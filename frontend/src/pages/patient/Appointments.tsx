@@ -40,8 +40,8 @@ export const PatientAppointments: React.FC = () => {
   const loadAppointments = async () => {
     setIsLoading(true);
     try {
-      const list = await appointmentsApi.list();
-      setAppointments(list);
+      const { items } = await appointmentsApi.list();
+      setAppointments(items);
     } catch (err) {
       toast.error('Could not load appointments', err instanceof Error ? err.message : undefined);
     } finally {

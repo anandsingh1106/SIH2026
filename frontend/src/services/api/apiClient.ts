@@ -1,0 +1,118 @@
+export interface ApiErrorDetail {
+  path: string;
+  message: string;
+  code?: string;
+}
+
+export class ApiError extends Error {
+  status: number;
+  code: string;
+  details?: ApiErrorDetail[];
+
+  constructor(message: string, status: number, code: string, details?: ApiErrorDetail[]) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.details = details;
+  }
+
+  /** True when the caller should be sent back to the login screen. */
+  get isUnauthenticated() {
+    return this.status === 401;
+  }
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface Paginated<T> {
+  items: T[];
+  pagination: Pagination;
+}
+
+interface RequestOptions extends Omit<RequestInit, 'body'> {
+  body?: unknown;
+  query?: Record<string, string | number | boolean | undefined>;
+}
+
+type UnauthorizedHandler = () => void;
+
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+/** Registers a callback invoked whenever the API reports an expired session. */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  onUnauthorized = handler;
+}
+
+function buildUrl(path: string, query?: RequestOptions['query']) {
+  if (!query) return path;
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== '') params.set(key, String(value));
+  }
+  const qs = params.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
+/**
+ * Single entry point for backend calls.
+ *
+ * Sends cookies, unwraps the { success, data } envelope, and converts error
+ * envelopes into ApiError so callers can branch on `code` instead of parsing
+ * message strings.
+ */
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { body, query, headers, ...rest } = options;
+
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path, query), {
+      credentials: 'include',
+      headers: {
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...headers,
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      ...rest,
+    });
+  } catch (err) {
+    // An aborted request is a caller decision, not a network failure.
+    if (err instanceof DOMException && err.name === 'AbortError') throw err;
+    throw new ApiError('Cannot reach the server. Check your connection.', 0, 'NETWORK_ERROR');
+  }
+
+  const payload = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const error = payload?.error;
+    const apiError = new ApiError(
+      error?.message || 'Something went wrong.',
+      res.status,
+      error?.code || 'UNKNOWN_ERROR',
+      error?.details
+    );
+    if (apiError.isUnauthenticated) onUnauthorized?.();
+    throw apiError;
+  }
+
+  // Successful responses are always enveloped; tolerate a bare body defensively.
+  return (payload?.success ? payload.data : payload) as T;
+}
+
+export const api = {
+  get: <T>(path: string, options?: RequestOptions) =>
+    apiRequest<T>(path, { ...options, method: 'GET' }),
+  post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiRequest<T>(path, { ...options, method: 'POST', body }),
+  patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiRequest<T>(path, { ...options, method: 'PATCH', body }),
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiRequest<T>(path, { ...options, method: 'PUT', body }),
+  delete: <T>(path: string, options?: RequestOptions) =>
+    apiRequest<T>(path, { ...options, method: 'DELETE' }),
+};
