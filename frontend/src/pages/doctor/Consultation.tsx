@@ -6,6 +6,8 @@ import { checkPrescriptionSafety, AllergyWarning } from '../../services/ai/drugI
 import { Stethoscope, CheckCircle2, AlertOctagon, Plus, Trash2, Sparkles, Pill, FlaskConical, ArrowRightLeft, ShieldCheck, Printer } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
+import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
+import { printDocument } from '../../utils/printDocument';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
@@ -22,6 +24,16 @@ export const DoctorConsultationPage: React.FC = () => {
   const [diagnosis, setDiagnosis] = useState('Essential Hypertension (Stage 2) with Suboptimal Glycemic Control');
   const [icdCode, setIcdCode] = useState('BA00 (Essential Hypertension)');
   const [vitals, setVitals] = useState<Vitals>({ bpSystolic: 148, bpDiastolic: 94, pulse: 82, spo2: 98, temperature: 98.4, bloodSugarRandom: 188 });
+  const [generalAdvice, setGeneralAdvice] = useState(
+    'Maintain a low salt and sugar diet. 30 minutes of daily walking. Follow up in 30 days.'
+  );
+  const [followUpDate, setFollowUpDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().slice(0, 10);
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // Prescribed medicines state
   const [medicines, setMedicines] = useState<PrescribedMedicine[]>([
@@ -56,6 +68,7 @@ export const DoctorConsultationPage: React.FC = () => {
   const [allergyWarnings, setAllergyWarnings] = useState<AllergyWarning[]>([]);
   const [isTriageModalOpen, setIsTriageModalOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [issuedRx, setIssuedRx] = useState<Prescription | null>(null);
 
   useEffect(() => {
     dataService.getPatients().then(setPatients);
@@ -96,25 +109,62 @@ export const DoctorConsultationPage: React.FC = () => {
     e.preventDefault();
     if (!selectedPatient) return;
 
-    const rx: Prescription = {
-      id: 'rx-' + Date.now(),
-      consultationId: 'con-' + Date.now(),
-      patientId: selectedPatient.id,
-      patientName: selectedPatient.name,
-      doctorId: 'usr-doc-1',
-      doctorName: 'Dr. Rajesh Deshmukh (MBBS, DCH)',
-      facilityName: 'PHC Paud Clinic',
-      date: new Date().toISOString().substring(0, 10),
-      medicines,
-      generalAdvice: 'Maintain low salt & sugar diet. 30 minutes daily walking. Follow up in 30 days.',
-      generalAdviceMr: 'जेवणात मीठ व साखर कमी ठेवा. दररोज ३० मिनिटे चाला. ३० दिवसांनी पुन्हा भेटा.',
-      generalAdviceHi: 'भोजन में नमक व चीनी कम रखें। प्रतिदिन 30 मिनट टहलें। 30 दिन बाद दिखाएं।',
-      followUpDate: '2026-09-23',
-    };
+    if (medicines.length === 0) {
+      setSaveError('Add at least one medicine before issuing the prescription.');
+      return;
+    }
 
-    await dataService.savePrescription(rx);
-    setIsSubmitted(true);
-    confetti({ particleCount: 70, spread: 50, origin: { y: 0.6 } });
+    setSaveError('');
+    setIsSaving(true);
+
+    try {
+      // The prescription must reference a real consultation, so record the
+      // consultation first and use the id the server returns.
+      const consultation = await dataService.saveConsultation({
+        patientId: selectedPatient.id,
+        chiefComplaint: symptoms,
+        symptoms: symptoms.split(',').map((s) => s.trim()).filter(Boolean),
+        examination: examNotes,
+        diagnosis,
+        // The field often holds "BA00 (Essential Hypertension)"; the API stores
+        // the code alone, so take the leading token.
+        icdCode: icdCode.trim().split(/[\s(]/)[0].slice(0, 20) || undefined,
+        followUpDate,
+      });
+
+      // Vitals recorded during the consultation belong on the patient record.
+      await dataService
+        .recordVitals(selectedPatient.id, vitals, consultation.id)
+        .catch(() => undefined);
+
+      const rx: Prescription = {
+        id: '',
+        consultationId: consultation.id,
+        patientId: selectedPatient.id,
+        patientName: selectedPatient.name,
+        doctorId: '',
+        doctorName: '',
+        facilityName: '',
+        date: new Date().toISOString().substring(0, 10),
+        medicines,
+        generalAdvice: generalAdvice,
+        followUpDate,
+      };
+
+      const saved = await dataService.savePrescription({ ...rx, diagnosis } as Prescription);
+
+      // Keep the issued prescription so "Print Prescription Slip" prints it
+      // rather than the surrounding page.
+      setIssuedRx({ ...rx, ...saved });
+      setIsSubmitted(true);
+      confetti({ particleCount: 70, spread: 50, origin: { y: 0.6 } });
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : 'Could not issue the prescription. Please try again.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -149,6 +199,9 @@ export const DoctorConsultationPage: React.FC = () => {
 
       {isSubmitted ? (
         <div className="bg-white rounded-2xl border border-emerald-200 p-8 shadow-card text-center space-y-4 animate-in fade-in">
+          {/* Off-screen; only this is sent to the printer. */}
+          <PrintablePrescription prescription={issuedRx} />
+
           <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-10 h-10" />
           </div>
@@ -163,7 +216,7 @@ export const DoctorConsultationPage: React.FC = () => {
               variant="outline"
               size="sm"
               leftIcon={<Printer className="w-4 h-4" />}
-              onClick={() => window.print()}
+              onClick={printDocument}
             >
               Print Prescription Slip
             </Button>
@@ -364,6 +417,12 @@ export const DoctorConsultationPage: React.FC = () => {
           </div>
 
           {/* Submit */}
+          {saveError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+              {saveError}
+            </div>
+          )}
+
           <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
             <span className="text-xs text-slate-500">
               Prescription digitally signed & linked to ABHA Record
@@ -374,6 +433,7 @@ export const DoctorConsultationPage: React.FC = () => {
               size="lg"
               leftIcon={<CheckCircle2 className="w-5 h-5" />}
               className="font-bold bg-gov-700 hover:bg-gov-800"
+              isLoading={isSaving}
             >
               Sign & Issue E-Prescription
             </Button>

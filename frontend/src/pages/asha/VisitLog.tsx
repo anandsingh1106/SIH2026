@@ -29,6 +29,8 @@ interface LogEntry {
   observations?: string;
   synced: boolean;
   queuedAt?: string;
+  syncError?: string;
+  retryCount?: number;
 }
 
 export const AshaVisitLogPage: React.FC = () => {
@@ -38,6 +40,7 @@ export const AshaVisitLogPage: React.FC = () => {
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncingToken, setSyncingToken] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending' | 'synced'>('all');
 
@@ -73,6 +76,8 @@ export const AshaVisitLogPage: React.FC = () => {
             observations: payload.observations as string | undefined,
             synced: false,
             queuedAt: op.timestamp,
+            syncError: op.error,
+            retryCount: op.retryCount,
           };
         });
 
@@ -105,6 +110,24 @@ export const AshaVisitLogPage: React.FC = () => {
       await load();
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  /** Syncs a single queued visit, so the worker can push one record at a time. */
+  const handleSyncOne = async (token: string) => {
+    setSyncingToken(token);
+    try {
+      const { success, error } = await syncQueueManager.syncOne(token);
+      if (success) {
+        toast.success('Visit synced', `${token} is now on the server.`);
+      } else {
+        toast.error('Could not sync', error);
+      }
+      // Reload either way: on success the entry moves to Synced, on failure the
+      // retry count shown on the card is refreshed.
+      await load();
+    } finally {
+      setSyncingToken(null);
     }
   };
 
@@ -275,17 +298,44 @@ export const AshaVisitLogPage: React.FC = () => {
                         </>
                       )}
                     </div>
+
+                    {/* Surface why a queued visit has not gone through. */}
+                    {e.syncError && (
+                      <div className="mt-2 flex items-start gap-1.5 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
+                        <span>
+                          {e.syncError}
+                          {e.retryCount ? ` (${e.retryCount} attempt${e.retryCount === 1 ? '' : 's'})` : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="shrink-0">
+                  <div className="shrink-0 flex flex-col items-end gap-2">
                     {e.synced ? (
                       <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
                         <CheckCircle2 className="w-4 h-4" /> Synced
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-amber-700 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
-                        <CloudOff className="w-4 h-4" /> Pending
-                      </span>
+                      <>
+                        <span className="text-xs font-bold text-amber-700 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                          <CloudOff className="w-4 h-4" /> Pending
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          leftIcon={
+                            <RefreshCcw
+                              className={`w-3.5 h-3.5 ${syncingToken === e.token ? 'animate-spin' : ''}`}
+                            />
+                          }
+                          onClick={() => handleSyncOne(e.token)}
+                          isLoading={syncingToken === e.token}
+                          disabled={syncingToken !== null}
+                        >
+                          Sync
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

@@ -95,7 +95,7 @@ export const DoctorLabOrdersPage: React.FC = () => {
                   <td className="p-3.5 text-slate-500">{ord.dateOrdered}</td>
                   <td className="p-3.5">
                     <Badge variant={ord.status === 'completed' ? 'success' : 'warning'} size="sm">
-                      {ord.status.toUpperCase()}
+                      {(ord.status ?? '').toUpperCase()}
                     </Badge>
                   </td>
                   <td className="p-3.5">

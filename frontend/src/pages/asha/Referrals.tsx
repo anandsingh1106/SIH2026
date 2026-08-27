@@ -76,7 +76,7 @@ export const AshaReferralsPage: React.FC = () => {
                   <p className="text-xs text-slate-500 line-clamp-1">{r.provisionalDiagnosis}</p>
 
                   <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
-                    <span className="font-semibold text-gov-800">To: {r.targetFacilityName.split(' ')[0]}</span>
+                    <span className="font-semibold text-gov-800">To: {(r.targetFacilityName ?? '').split(' ')[0]}</span>
                     <span className="capitalize font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                       {r.status.replace('_', ' ')}
                     </span>

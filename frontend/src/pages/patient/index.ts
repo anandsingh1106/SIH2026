@@ -1,6 +1,7 @@
 export { PatientDashboard } from './Dashboard';
 export { PatientTimeline } from './Timeline';
 export { PatientPrescriptions } from './Prescriptions';
+export { PatientMedicineOrders } from './MedicineOrders';
 export { PatientLabReports } from './LabReports';
 export { PatientAppointments } from './Appointments';
 export { PatientReferralStatus } from './ReferralStatus';

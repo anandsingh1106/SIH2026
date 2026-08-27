@@ -174,6 +174,68 @@ describe('offline sync', () => {
     expect(res.body.data.results[0].error).toMatch(/Unsupported/i);
   });
 
+  it('repairs risk levels queued by older clients', async () => {
+    // Earlier app versions queued the display text rather than the enum value,
+    // which reached the database and failed as a CHECK constraint violation.
+    const res = await request(app).post('/api/sync/batch').set('Cookie', authCookie(asha))
+      .send({
+        operations: [operation({
+          payload: {
+            patientId: patient.id,
+            visitDate: '2026-08-01',
+            riskLevel: 'High Risk Identified',
+          },
+        })],
+      });
+
+    expect(res.body.data.results[0].success).toBe(true);
+    const stored = getDb().prepare('SELECT risk_level FROM home_visits ORDER BY created_at DESC').get();
+    expect(stored.risk_level).toBe('HIGH');
+  });
+
+  it('maps the legacy "Normal" outcome to LOW', async () => {
+    const res = await request(app).post('/api/sync/batch').set('Cookie', authCookie(asha))
+      .send({
+        operations: [operation({
+          payload: { patientId: patient.id, visitDate: '2026-08-02', riskLevel: 'Normal' },
+        })],
+      });
+
+    expect(res.body.data.results[0].success).toBe(true);
+    const stored = getDb().prepare('SELECT risk_level FROM home_visits ORDER BY created_at DESC').get();
+    expect(stored.risk_level).toBe('LOW');
+  });
+
+  it('reports a readable validation error rather than a raw constraint failure', async () => {
+    const res = await request(app).post('/api/sync/batch').set('Cookie', authCookie(asha))
+      .send({
+        operations: [operation({ payload: { visitDate: 'not-a-date' } })],
+      });
+
+    const { success, error } = res.body.data.results[0];
+    expect(success).toBe(false);
+    expect(error).toMatch(/visitDate|patientId/);
+    // The database's own wording must never reach the field worker.
+    expect(error).not.toMatch(/CHECK constraint/i);
+  });
+
+  it('accepts display-only fields carried alongside the payload', async () => {
+    // Queued records include patientName so the offline log is readable.
+    const res = await request(app).post('/api/sync/batch').set('Cookie', authCookie(asha))
+      .send({
+        operations: [operation({
+          payload: {
+            patientId: patient.id,
+            visitDate: '2026-08-03',
+            patientName: 'Display Only',
+            householdId: 'HV-TEST-999',
+          },
+        })],
+      });
+
+    expect(res.body.data.results[0].success).toBe(true);
+  });
+
   it('enforces authorization inside sync just like the REST route', async () => {
     // A patient may not create home visits, even via the sync channel.
     const res = await request(app).post('/api/sync/batch').set('Cookie', authCookie(patientUser))

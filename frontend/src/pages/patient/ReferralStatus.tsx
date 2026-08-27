@@ -57,7 +57,7 @@ export const PatientReferralStatus: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-slate-400">Created</p>
-                      <p className="text-sm font-semibold text-slate-700">{referral.createdAt.split('T')[0]}</p>
+                      <p className="text-sm font-semibold text-slate-700">{(referral.createdAt ?? '').split('T')[0]}</p>
                     </div>
                   </div>
 

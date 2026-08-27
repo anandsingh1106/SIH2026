@@ -60,7 +60,7 @@ export const SpecialistConsultations: React.FC = () => {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-slate-900 text-base">{ref.patientName}</span>
                   <Badge variant={ref.priority === 'critical' ? 'danger' : ref.priority === 'high' ? 'warning' : 'info'}>
-                    {ref.priority.toUpperCase()} PRIORITY
+                    {(ref.priority ?? '').toUpperCase()} PRIORITY
                   </Badge>
                   <Badge variant="default" className="text-xs">{ref.specialty}</Badge>
                 </div>

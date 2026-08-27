@@ -40,6 +40,24 @@ export function getInventory(req, res, next) {
   } catch (err) { next(err); }
 }
 
+export function getPrescriptionAvailability(req, res, next) {
+  try {
+    return sendSuccess(
+      res,
+      inventory.getPrescriptionAvailability(req.user, req.params.id)
+    );
+  } catch (err) { next(err); }
+}
+
+export function postMedicineOrder(req, res, next) {
+  try {
+    return sendSuccess(
+      res,
+      inventory.requestMedicineOrder(req.user, req.body, { ip: req.ip })
+    );
+  } catch (err) { next(err); }
+}
+
 export function postInventory(req, res, next) {
   try {
     const row = inventory.createInventoryItem(req.user, req.body, meta(req));

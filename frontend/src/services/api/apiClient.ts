@@ -90,8 +90,17 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!res.ok) {
     const error = payload?.error;
+    // "Request validation failed." on its own tells the user nothing. Fold the
+    // field-level detail into the message so the screen can show what to fix.
+    const detail = Array.isArray(error?.details) && error.details.length
+      ? error.details
+          .map((d: ApiErrorDetail) => (d.path ? `${d.path}: ${d.message}` : d.message))
+          .join('; ')
+      : '';
+
+    const baseMessage = error?.message || 'Something went wrong.';
     const apiError = new ApiError(
-      error?.message || 'Something went wrong.',
+      detail ? `${baseMessage} ${detail}` : baseMessage,
       res.status,
       error?.code || 'UNKNOWN_ERROR',
       error?.details

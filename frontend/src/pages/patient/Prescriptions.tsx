@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pill, Download, Printer, Volume2, ChevronDown, ChevronUp, AlertTriangle, Info } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
+import { printDocument } from '../../utils/printDocument';
+import { Prescription } from '../../types';
 import { INITIAL_PRESCRIPTIONS } from '../../data/mockData';
 
 export const PatientPrescriptions: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(INITIAL_PRESCRIPTIONS[0]?.id ?? null);
+  const [printTarget, setPrintTarget] = useState<Prescription | null>(null);
 
   const prescriptions = INITIAL_PRESCRIPTIONS;
+
+  const handlePrint = (pres: Prescription) => setPrintTarget(pres);
+
+  // Printing has to wait until the chosen prescription is in the DOM.
+  useEffect(() => {
+    if (!printTarget) return;
+    printDocument();
+    setPrintTarget(null);
+  }, [printTarget]);
 
   const TIMING_MAP: Record<string, string> = {
     '1-0-0': 'Morning only',
@@ -21,6 +34,9 @@ export const PatientPrescriptions: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Off-screen; only this is sent to the printer. */}
+      <PrintablePrescription prescription={printTarget} />
+
       <Breadcrumbs items={[{ label: 'Patient Portal' }, { label: 'Prescriptions' }]} />
 
       <div className="flex items-center gap-3">
@@ -55,7 +71,7 @@ export const PatientPrescriptions: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-bold text-slate-800">{pres.date}</p>
-                    <Badge variant="info" className="text-xs">Rx #{pres.id.split('-').pop()}</Badge>
+                    <Badge variant="info" className="text-xs">Rx #{(pres.id ?? '').split('-').pop()}</Badge>
                   </div>
                   <p className="text-sm text-slate-600 mt-1">{pres.doctorName} · {pres.facilityName}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{pres.medicines.length} medicines prescribed</p>
@@ -155,7 +171,10 @@ export const PatientPrescriptions: React.FC = () => {
                     <Download className="w-4 h-4" />
                     Download PDF
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                  <button
+                    onClick={() => handlePrint(pres)}
+                    className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                  >
                     <Printer className="w-4 h-4" />
                     Print
                   </button>

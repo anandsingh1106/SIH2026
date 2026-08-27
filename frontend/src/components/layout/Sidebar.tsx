@@ -34,6 +34,7 @@ import {
   Settings,
   HelpCircle,
   TrendingUp,
+  ShoppingCart,
 } from 'lucide-react';
 
 export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
@@ -104,6 +105,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
           { label: t.nav.dashboard, to: '/patient/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
           { label: t.nav.timeline, to: '/patient/timeline', icon: <Clock className="w-4 h-4" /> },
           { label: t.nav.prescriptions, to: '/patient/prescriptions', icon: <Pill className="w-4 h-4" /> },
+          { label: t.nav.orderMedicines, to: '/patient/medicine-orders', icon: <ShoppingCart className="w-4 h-4" /> },
           { label: t.nav.labOrders, to: '/patient/lab-reports', icon: <FlaskConical className="w-4 h-4" /> },
           { label: t.nav.calendar, to: '/patient/appointments', icon: <Calendar className="w-4 h-4" /> },
           { label: t.nav.referrals, to: '/patient/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },

@@ -277,3 +277,12 @@ export function postReadAll(req, res, next) {
     return sendSuccess(res, notificationService.markAllRead(req.user));
   } catch (err) { next(err); }
 }
+
+export function postUrgentAlert(req, res, next) {
+  try {
+    return sendSuccess(
+      res,
+      notificationService.sendUrgentPatientAlert(req.user, req.body)
+    );
+  } catch (err) { next(err); }
+}

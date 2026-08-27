@@ -21,6 +21,16 @@ const RISK_LEVEL: Record<string, Priority> = {
 };
 
 /**
+ * The vitals form captures temperature in Fahrenheit; the API works in
+ * Celsius. Values above 45 can only be Fahrenheit, since 45 °C is already
+ * beyond survivable.
+ */
+function toCelsius(temperature?: number): number | undefined {
+  if (temperature == null) return undefined;
+  return temperature > 45 ? Number(((temperature - 32) * 5 / 9).toFixed(1)) : temperature;
+}
+
+/**
  * Triage is computed on the server so the clinical rules live in one place and
  * the AI provider key never reaches the browser.
  */
@@ -34,7 +44,9 @@ export const analyzeTriage = async (
     age,
     vitals: vitals
       ? {
-          ...(vitals.temperature != null ? { temperature: vitals.temperature } : {}),
+          ...(toCelsius(vitals.temperature) != null
+            ? { temperature: toCelsius(vitals.temperature) }
+            : {}),
           ...(vitals.bpSystolic != null ? { bloodPressureSystolic: vitals.bpSystolic } : {}),
           ...(vitals.bpDiastolic != null ? { bloodPressureDiastolic: vitals.bpDiastolic } : {}),
           ...(vitals.pulse != null ? { heartRate: vitals.pulse } : {}),

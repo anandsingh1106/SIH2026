@@ -7,7 +7,7 @@ import {
   listReferralsSchema, createReferralSchema, referralTransitionSchema, referralStatusSchema,
   listLabOrdersSchema, createLabOrderSchema, updateLabOrderSchema, labResultSchema,
   listBedsSchema, createBedSchema, allocateBedSchema, bedStatusSchema,
-  listNotificationsSchema,
+  listNotificationsSchema, urgentAlertSchema,
 } from '../validators/phase3Validators.js';
 
 // ─── Referrals ──────────────────────────────────────────────────────────────
@@ -54,3 +54,4 @@ notificationRouter.get('/', validate({ query: listNotificationsSchema }), ctrl.g
 notificationRouter.get('/unread-count', ctrl.getUnreadCount);
 notificationRouter.patch('/:id/read', validate({ params: idParamSchema }), ctrl.patchNotificationRead);
 notificationRouter.post('/read-all', ctrl.postReadAll);
+notificationRouter.post('/urgent-alert', validate({ body: urgentAlertSchema }), ctrl.postUrgentAlert);

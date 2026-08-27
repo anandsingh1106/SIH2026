@@ -112,7 +112,17 @@ export function recordVitals(user, patientId, input, requestMeta = {}) {
 
 export function listPrescriptions(user, filters = {}) {
   const db = getDb();
-  return prescriptionRepository.list({ ...filters, patientIds: scopeFor(user, db) }, db);
+  const result = prescriptionRepository.list({ ...filters, patientIds: scopeFor(user, db) }, db);
+
+  // Callers render the medicines straight off each row, so the list has to
+  // carry its items just as getPrescription does.
+  return {
+    ...result,
+    items: result.items.map((prescription) => ({
+      ...prescription,
+      items: prescriptionRepository.listItems(prescription.id, db),
+    })),
+  };
 }
 
 export function getPrescription(user, id, requestMeta = {}) {

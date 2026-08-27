@@ -4,14 +4,57 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
+import {
+  PrintableDischargeSummary,
+  DischargeSummaryData,
+} from '../../components/healthcare/PrintableDischargeSummary';
+import { printDocument } from '../../utils/printDocument';
 import { INITIAL_PATIENTS } from '../../data/mockData';
+
+/** ABHA addresses shown alongside each admitted patient in the author modal. */
+const ABHA_BY_PATIENT: Record<string, string> = {
+  'Anandi Devi Patil': '91-8273-1928-4491',
+  'Suresh More': '91-1102-4829-0021',
+  'Eknath Shinde': '91-9921-5582-7721',
+};
 
 export const SpecialistDischarge: React.FC = () => {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState('Anandi Devi Patil');
 
+  /** The summary rendered on screen, in the shape the print layout needs. */
+  const summary: DischargeSummaryData = {
+    patientName: selectedPatient,
+    abhaId: ABHA_BY_PATIENT[selectedPatient] ?? '—',
+    admissionDate: '14 Aug 2026',
+    dischargeDate: '18 Aug 2026',
+    consultant: 'Dr. Priya Kulkarni, MD, DM',
+    facilityName: 'Sassoon General Hospital & Medical College, Pune',
+    department: 'Tertiary Center · Dept. of Cardiology & Medicine',
+    diagnosis: [
+      'Severe Refractory Essential Hypertension (Controlled at Discharge: 130/82 mmHg)',
+      'Type 2 Diabetes Mellitus with Mild Microalbuminuria',
+      'Mild Diastolic Dysfunction (E/A 0.8, preserved EF 58%)',
+    ],
+    hospitalCourse:
+      'Patient was transferred from PHC Paud with hypertensive urgency. Initiated on dual antihypertensive therapy. Tele-ECG and 2D Echo ruled out acute ischemic changes. Renal parameters stabilized (Serum Creatinine 1.05 mg/dL). Discharged in hemodynamically stable condition.',
+    medicines: [
+      { name: 'Tab Telmisartan 40mg', dosage: '1 Tab', frequency: '1-0-0 (Morning)', instructions: 'After breakfast (सकाळी नाष्ट्यानंतर)' },
+      { name: 'Tab Metformin 500mg ER', dosage: '1 Tab', frequency: '1-0-1 (Morning & Night)', instructions: 'With meals (जेवणासोबत)' },
+      { name: 'Tab Atorvastatin 20mg', dosage: '1 Tab', frequency: '0-0-1 (Night)', instructions: 'At bedtime (रात्री झोपताना)' },
+    ],
+    handoffDirectives: [
+      'Paud ASHA worker Sunita Patil to conduct weekly home visit for BP recording.',
+      'PHC Paud Medical Officer to recheck serum potassium after 3 weeks of ARB therapy.',
+      'SOS red flags: Severe headache, chest pressure, dizziness — call 108 immediately.',
+    ],
+  };
+
   return (
     <div className="space-y-6">
+      {/* Off-screen; only this is sent to the printer. */}
+      <PrintableDischargeSummary summary={summary} />
+
       <Breadcrumbs items={[{ label: 'Specialist Workspace' }, { label: 'Discharge Summaries & FHIR Handoff' }]} />
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,10 +89,17 @@ export const SpecialistDischarge: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50">
+            <button
+              onClick={printDocument}
+              className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50"
+            >
               <Printer className="w-4 h-4" /> Print
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg hover:bg-gov-700">
+            <button
+              onClick={printDocument}
+              title="Opens the print dialog — choose 'Save as PDF' as the destination"
+              className="flex items-center gap-1.5 px-3 py-2 bg-gov-600 text-white text-xs font-bold rounded-lg hover:bg-gov-700"
+            >
               <Download className="w-4 h-4" /> Export Signed PDF
             </button>
           </div>
@@ -59,11 +109,11 @@ export const SpecialistDischarge: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
           <div>
             <span className="text-slate-400">Patient Name:</span>
-            <p className="font-bold text-slate-900 mt-0.5">Anandi Devi Patil</p>
+            <p className="font-bold text-slate-900 mt-0.5">{summary.patientName}</p>
           </div>
           <div>
             <span className="text-slate-400">ABHA Address:</span>
-            <p className="font-mono font-semibold text-slate-800 mt-0.5">91-8273-1928-4491</p>
+            <p className="font-mono font-semibold text-slate-800 mt-0.5">{summary.abhaId}</p>
           </div>
           <div>
             <span className="text-slate-400">Admission / Discharge:</span>

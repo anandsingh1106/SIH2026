@@ -38,6 +38,126 @@ export function listInventory({ facilityId, medicineId, lowStock, expiringBefore
   return { items, total };
 }
 
+/**
+ * Availability of the medicines on a prescription, for the patient who owns it.
+ *
+ * Prescriptions record a dispensing label ("Tab Paracetamol 500mg") while the
+ * catalogue stores the drug name ("Paracetamol"), so each item is matched on
+ * the catalogue name appearing within the label.
+ */
+export function getPrescriptionAvailability(user, prescriptionId) {
+  const db = getDb();
+
+  const prescription = db.prepare('SELECT * FROM prescriptions WHERE id = ?').get(prescriptionId);
+  if (!prescription) throw new NotFoundError('Prescription');
+
+  // A patient may only see availability for their own prescription.
+  if (user.role === 'PATIENT') {
+    const patient = db.prepare('SELECT id FROM patients WHERE user_id = ?').get(user.id);
+    if (!patient || patient.id !== prescription.patient_id) {
+      throw new AuthorizationError('You can only view your own prescriptions.');
+    }
+  }
+
+  const items = db
+    .prepare('SELECT * FROM prescription_items WHERE prescription_id = ?')
+    .all(prescriptionId);
+
+  const stock = db
+    .prepare(`
+      SELECT m.name AS medicine_name, i.quantity, i.unit_price, i.facility_id,
+             f.name AS facility_name
+      FROM inventory i
+      JOIN medicines m ON m.id = i.medicine_id
+      LEFT JOIN facilities f ON f.id = i.facility_id
+      WHERE i.quantity > 0
+    `)
+    .all();
+
+  return items.map((item) => {
+    const label = (item.medicine_name || '').toLowerCase();
+    const match = stock.find((s) => label.includes((s.medicine_name || '').toLowerCase()));
+
+    return {
+      medicineName: item.medicine_name,
+      dosage: item.dosage,
+      frequency: item.frequency,
+      duration: item.duration,
+      quantity: item.quantity,
+      available: Boolean(match),
+      inStock: match ? match.quantity : 0,
+      unitPrice: match ? match.unit_price : null,
+      estimatedCost: match && item.quantity ? Number((match.unit_price * item.quantity).toFixed(2)) : null,
+      facilityName: match ? match.facility_name : null,
+      facilityId: match ? match.facility_id : null,
+    };
+  });
+}
+
+/**
+ * Places a patient's request to collect prescribed medicines from a pharmacy.
+ *
+ * Stock is not decremented here: the pharmacist dispenses and adjusts stock,
+ * which keeps the audit trail honest about who actually handed the drugs over.
+ */
+export function requestMedicineOrder(user, { prescriptionId, items, facilityId }, requestMeta = {}) {
+  if (user.role !== 'PATIENT') {
+    throw new AuthorizationError('Only patients can request their own medicines.');
+  }
+  if (!items?.length) {
+    throw new ValidationError('Select at least one medicine to order.');
+  }
+
+  return transaction((db) => {
+    const patient = db.prepare('SELECT * FROM patients WHERE user_id = ?').get(user.id);
+    if (!patient) throw new NotFoundError('Patient');
+
+    const prescription = db.prepare('SELECT * FROM prescriptions WHERE id = ?').get(prescriptionId);
+    if (!prescription) throw new NotFoundError('Prescription');
+    if (prescription.patient_id !== patient.id) {
+      throw new AuthorizationError('You can only order against your own prescription.');
+    }
+
+    const targetFacility = facilityId ?? prescription.facility_id;
+    const orderCode = `RX-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    const summary = items.map((i) => `${i.medicineName} x${i.quantity}`).join(', ');
+
+    // Pharmacy staff work the counter at the facility, so the request is
+    // broadcast there rather than to one named user.
+    notify({
+      facilityId: targetFacility,
+      role: 'DOCTOR',
+      type: 'MEDICINE_ORDER',
+      title: `Medicine collection request: ${patient.name}`,
+      message: `${summary}. Order ${orderCode}.`,
+      priority: 'HIGH',
+      metadata: { orderCode, prescriptionId, patientId: patient.id },
+      link: '/doctor/inventory',
+    }, db);
+
+    // The patient keeps the token in their own notification feed.
+    if (patient.user_id) {
+      notify({
+        userId: patient.user_id,
+        type: 'MEDICINE_ORDER',
+        title: `Medicine order ${orderCode} placed`,
+        message: `Show this token at the pharmacy counter to collect: ${summary}.`,
+        priority: 'NORMAL',
+        metadata: { orderCode, prescriptionId },
+        link: '/patient/medicine-orders',
+      }, db);
+    }
+
+    recordAudit(
+      { actorId: user.id, action: 'REQUEST_MEDICINE_ORDER', entityType: 'prescription',
+        entityId: prescriptionId, newValues: { orderCode, itemCount: items.length }, ...requestMeta },
+      db
+    );
+
+    return { orderCode, prescriptionId, items, placedAt: now(), status: 'REQUESTED' };
+  });
+}
+
 export function createInventoryItem(user, input, requestMeta = {}) {
   assertCanManage(user);
 

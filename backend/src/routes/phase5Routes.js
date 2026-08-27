@@ -8,6 +8,7 @@ import {
   listInventorySchema, createInventorySchema, adjustStockSchema, transferStockSchema,
   createConversationSchema, sendMessageSchema, syncBatchSchema,
   analyticsQuerySchema, heatmapQuerySchema,
+  medicineOrderSchema,
   issueTokenSchema, queueParamSchema, tokenParamSchema,
   triageSchema, assistantSchema, drugInteractionSchema, listAuditSchema,
 } from '../validators/phase5Validators.js';
@@ -17,6 +18,13 @@ inventoryRouter.use(requireAuth);
 inventoryRouter.get('/', validate({ query: listInventorySchema }), ctrl.getInventory);
 inventoryRouter.post('/', validate({ body: createInventorySchema }), ctrl.postInventory);
 inventoryRouter.post('/transfer', validate({ body: transferStockSchema }), ctrl.postTransfer);
+// Declared before the '/:id/...' routes so 'orders' is not read as an id.
+inventoryRouter.post('/orders', validate({ body: medicineOrderSchema }), ctrl.postMedicineOrder);
+inventoryRouter.get(
+  '/prescriptions/:id/availability',
+  validate({ params: idParamSchema }),
+  ctrl.getPrescriptionAvailability
+);
 inventoryRouter.post('/:id/adjust', validate({ params: idParamSchema, body: adjustStockSchema }), ctrl.postStockAdjustment);
 inventoryRouter.get('/:id/transactions', validate({ params: idParamSchema, query: paginationSchema }), ctrl.getInventoryTransactions);
 

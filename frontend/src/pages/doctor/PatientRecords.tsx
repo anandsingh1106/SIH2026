@@ -24,9 +24,9 @@ export const DoctorPatientRecordsPage: React.FC = () => {
 
   const filtered = patients.filter((p) => {
     return (
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.abhaId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.phone.includes(searchQuery)
+      (p.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.abhaId ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.phone ?? '').includes(searchQuery)
     );
   });
 
@@ -87,7 +87,7 @@ export const DoctorPatientRecordsPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-900">{p.name}</span>
                     <Badge variant={p.riskCategory === 'critical' ? 'critical' : p.riskCategory === 'high' ? 'danger' : 'primary'} size="sm">
-                      {p.riskCategory.toUpperCase()}
+                      {(p.riskCategory ?? 'normal').toUpperCase()}
                     </Badge>
                   </div>
                   <div className="text-xs text-slate-500 font-mono mt-0.5">ABHA: {p.abhaId}</div>
@@ -119,7 +119,7 @@ export const DoctorPatientRecordsPage: React.FC = () => {
                     leftIcon={<Stethoscope className="w-3.5 h-3.5" />}
                     onClick={() => navigate('/doctor/consultation')}
                   >
-                    Start Consultation for {selectedPatient.name.split(' ')[0]}
+                    Start Consultation for {(selectedPatient.name ?? '').split(' ')[0]}
                   </Button>
                 </div>
 

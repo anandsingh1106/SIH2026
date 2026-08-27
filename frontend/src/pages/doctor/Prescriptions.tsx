@@ -6,6 +6,8 @@ import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { AudioPrescriptionPlayer } from '../../components/healthcare/AudioPrescriptionPlayer';
+import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
+import { printDocument } from '../../utils/printDocument';
 import { useNavigate } from 'react-router-dom';
 
 export const DoctorPrescriptionsPage: React.FC = () => {
@@ -30,6 +32,9 @@ export const DoctorPrescriptionsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Off-screen; only this is sent to the printer. */}
+      <PrintablePrescription prescription={selectedRx} />
+
       <Breadcrumbs
         items={[
           { label: 'Doctor Workspace', href: '/doctor/dashboard' },
@@ -126,7 +131,7 @@ export const DoctorPrescriptionsPage: React.FC = () => {
                     <p className="text-xs text-slate-500">{selectedRx.facilityName} • Outpatient Department</p>
                   </div>
                   <div className="flex items-center gap-2 no-print">
-                    <Button size="sm" variant="outline" leftIcon={<Printer className="w-3.5 h-3.5" />} onClick={() => window.print()}>
+                    <Button size="sm" variant="outline" leftIcon={<Printer className="w-3.5 h-3.5" />} onClick={printDocument}>
                       Print Slip
                     </Button>
                   </div>
@@ -169,7 +174,7 @@ export const DoctorPrescriptionsPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-800">
-                        {selectedRx.medicines.map((m, idx) => (
+                        {(selectedRx.medicines ?? []).map((m, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="p-3 font-bold text-slate-400">{idx + 1}</td>
                             <td className="p-3">

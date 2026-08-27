@@ -166,7 +166,7 @@ export const AshaDashboard: React.FC = () => {
                         variant={task.priority === 'critical' ? 'critical' : task.priority === 'high' ? 'danger' : 'primary'}
                         size="sm"
                       >
-                        {task.priority.toUpperCase()}
+                        {(task.priority ?? '').toUpperCase()}
                       </Badge>
                       <span className="font-bold text-slate-900 text-sm">{task.title}</span>
                     </div>

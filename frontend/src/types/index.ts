@@ -228,6 +228,29 @@ export interface Facility {
   longitude: number;
 }
 
+/** One prescribed medicine, with its position in pharmacy stock. */
+export interface MedicineAvailability {
+  medicineName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  quantity: number;
+  available: boolean;
+  inStock: number;
+  unitPrice: number | null;
+  estimatedCost: number | null;
+  facilityName: string | null;
+  facilityId: string | null;
+}
+
+export interface MedicineOrder {
+  orderCode: string;
+  prescriptionId: string;
+  items: { medicineName: string; quantity: number }[];
+  placedAt: string;
+  status: string;
+}
+
 export interface Medicine {
   id: string;
   name: string;

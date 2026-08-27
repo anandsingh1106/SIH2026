@@ -32,6 +32,56 @@ export function notify({ userId, role, facilityId, type, title, message, priorit
   }
 }
 
+/**
+ * Raises an urgent clinical alert about a patient to their assigned ASHA and
+ * to the patient themselves.
+ *
+ * Either recipient may be absent -- a patient without a portal login, or one
+ * not yet assigned an ASHA -- so the alert is delivered to whoever exists and
+ * the caller is told which recipients were reached.
+ */
+export function sendUrgentPatientAlert(user, { patientId, title, message }, db = getDb()) {
+  const patient = db.prepare('SELECT * FROM patients WHERE id = ?').get(patientId);
+  if (!patient) throw new NotFoundError('Patient');
+
+  const alertTitle = title || `Urgent: ${patient.name}`;
+  const notified = [];
+
+  if (patient.assigned_asha_id) {
+    notify(
+      {
+        userId: patient.assigned_asha_id,
+        type: 'URGENT_PATIENT_ALERT',
+        title: alertTitle,
+        message,
+        priority: 'CRITICAL',
+        link: `/asha/patients`,
+        metadata: { patientId, raisedBy: user.id },
+      },
+      db
+    );
+    notified.push('ASHA');
+  }
+
+  if (patient.user_id) {
+    notify(
+      {
+        userId: patient.user_id,
+        type: 'URGENT_PATIENT_ALERT',
+        title: alertTitle,
+        message,
+        priority: 'CRITICAL',
+        link: `/patient/dashboard`,
+        metadata: { patientId, raisedBy: user.id },
+      },
+      db
+    );
+    notified.push('PATIENT');
+  }
+
+  return { patientId, patientName: patient.name, notified };
+}
+
 /** Notifications visible to a user: their own plus matching broadcasts. */
 export function listNotifications(user, { unreadOnly = false, page = 1, limit = 20 } = {}) {
   const db = getDb();

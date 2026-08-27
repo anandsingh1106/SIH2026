@@ -1,4 +1,9 @@
 import { getDb, transaction } from '../db/connection.js';
+import {
+  createHomeVisitSchema, createTaskSchema, createNcdSchema, scheduleVaccinationSchema,
+} from '../validators/ashaValidators.js';
+import { createPatientSchema } from '../validators/patientValidators.js';
+import { createReferralSchema } from '../validators/phase3Validators.js';
 import { createHomeVisit, createTask, updateTask, createNcdScreening, scheduleVaccination } from './ashaService.js';
 import { createPatient } from './patientService.js';
 import { recordVitals } from './clinicalService.js';
@@ -19,6 +24,51 @@ const HANDLERS = {
   'vitals:CREATE': (user, payload, meta) => recordVitals(user, payload.patientId, payload, meta),
   'referral:CREATE': (user, payload, meta) => createReferral(user, payload, meta),
 };
+
+/**
+ * Schemas applied to sync payloads.
+ *
+ * Sync bypasses the route-level middleware, so without this a malformed
+ * payload reaches the database and surfaces as a raw constraint error. Each
+ * schema is `.passthrough()` because queued records may carry extra display
+ * fields (patientName, for example) that the services ignore.
+ */
+const PAYLOAD_SCHEMAS = {
+  'home_visit:CREATE': createHomeVisitSchema.passthrough(),
+  'patient:CREATE': createPatientSchema.passthrough(),
+  'task:CREATE': createTaskSchema.passthrough(),
+  'ncd_screening:CREATE': createNcdSchema.passthrough(),
+  'vaccination:CREATE': scheduleVaccinationSchema.passthrough(),
+  'referral:CREATE': createReferralSchema.passthrough(),
+};
+
+/**
+ * Repairs values that older offline clients queued in the wrong shape.
+ *
+ * A record captured in the field must not be lost because an earlier app
+ * version wrote "High Risk Identified" where the API expects "HIGH". Anything
+ * unrecognised is dropped rather than guessed at.
+ */
+const RISK_WORDS = ['CRITICAL', 'HIGH', 'MODERATE', 'LOW'];
+
+function coercePayload(entity, action, payload) {
+  if (!payload || typeof payload !== 'object') return payload;
+  const out = { ...payload };
+
+  if (entity === 'home_visit' && typeof out.riskLevel === 'string') {
+    const upper = out.riskLevel.toUpperCase();
+    const matched = RISK_WORDS.find((w) => upper.includes(w));
+    // "Normal" was the old wording for a low-risk screening outcome.
+    out.riskLevel = matched || (upper.includes('NORMAL') ? 'LOW' : undefined);
+    if (!out.riskLevel) delete out.riskLevel;
+  }
+
+  for (const field of ['priority', 'urgency', 'status', 'gender']) {
+    if (typeof out[field] === 'string') out[field] = out[field].toUpperCase();
+  }
+
+  return out;
+}
 
 export const SUPPORTED_OPERATIONS = Object.keys(HANDLERS);
 
@@ -65,15 +115,26 @@ export function processSyncBatch(user, operations, requestMeta = {}) {
     }
 
     try {
+      // Repair legacy shapes, then validate — sync has no route middleware, so
+      // without this a bad payload reaches the database as a constraint error.
+      const repaired = coercePayload(entity, action, payload);
+      const schema = PAYLOAD_SCHEMAS[`${entity}:${action}`];
+      const validated = schema ? schema.parse(repaired) : repaired;
+
       // One transaction per operation so failures are isolated.
-      const row = transaction(() => handler(user, payload, requestMeta));
+      const row = transaction(() => handler(user, validated, requestMeta));
       const serverId = row?.id;
 
       recordOutcome(db, { operationId, user, entity, action, clientTimestamp,
                           status: 'SUCCESS', serverId });
       results.push({ operationId, success: true, serverId });
     } catch (err) {
-      const message = err?.message || 'Operation failed.';
+      // Zod issues are far more useful to a field worker than a raw
+      // "CHECK constraint failed" from the database.
+      const message = err?.issues?.length
+        ? err.issues.map((i) => `${i.path.join('.') || 'payload'}: ${i.message}`).join('; ')
+        : err?.message || 'Operation failed.';
+
       logger.warn('Sync operation failed', { operationId, entity, action, message });
 
       recordOutcome(db, { operationId, user, entity, action, clientTimestamp,

@@ -53,21 +53,67 @@
   background: #94a3b8;
 }
 
+/* The printable document is rendered off-screen until printing. */
+#printable-prescription {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 190mm;
+}
+
 /* Print Styling for E-Prescriptions and Discharge Summaries */
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
   body {
     background: white !important;
     color: black !important;
   }
+
   .no-print, header, nav, aside, footer, .demo-banner {
     display: none !important;
   }
+
   .print-only {
     display: block !important;
   }
+
   .print-card {
     border: 1px solid #ccc !important;
     box-shadow: none !important;
     break-inside: avoid;
   }
+
+  /*
+   * Print only the prescription document.
+   *
+   * The class is added to <body> just before printing, so pages without a
+   * printable document print normally. Every direct child of <body> is hidden
+   * -- #root, and stray overlays such as the confetti canvas -- except the
+   * printable node, which the portal mounts as a sibling of #root rather than
+   * inside it. A node inside #root could not be shown again once its ancestor
+   * was hidden.
+   */
+  body.printing-document > * {
+    display: none !important;
+  }
+
+  body.printing-document > #printable-prescription {
+    display: block !important;
+    position: static !important;
+    left: auto !important;
+    width: 100% !important;
+    color: #000 !important;
+  }
+
+  /* Tables must keep their layout when display is reverted. */
+  #printable-prescription table { display: table !important; }
+  #printable-prescription thead { display: table-header-group !important; }
+  #printable-prescription tbody { display: table-row-group !important; }
+  #printable-prescription tr { display: table-row !important; break-inside: avoid; }
+  #printable-prescription th,
+  #printable-prescription td { display: table-cell !important; }
 }

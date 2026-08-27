@@ -179,7 +179,7 @@ export const AshaOfflineSyncPage: React.FC = () => {
                     <td className="p-3 text-slate-500">{new Date(op.timestamp).toLocaleTimeString()}</td>
                     <td className="p-3">
                       <Badge variant={op.status === 'synced' ? 'success' : 'warning'} size="sm">
-                        {op.status.toUpperCase()}
+                        {(op.status ?? '').toUpperCase()}
                       </Badge>
                     </td>
                   </tr>

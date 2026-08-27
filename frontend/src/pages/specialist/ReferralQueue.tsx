@@ -112,7 +112,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
                   <p className="text-xs text-slate-500 line-clamp-1">{r.provisionalDiagnosis}</p>
 
                   <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
-                    <span className="font-semibold text-gov-800">From: {r.referringFacilityName.split(' ')[0]}</span>
+                    <span className="font-semibold text-gov-800">From: {(r.referringFacilityName ?? '').split(' ')[0]}</span>
                     <span className="capitalize font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                       {r.status.replace('_', ' ')}
                     </span>
@@ -254,7 +254,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
           isOpen={isAllocateBedModalOpen}
           onClose={() => setIsAllocateBedModalOpen(false)}
           title={`Allocate Bed for ${selectedReferral.patientName}`}
-          description={`Specialty: ${selectedReferral.specialty} • Priority: ${selectedReferral.priority.toUpperCase()}`}
+          description={`Specialty: ${selectedReferral.specialty} • Priority: ${(selectedReferral.priority ?? '').toUpperCase()}`}
           size="md"
         >
           <form onSubmit={handleAllocateBed} className="space-y-4">
@@ -271,7 +271,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
                 <option value="">-- Choose Bed --</option>
                 {availableBeds.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.bedNumber} ({b.department} • {b.type.toUpperCase()})
+                    {b.bedNumber} ({b.department} • {(b.type ?? '').toUpperCase()})
                   </option>
                 ))}
               </select>

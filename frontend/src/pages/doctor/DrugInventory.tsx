@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { dataService } from '../../services/api/dataService';
+import { dataService, generateToken } from '../../services/api/dataService';
 import { Medicine } from '../../types';
-import { Pill, AlertTriangle, Plus, Search, CheckCircle2, RefreshCw, ShoppingCart } from 'lucide-react';
+import { Pill, AlertTriangle, Plus, Search, CheckCircle2, RefreshCw, ShoppingCart, Truck } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -15,6 +15,17 @@ export const DoctorDrugInventoryPage: React.FC = () => {
   const [isIndentModalOpen, setIsIndentModalOpen] = useState(false);
   const [indentMed, setIndentMed] = useState<Medicine | null>(null);
   const [indentQty, setIndentQty] = useState(500);
+
+  /**
+   * Indents raised in this session, keyed by medicine id, so a row that has
+   * already been ordered says so instead of offering to order again.
+   */
+  const [orderedIndents, setOrderedIndents] = useState<
+    Record<string, { token: string; quantity: number; placedAt: string }>
+  >({});
+  const [lastIndent, setLastIndent] = useState<
+    { token: string; quantity: number; medicineName: string } | null
+  >(null);
 
   useEffect(() => {
     dataService.getMedicines().then(setMedicines);
@@ -30,8 +41,14 @@ export const DoctorDrugInventoryPage: React.FC = () => {
 
   const handleCreateIndent = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!indentMed) return;
-    alert(`Stock Indent for ${indentQty} units of ${indentMed.name} dispatched to District Central Medical Store (DCMS Pune).`);
+    if (!indentMed || indentQty <= 0) return;
+
+    const token = generateToken('IND');
+    setOrderedIndents((prev) => ({
+      ...prev,
+      [indentMed.id]: { token, quantity: indentQty, placedAt: new Date().toISOString() },
+    }));
+    setLastIndent({ token, quantity: indentQty, medicineName: indentMed.name });
     setIsIndentModalOpen(false);
   };
 
@@ -56,6 +73,30 @@ export const DoctorDrugInventoryPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Receipt for the indent just raised */}
+      {lastIndent && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-emerald-900">
+                Indent raised for {lastIndent.medicineName}
+              </p>
+              <p className="text-xs text-emerald-800 mt-0.5">
+                {lastIndent.quantity} units routed to District Central Medical Store (DCMS Aundh).
+                Expected delivery in 48-72 hours.
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">
+              Indent Token
+            </p>
+            <p className="font-mono text-lg font-extrabold text-emerald-900">{lastIndent.token}</p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <SearchInput
@@ -82,6 +123,7 @@ export const DoctorDrugInventoryPage: React.FC = () => {
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {filtered.map((m) => {
                 const isLow = m.stock < m.minThreshold;
+                const ordered = orderedIndents[m.id];
                 return (
                   <tr key={m.id} className="hover:bg-slate-50">
                     <td className="p-3.5">
@@ -100,7 +142,11 @@ export const DoctorDrugInventoryPage: React.FC = () => {
                       {m.minThreshold} {m.unit}
                     </td>
                     <td className="p-3.5">
-                      {isLow ? (
+                      {ordered ? (
+                        <Badge variant="info" size="sm">
+                          ON ORDER
+                        </Badge>
+                      ) : isLow ? (
                         <Badge variant="danger" size="sm">
                           LOW STOCK
                         </Badge>
@@ -111,17 +157,29 @@ export const DoctorDrugInventoryPage: React.FC = () => {
                       )}
                     </td>
                     <td className="p-3.5 text-right">
-                      <Button
-                        size="sm"
-                        variant={isLow ? 'primary' : 'outline'}
-                        leftIcon={<ShoppingCart className="w-3.5 h-3.5" />}
-                        onClick={() => {
-                          setIndentMed(m);
-                          setIsIndentModalOpen(true);
-                        }}
-                      >
-                        Indent Stock
-                      </Button>
+                      {ordered ? (
+                        <div className="inline-flex flex-col items-end gap-1">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                            <Truck className="w-3.5 h-3.5 shrink-0" />
+                            Order Placed
+                          </span>
+                          <span className="font-mono text-[11px] text-slate-500">
+                            {ordered.token} • {ordered.quantity} {m.unit}
+                          </span>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant={isLow ? 'primary' : 'outline'}
+                          leftIcon={<ShoppingCart className="w-3.5 h-3.5" />}
+                          onClick={() => {
+                            setIndentMed(m);
+                            setIsIndentModalOpen(true);
+                          }}
+                        >
+                          Indent Stock
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 );
@@ -155,7 +213,7 @@ export const DoctorDrugInventoryPage: React.FC = () => {
               <Button variant="secondary" size="sm" onClick={() => setIsIndentModalOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" size="sm">
+              <Button type="submit" variant="primary" size="sm" disabled={indentQty <= 0}>
                 Submit Indent to DCMS
               </Button>
             </div>

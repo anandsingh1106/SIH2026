@@ -86,6 +86,7 @@ export const hi = {
     aiInsights: 'एआई पूर्वानुमान',
     timeline: 'स्वास्थ्य समयरेखा',
     audioPrescription: 'ध्वनि पर्चा',
+    orderMedicines: 'दवा ऑर्डर करें',
     family: 'पारिवारिक स्वास्थ्य प्रोफ़ाइल',
     notifications: 'सूचनाएं',
     messages: 'संदेश',

@@ -57,7 +57,7 @@ export const PatientDashboard: React.FC = () => {
           </div>
           <div className="text-right">
             <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-2 border-white/40">
-              {patient.name.charAt(0)}
+              {(patient.name ?? '?').charAt(0)}
             </div>
             <Badge variant="success" className="mt-2 text-xs">Verified</Badge>
           </div>

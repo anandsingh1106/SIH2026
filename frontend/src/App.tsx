@@ -95,6 +95,7 @@ const AdminAIInsights = lazy(() => import('./pages/admin/AIInsights').then(m => 
 const PatientDashboard = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientDashboard })));
 const PatientTimeline = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientTimeline })));
 const PatientPrescriptions = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientPrescriptions })));
+const PatientMedicineOrders = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientMedicineOrders })));
 const PatientLabReports = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientLabReports })));
 const PatientAppointments = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientAppointments })));
 const PatientReferralStatus = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientReferralStatus })));
@@ -292,6 +293,7 @@ const router = createBrowserRouter([
               { path: '/patient/dashboard', element: <Suspense fallback={<PageLoader />}><PatientDashboard /></Suspense> },
               { path: '/patient/timeline', element: <Suspense fallback={<PageLoader />}><PatientTimeline /></Suspense> },
               { path: '/patient/prescriptions', element: <Suspense fallback={<PageLoader />}><PatientPrescriptions /></Suspense> },
+              { path: '/patient/medicine-orders', element: <Suspense fallback={<PageLoader />}><PatientMedicineOrders /></Suspense> },
               { path: '/patient/lab-reports', element: <Suspense fallback={<PageLoader />}><PatientLabReports /></Suspense> },
               { path: '/patient/appointments', element: <Suspense fallback={<PageLoader />}><PatientAppointments /></Suspense> },
               { path: '/patient/referrals', element: <Suspense fallback={<PageLoader />}><PatientReferralStatus /></Suspense> },

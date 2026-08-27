@@ -1,8 +1,9 @@
 import { api, Paginated } from './apiClient';
 import { syncQueueManager } from '../offline/syncQueueManager';
 import {
-  Patient, Referral, Prescription, Task, HomeVisit,
-  Facility, Medicine, Notification, Message, Bed, UserRole, ReferralStatus,
+  Patient, Referral, Prescription, PrescribedMedicine, Task, HomeVisit, Vitals,
+  Facility, Medicine, MedicineAvailability, MedicineOrder,
+  Notification, Message, Bed, UserRole, ReferralStatus,
 } from '../../types';
 
 type DataChangeListener = (event: { entity: string; action: string; data: unknown }) => void;
@@ -18,22 +19,117 @@ type DataChangeListener = (event: { entity: string; action: string; data: unknow
  * existing screens keep working unchanged.
  */
 
-const page = <T>(p: Paginated<T>) => p.items;
+/**
+ * Unwraps a paginated response, converting rows to camelCase on the way out so
+ * no caller has to remember which endpoints return raw database columns.
+ */
+const page = <T>(p: Paginated<T>): T[] => camelize<T[]>(p.items ?? []);
 
 /** Uppercase API enums mapped back to the lowercase vocabulary screens use. */
 const lower = (v?: string) => (v ? v.toLowerCase() : v);
 
 /**
- * Short, human-readable receipt token for a home visit — e.g. HV-4K7Q-2M9.
+ * Rewrites snake_case keys to camelCase, recursively.
+ *
+ * The API hands back raw database rows, while every screen reads camelCase.
+ * Without this the mismatch surfaces as `undefined` on whichever field a page
+ * happens to render first -- reliably a crash on `.split()` or `.toUpperCase()`.
+ * Existing camelCase keys are preserved, so a row that is already mapped passes
+ * through unchanged.
+ */
+function camelize<T>(value: unknown): T {
+  if (Array.isArray(value)) return value.map((v) => camelize(v)) as unknown as T;
+  if (value === null || typeof value !== 'object') return value as T;
+  // Dates and other class instances must not be rebuilt as plain objects.
+  // A null prototype still denotes a plain record, so it is converted too.
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) return value as T;
+
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    const camel = key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+    out[camel] = camelize(val);
+    // Keep the original key too; some screens still read the raw column name.
+    if (camel !== key && !(key in out)) out[key] = out[camel];
+  }
+  return out as T;
+}
+
+/** Whole years between a date of birth and today; undefined for a bad date. */
+function ageFromDob(dob?: string): number | undefined {
+  if (!dob) return undefined;
+  const born = new Date(dob);
+  if (Number.isNaN(born.getTime())) return undefined;
+
+  const now = new Date();
+  let age = now.getFullYear() - born.getFullYear();
+  const monthDelta = now.getMonth() - born.getMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < born.getDate())) age -= 1;
+  return age >= 0 ? age : undefined;
+}
+
+/**
+ * Maps a patient row from the API onto the shape the screens expect.
+ *
+ * The API returns raw database rows in snake_case, and stores a date of birth
+ * rather than an age. Screens read camelCase and render `age` and
+ * `riskCategory` unguarded, so every field they touch is filled in here --
+ * without this, `riskCategory` alone is enough to crash the patient registry.
+ */
+function normalizePatient(row: Record<string, unknown>): Patient {
+  const pick = <T = string>(...keys: string[]): T | undefined => {
+    for (const key of keys) {
+      const value = row[key];
+      if (value !== undefined && value !== null) return value as T;
+    }
+    return undefined;
+  };
+
+  const dob = pick('dateOfBirth', 'date_of_birth');
+
+  return {
+    ...(row as unknown as Patient),
+    id: pick('id') ?? '',
+    abhaId: pick('abhaId', 'abha_id') ?? '',
+    name: pick('name') ?? 'Unknown patient',
+    age: pick<number>('age') ?? ageFromDob(dob) ?? 0,
+    gender: (lower(pick('gender')) as Patient['gender']) ?? 'other',
+    phone: pick('phone') ?? '',
+    address: pick('address') ?? '',
+    village: pick('village') ?? '',
+    taluka: pick('taluka') ?? '',
+    district: pick('district') ?? '',
+    pincode: pick('pincode') ?? '',
+    bloodGroup: pick('bloodGroup', 'blood_group') ?? '',
+    allergies: pick<string[]>('allergies') ?? [],
+    chronicConditions: pick<string[]>('chronicConditions', 'chronic_conditions') ?? [],
+    emergencyContact: {
+      name: pick('emergencyContact', 'emergency_contact') ?? '',
+      relationship: pick('emergencyContactRelation', 'emergency_contact_relation') ?? '',
+      phone: pick('emergencyContactPhone', 'emergency_contact_phone') ?? '',
+    },
+    // Not a column on the patients table; screens still render it unguarded.
+    riskCategory: (lower(pick('riskCategory', 'risk_category')) as Patient['riskCategory']) ?? 'normal',
+    assignedAshaId: pick('assignedAshaId', 'assigned_asha_id'),
+    registeredDate: pick('registeredDate', 'created_at') ?? '',
+  };
+}
+
+/**
+ * Short, human-readable receipt token — e.g. HV-4K7Q-2M9.
  *
  * Ambiguous characters (0/O, 1/I) are excluded so a worker can read it aloud
  * or write it down without confusion.
  */
-function generateVisitToken(): string {
+export function generateToken(prefix: string): string {
   const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   const block = (n: number) =>
     Array.from({ length: n }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join('');
-  return `HV-${block(4)}-${block(3)}`;
+  return `${prefix}-${block(4)}-${block(3)}`;
+}
+
+function generateVisitToken(): string {
+  return generateToken('HV');
 }
 
 /** Screening outcome text mapped to the API's risk-level enum. */
@@ -55,11 +151,95 @@ function mapTask(t: Record<string, unknown>): Task {
   };
 }
 
-function mapReferral(r: Record<string, unknown>): Referral {
+/**
+ * Maps a prescription row onto the shape the screens render.
+ *
+ * The API keeps medicines in a separate `items` collection, while screens read
+ * `medicines` and iterate it unguarded -- so the list must always carry an
+ * array, even when a prescription has no items recorded.
+ */
+export function mapPrescription(row: Record<string, unknown>): Prescription {
+  const c = camelize<Record<string, unknown>>(row);
+  const str = (...keys: string[]) => {
+    for (const k of keys) if (typeof c[k] === 'string' && c[k]) return c[k] as string;
+    return '';
+  };
+
+  const rawItems = Array.isArray(c.items)
+    ? (c.items as Record<string, unknown>[])
+    : Array.isArray(c.medicines)
+      ? (c.medicines as Record<string, unknown>[])
+      : [];
+
+  const medicines: PrescribedMedicine[] = rawItems.map((item) => {
+    // `timing` is stored as a JSON string; screens expect a real array.
+    let timing: PrescribedMedicine['timing'] = [];
+    const rawTiming = item.timing;
+    if (Array.isArray(rawTiming)) {
+      timing = rawTiming as PrescribedMedicine['timing'];
+    } else if (typeof rawTiming === 'string' && rawTiming) {
+      try {
+        const parsed = JSON.parse(rawTiming);
+        if (Array.isArray(parsed)) timing = parsed;
+      } catch {
+        timing = [];
+      }
+    }
+
+    return {
+      name: (item.medicineName as string) ?? (item.name as string) ?? 'Medicine',
+      genericName: (item.genericName as string) ?? '',
+      dosage: (item.dosage as string) ?? '',
+      frequency: (item.frequency as string) ?? '',
+      duration: (item.duration as string) ?? '',
+      instructions: (item.instructions as string) ?? '',
+      instructionsMr: (item.instructionsMr as string) ?? '',
+      instructionsHi: (item.instructionsHi as string) ?? '',
+      timing,
+      takeWith: (item.takeWith as PrescribedMedicine['takeWith']) ?? 'after_food',
+      quantity: (item.quantity as number) ?? 0,
+    };
+  });
+
   return {
-    ...(r as unknown as Referral),
-    priority: lower(r.urgency as string) as Referral['priority'],
-    status: lower(r.status as string) as ReferralStatus,
+    ...(c as unknown as Prescription),
+    medicines,
+    patientName: str('patientName'),
+    doctorName: str('doctorName'),
+    facilityName: str('facilityName'),
+    generalAdvice: str('generalAdvice', 'instructions'),
+    dietaryInstructions: str('dietaryInstructions'),
+    date: str('date', 'issuedAt', 'createdAt').slice(0, 10),
+    warnings: Array.isArray(c.warnings) ? (c.warnings as string[]) : [],
+  };
+}
+
+function mapReferral(r: Record<string, unknown>): Referral {
+  const c = camelize<Record<string, unknown>>(r);
+  const str = (...keys: string[]) => {
+    for (const k of keys) if (typeof c[k] === 'string' && c[k]) return c[k] as string;
+    return '';
+  };
+
+  return {
+    ...(c as unknown as Referral),
+    priority: (lower(c.urgency as string) ?? 'low') as Referral['priority'],
+    status: (lower(c.status as string) ?? 'pending') as ReferralStatus,
+    // The API names facilities by source/destination; screens say referring/target.
+    referringFacilityName: str('referringFacilityName', 'sourceFacilityName'),
+    referringFacilityId: str('referringFacilityId', 'sourceFacilityId'),
+    targetFacilityName: str('targetFacilityName', 'destinationFacilityName'),
+    targetFacilityId: str('targetFacilityId', 'destinationFacilityId'),
+    referringDoctorName: str('referringDoctorName', 'referredByName'),
+    assignedSpecialistName: str('assignedSpecialistName', 'referredToName'),
+    patientName: str('patientName'),
+    patientGender: str('patientGender'),
+    patientAge: (c.patientAge as number) ?? ageFromDob(c.patientDob as string) ?? 0,
+    clinicalSummary: str('clinicalSummary'),
+    provisionalDiagnosis: str('provisionalDiagnosis', 'diagnosis'),
+    referralCode: str('referralCode'),
+    specialty: str('specialty'),
+    history: (c.history as Referral['history']) ?? [],
   };
 }
 
@@ -98,15 +278,17 @@ class DataService {
 
   // --- PATIENTS ---
   public getPatients(): Promise<Patient[]> {
-    return this.safeList(
-      async () => page(await api.get<Paginated<Patient>>('/api/patients', { query: { limit: 100 } })),
-      'patients'
-    );
+    return this.safeList(async () => {
+      const rows = page(
+        await api.get<Paginated<Record<string, unknown>>>('/api/patients', { query: { limit: 100 } })
+      );
+      return rows.map(normalizePatient);
+    }, 'patients');
   }
 
   public async getPatientById(id: string): Promise<Patient | undefined> {
     try {
-      return await api.get<Patient>(`/api/patients/${id}`);
+      return normalizePatient(await api.get<Record<string, unknown>>(`/api/patients/${id}`));
     } catch {
       return undefined;
     }
@@ -126,7 +308,7 @@ class DataService {
     };
 
     try {
-      const saved = await api.post<Patient>('/api/patients', body);
+      const saved = normalizePatient(await api.post<Record<string, unknown>>('/api/patients', body));
       this.notify('patients', 'save', saved);
       return saved;
     } catch (err) {
@@ -184,17 +366,94 @@ class DataService {
 
   // --- PRESCRIPTIONS ---
   public getPrescriptions(): Promise<Prescription[]> {
+    return this.safeList(async () => {
+      const rows = page<Record<string, unknown>>(
+        await api.get<Paginated<Record<string, unknown>>>('/api/prescriptions', {
+          query: { limit: 100 },
+        })
+      );
+      return rows.map(mapPrescription);
+    }, 'prescriptions');
+  }
+
+  /** Records vitals against a patient, optionally tied to a consultation. */
+  public async recordVitals(
+    patientId: string,
+    vitals: Partial<Record<string, number | undefined>> | Vitals,
+    consultationId?: string
+  ): Promise<void> {
+    const source = vitals as Record<string, number | undefined>;
+    // Map the UI's field names onto the API's, dropping anything unset.
+    const body: Record<string, unknown> = { consultationId };
+    const mapping: Record<string, string> = {
+      bpSystolic: 'bloodPressureSystolic',
+      bpDiastolic: 'bloodPressureDiastolic',
+      pulse: 'heartRate',
+      spo2: 'oxygenSaturation',
+      temperature: 'temperature',
+      weight: 'weight',
+      height: 'height',
+      bloodSugarRandom: 'bloodGlucose',
+      hemoglobin: 'hemoglobin',
+      respiratoryRate: 'respiratoryRate',
+    };
+
+    for (const [from, to] of Object.entries(mapping)) {
+      let value = source[from];
+      if (value === undefined || value === null) continue;
+
+      // The vitals form captures temperature in Fahrenheit; the API expects
+      // Celsius. Anything above 45 can only be Fahrenheit.
+      if (from === 'temperature' && value > 45) {
+        value = Number(((value - 32) * 5 / 9).toFixed(1));
+      }
+
+      body[to] = value;
+    }
+
+    await api.post(`/api/patients/${patientId}/vitals`, body);
+    this.notify('vitals', 'create', { patientId });
+  }
+
+  // --- CONSULTATIONS ---
+  public getConsultations(): Promise<Record<string, unknown>[]> {
     return this.safeList(
-      async () => page(await api.get<Paginated<Prescription>>('/api/prescriptions', { query: { limit: 100 } })),
-      'prescriptions'
+      async () => page(await api.get<Paginated<Record<string, unknown>>>('/api/consultations', { query: { limit: 100 } })),
+      'consultations'
     );
+  }
+
+  /**
+   * Records a consultation and returns it, including the server-assigned id.
+   *
+   * A prescription must reference a real consultation row, so callers create
+   * the consultation first and pass its id through.
+   */
+  public async saveConsultation(input: {
+    patientId: string;
+    chiefComplaint?: string;
+    symptoms?: string[];
+    examination?: string;
+    diagnosis?: string;
+    icdCode?: string;
+    clinicalNotes?: string;
+    treatmentPlan?: string;
+    followUpDate?: string;
+  }): Promise<{ id: string }> {
+    const created = await api.post<{ id: string }>('/api/consultations', input);
+    this.notify('consultations', 'create', created);
+    return created;
   }
 
   public async savePrescription(prescription: Prescription): Promise<Prescription> {
     const body = {
       patientId: prescription.patientId,
-      consultationId: prescription.consultationId,
-      diagnosis: prescription.medicines?.[0]?.name ? undefined : undefined,
+      // Only send a consultation id that the server actually knows about;
+      // a fabricated one fails the foreign key.
+      consultationId: prescription.consultationId?.startsWith('con-')
+        ? undefined
+        : prescription.consultationId,
+      diagnosis: (prescription as { diagnosis?: string }).diagnosis,
       instructions: prescription.generalAdvice,
       dietaryInstructions: prescription.dietaryInstructions,
       followUpDate: prescription.followUpDate,
@@ -211,7 +470,9 @@ class DataService {
       })),
     };
 
-    const saved = await api.post<Prescription>('/api/prescriptions', body);
+    const saved = mapPrescription(
+      await api.post<Record<string, unknown>>('/api/prescriptions', body)
+    );
     this.notify('prescriptions', 'save', saved);
     return saved;
   }
@@ -297,7 +558,12 @@ class DataService {
       return { visit: saved, token, queued: false };
     } catch (err) {
       // Offline or server unreachable: keep the record locally and sync later.
-      await syncQueueManager.enqueue('home_visit', token, 'create', body);
+      // patientName is carried alongside so the queued entry is readable in the
+      // visit log; the server ignores the extra field.
+      await syncQueueManager.enqueue('home_visit', token, 'create', {
+        ...body,
+        patientName: visit.patientName,
+      });
       this.notify('home_visits', 'queued', { ...visit, householdId: token });
       return { visit, token, queued: true };
     }
@@ -390,6 +656,49 @@ class DataService {
     } catch (err) {
       console.warn('Could not mark notifications read:', err);
     }
+  }
+
+  /**
+   * Raises a critical alert about a patient to their ASHA and the patient.
+   * Resolves with the recipients that were actually reached.
+   */
+  public async sendUrgentPatientAlert(
+    patientId: string,
+    message: string,
+    title?: string
+  ): Promise<{ patientName: string; notified: string[] }> {
+    const result = await api.post<{ patientName: string; notified: string[] }>(
+      '/api/notifications/urgent-alert',
+      { patientId, message, title }
+    );
+    this.notify('notifications', 'save', result);
+    return result;
+  }
+
+  /** Pharmacy availability and pricing for each medicine on a prescription. */
+  public getPrescriptionAvailability(prescriptionId: string): Promise<MedicineAvailability[]> {
+    return this.safeList(
+      () =>
+        api.get<MedicineAvailability[]>(
+          `/api/inventory/prescriptions/${prescriptionId}/availability`
+        ),
+      'medicine availability'
+    );
+  }
+
+  /** Places a collection request for prescribed medicines at a pharmacy. */
+  public async orderMedicines(
+    prescriptionId: string,
+    items: { medicineName: string; quantity: number }[],
+    facilityId?: string
+  ): Promise<MedicineOrder> {
+    const order = await api.post<MedicineOrder>('/api/inventory/orders', {
+      prescriptionId,
+      items,
+      facilityId,
+    });
+    this.notify('medicine_orders', 'create', order);
+    return order;
   }
 
   // --- MESSAGES ---

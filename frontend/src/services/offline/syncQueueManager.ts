@@ -1,6 +1,7 @@
 import { getDB } from './indexedDbService';
 import { SyncOperation } from '../../types';
 import { backendApi } from '../api/backendApi';
+import { ApiError } from '../api/apiClient';
 
 type SyncListener = (status: { isOnline: boolean; pendingCount: number; isSyncing: boolean }) => void;
 
@@ -106,7 +107,10 @@ class SyncQueueManager {
    * marked failed and left for manual review rather than retried forever.
    */
   public async processQueue(): Promise<{ success: number; failed: number }> {
-    if (this.isSyncing || !this.isOnline) return { success: 0, failed: 0 };
+    // navigator.onLine is read live; the cached flag can be stale if an
+    // online/offline event was missed.
+    if (this.isSyncing || !navigator.onLine) return { success: 0, failed: 0 };
+    this.isOnline = true;
 
     this.isSyncing = true;
     this.notifyListeners();
@@ -161,6 +165,72 @@ class SyncQueueManager {
     }
 
     return { success, failed };
+  }
+
+  /**
+   * Syncs one queued operation by id.
+   *
+   * Used where the interface offers a per-record "Sync" action. On success the
+   * operation leaves the queue, so the record shows as synced from then on.
+   */
+  public async syncOne(operationId: string): Promise<{ success: boolean; error?: string }> {
+    // Read the live value: the cached flag can be stale if an online/offline
+    // event was missed (which happens when toggling via devtools).
+    if (!navigator.onLine) {
+      return { success: false, error: 'You are offline. This will sync automatically when you reconnect.' };
+    }
+    this.isOnline = true;
+
+    const db = await getDB();
+    const item = (await db.get('sync_queue', operationId)) as SyncOperation | undefined;
+    if (!item) {
+      // Already synced and removed by an earlier run.
+      return { success: true };
+    }
+
+    this.isSyncing = true;
+    this.notifyListeners();
+
+    try {
+      const { results } = await backendApi.syncBatch([{
+        operationId: item.id,
+        entity: SERVER_ENTITY[item.entity] ?? item.entity,
+        action: item.action.toUpperCase() as 'CREATE' | 'UPDATE' | 'DELETE',
+        payload: (item.data ?? {}) as Record<string, unknown>,
+        clientTimestamp: item.timestamp,
+      }]);
+
+      const result = results[0];
+
+      if (result?.success) {
+        await db.delete('sync_queue', item.id);
+        return { success: true };
+      }
+
+      item.retryCount = (item.retryCount ?? 0) + 1;
+      item.status = item.retryCount >= MAX_RETRIES ? 'failed' : 'pending';
+      item.error = result?.error || 'Sync rejected by server';
+      await db.put('sync_queue', item);
+
+      return { success: false, error: item.error };
+    } catch (err) {
+      // Record why it failed so the card can show it, and leave it queued.
+      const message =
+        err instanceof ApiError && err.isUnauthenticated
+          ? 'Your session expired. Sign in again, then sync.'
+          : err instanceof Error
+          ? err.message
+          : 'Could not reach the server.';
+
+      item.retryCount = (item.retryCount ?? 0) + 1;
+      item.error = message;
+      await db.put('sync_queue', item).catch(() => undefined);
+
+      return { success: false, error: message };
+    } finally {
+      this.isSyncing = false;
+      this.notifyListeners();
+    }
   }
 
   public async clearQueue(): Promise<void> {

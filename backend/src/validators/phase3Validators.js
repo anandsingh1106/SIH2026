@@ -94,3 +94,9 @@ export const bedStatusSchema = z.object({
 export const listNotificationsSchema = paginationSchema.extend({
   unreadOnly: z.coerce.boolean().default(false),
 });
+
+export const urgentAlertSchema = z.object({
+  patientId: z.string().min(1),
+  title: z.string().max(200).optional(),
+  message: z.string().min(1).max(1000),
+});

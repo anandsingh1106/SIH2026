@@ -86,6 +86,7 @@ export const mr = {
     aiInsights: 'एआय पूर्वसूचना',
     timeline: 'आरोग्य टाइमलाइन',
     audioPrescription: 'ध्वनी औषध चिठ्ठी',
+    orderMedicines: 'औषध मागवा',
     family: 'कुटुंब आरोग्य प्रोफाईल',
     notifications: 'सूचना',
     messages: 'संदेश',

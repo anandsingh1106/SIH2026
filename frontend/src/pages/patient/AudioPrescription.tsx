@@ -9,6 +9,7 @@ import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import { EmptyState, ErrorState } from '../../components/ui/EmptyState';
 import { AudioPrescriptionPlayer } from '../../components/healthcare/AudioPrescriptionPlayer';
 import { backendApi } from '../../services/api/backendApi';
+import { mapPrescription } from '../../services/api/dataService';
 import { useAuth } from '../../services/auth/authContext';
 import { Prescription } from '../../types';
 
@@ -26,7 +27,9 @@ export const PatientAudioPrescription: React.FC = () => {
       // The backend scopes prescriptions to the logged-in user, so no patient
       // id is needed here.
       const { items } = await backendApi.getPrescriptions();
-      setPrescriptions(items as unknown as Prescription[]);
+      // The API returns raw rows that keep medicines in a separate `items`
+      // collection; this page reads `medicines` and iterates it unguarded.
+      setPrescriptions(items.map(mapPrescription));
     } catch {
       setError('Could not reach the prescription service. Please check your connection and try again.');
     } finally {
@@ -43,15 +46,15 @@ export const PatientAudioPrescription: React.FC = () => {
     if (!q) return prescriptions;
     return prescriptions.filter(
       (pres) =>
-        pres.doctorName.toLowerCase().includes(q) ||
-        pres.facilityName.toLowerCase().includes(q) ||
-        pres.date.toLowerCase().includes(q) ||
-        pres.medicines.some((m) => m.name.toLowerCase().includes(q))
+        (pres.doctorName ?? '').toLowerCase().includes(q) ||
+        (pres.facilityName ?? '').toLowerCase().includes(q) ||
+        (pres.date ?? '').toLowerCase().includes(q) ||
+        (pres.medicines ?? []).some((m) => (m.name ?? '').toLowerCase().includes(q))
     );
   }, [prescriptions, query]);
 
   const totalMedicines = useMemo(
-    () => prescriptions.reduce((sum, pres) => sum + pres.medicines.length, 0),
+    () => prescriptions.reduce((sum, pres) => sum + (pres.medicines?.length ?? 0), 0),
     [prescriptions]
   );
 

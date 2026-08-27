@@ -86,6 +86,7 @@ export const en = {
     aiInsights: 'Predictive Insights',
     timeline: 'Health Timeline',
     audioPrescription: 'Voice Prescription',
+    orderMedicines: 'Order Medicines',
     family: 'Family Profiles',
     notifications: 'Notifications',
     messages: 'Care Team Messages',

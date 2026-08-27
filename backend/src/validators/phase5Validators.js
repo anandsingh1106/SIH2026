@@ -10,6 +10,20 @@ export const listInventorySchema = paginationSchema.extend({
   expiringBefore: dateString.optional(),
 });
 
+export const medicineOrderSchema = z.object({
+  prescriptionId: z.string().trim().min(1),
+  facilityId: z.string().trim().min(1).optional(),
+  items: z
+    .array(
+      z.object({
+        medicineName: z.string().trim().min(1).max(200),
+        quantity: z.number().int().min(1).max(1000),
+      })
+    )
+    .min(1)
+    .max(30),
+});
+
 export const createInventorySchema = z.object({
   medicineId: z.string().trim().min(1),
   facilityId: z.string().trim().min(1),

@@ -14,7 +14,7 @@ export const PatientSummaryCard: React.FC<{ patient: Patient; className?: string
     >
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-gov-100 border border-gov-300 flex items-center justify-center text-gov-800 font-bold text-base shrink-0">
-          {patient.name.charAt(0)}
+          {(patient.name ?? '?').charAt(0)}
         </div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -23,7 +23,9 @@ export const PatientSummaryCard: React.FC<{ patient: Patient; className?: string
             <TriageBadge priority={patient.riskCategory === 'critical' ? 'critical' : patient.riskCategory === 'high' ? 'high' : patient.riskCategory === 'moderate' ? 'moderate' : 'low'} size="sm" />
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1">
-            <span className="font-semibold text-slate-700">{patient.age} Yrs / {patient.gender.toUpperCase()}</span>
+            <span className="font-semibold text-slate-700">
+              {patient.age ?? '—'} Yrs / {(patient.gender ?? 'other').toUpperCase()}
+            </span>
             <span>•</span>
             <span className="font-mono text-gov-800 bg-gov-50 px-1.5 py-0.5 rounded border border-gov-200">
               ABHA: {patient.abhaId}

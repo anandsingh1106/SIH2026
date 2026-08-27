@@ -72,8 +72,10 @@ export function createReferral(user, input, requestMeta = {}) {
   }
 
   return transaction((db) => {
-    if (!patientRepository.findById(input.patientId, db)) throw new NotFoundError('Patient');
+    const patient = patientRepository.findById(input.patientId, db);
+    if (!patient) throw new NotFoundError('Patient');
     assertPatientAccess(user, input.patientId, db);
+
 
     const referral = referralRepository.create(
       {
@@ -99,6 +101,33 @@ export function createReferral(user, input, requestMeta = {}) {
         message: `${referral.specialty || 'General'} referral from ${referral.source_facility_name || 'a facility'}.`,
         metadata: { referralId: referral.id },
         link: '/specialist/referrals',
+      }, db);
+    }
+
+    // The patient's own ASHA does the village-level follow-up, so a referral
+    // raised anywhere has to reach them -- otherwise the ASHA never learns
+    // their patient was referred.
+    if (patient.assigned_asha_id) {
+      notify({
+        userId: patient.assigned_asha_id,
+        type: 'REFERRAL',
+        title: `Your patient ${patient.name} was referred`,
+        message: `${referral.specialty || 'General'} referral to ${referral.destination_facility_name || 'a facility'}. Follow up with the family.`,
+        priority: referral.urgency === 'EMERGENCY' ? 'CRITICAL' : 'HIGH',
+        metadata: { referralId: referral.id, patientId: patient.id },
+        link: '/asha/referrals',
+      }, db);
+    }
+
+    if (patient.user_id) {
+      notify({
+        userId: patient.user_id,
+        type: 'REFERRAL',
+        title: 'You have been referred to a specialist',
+        message: `${referral.specialty || 'General'} referral to ${referral.destination_facility_name || 'a facility'}.`,
+        priority: 'HIGH',
+        metadata: { referralId: referral.id },
+        link: '/patient/referral-status',
       }, db);
     }
 
