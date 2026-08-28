@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,45 +24,67 @@ export const Tabs: React.FC<TabsProps> = ({
   className,
   variant = 'underline',
 }) => {
+  const listRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  // The underline glides between tabs rather than jumping, which keeps the
+  // relationship between the old and the new tab legible.
+  useLayoutEffect(() => {
+    if (variant !== 'underline' || !listRef.current) return;
+    const el = listRef.current.querySelector<HTMLElement>(
+      '[data-tab-id="' + activeTab.replace(/"/g, '\\"') + '"]'
+    );
+    if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+  }, [activeTab, tabs, variant]);
+
   return (
     <div
+      ref={listRef}
       className={twMerge(
         clsx(
-          'flex gap-1 overflow-x-auto no-scrollbar',
-          variant === 'underline' && 'border-b border-slate-200',
-          variant === 'pills' && 'bg-slate-100 p-1 rounded-xl',
-          variant === 'enclosed' && 'border-b border-slate-200',
+          'relative flex gap-1 overflow-x-auto no-scrollbar',
+          variant === 'underline' && 'border-b border-line',
+          variant === 'pills' && 'bg-sand-100 p-1 rounded-2xl',
+          variant === 'enclosed' && 'border-b border-line',
           className
         )
       )}
       role="tablist"
     >
+      {variant === 'underline' && indicator.width > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute bottom-0 h-0.5 bg-gov-700 rounded-full transition-[left,width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{ left: indicator.left, width: indicator.width }}
+        />
+      )}
+
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
+            data-tab-id={tab.id}
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
             className={clsx(
-              'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all select-none',
+              'relative flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap select-none',
+              'transition-colors duration-200',
               variant === 'underline' && [
-                isActive
-                  ? 'border-b-2 border-gov-700 text-gov-800 font-semibold'
-                  : 'text-slate-500 hover:text-slate-800 hover:border-b-2 hover:border-slate-300',
+                isActive ? 'text-gov-800' : 'text-ink-soft hover:text-ink',
               ],
               variant === 'pills' && [
-                'rounded-lg',
+                'rounded-xl',
                 isActive
-                  ? 'bg-white text-gov-800 shadow-xs font-semibold'
-                  : 'text-slate-600 hover:text-slate-900',
+                  ? 'bg-surface text-gov-800 shadow-card'
+                  : 'text-ink-muted hover:text-ink hover:bg-sand-50',
               ],
               variant === 'enclosed' && [
-                'rounded-t-lg border-t border-x -mb-px',
+                'rounded-t-xl border-t border-x -mb-px',
                 isActive
-                  ? 'bg-white border-slate-200 text-gov-800 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800',
+                  ? 'bg-surface border-line text-gov-800'
+                  : 'border-transparent text-ink-soft hover:text-ink',
               ]
             )}
           >
@@ -71,10 +93,8 @@ export const Tabs: React.FC<TabsProps> = ({
             {tab.count !== undefined && (
               <span
                 className={clsx(
-                  'px-1.5 py-0.5 text-[11px] rounded-full font-bold',
-                  isActive
-                    ? 'bg-gov-100 text-gov-800'
-                    : 'bg-slate-200 text-slate-700'
+                  'px-1.5 py-0.5 text-[11px] rounded-full font-bold tabular-nums transition-colors duration-200',
+                  isActive ? 'bg-gov-100 text-gov-800' : 'bg-sand-200 text-sand-700'
                 )}
               >
                 {tab.count}

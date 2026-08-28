@@ -32,8 +32,8 @@ export const AdminInventoryManagement: React.FC = () => {
             <Pill className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">e-Aushadhi Central Drug Warehouse & Inventory</h1>
-            <p className="text-sm text-slate-500">Statewide pharmaceutical supply chain, stock buffer monitoring, and automated emergency indents</p>
+            <h1 className="text-xl font-bold text-ink">e-Aushadhi Central Drug Warehouse & Inventory</h1>
+            <p className="text-sm text-ink-soft">Statewide pharmaceutical supply chain, stock buffer monitoring, and automated emergency indents</p>
           </div>
         </div>
 
@@ -69,13 +69,13 @@ export const AdminInventoryManagement: React.FC = () => {
       {/* Filter and Search */}
       <Card className="p-4 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by drug trade or generic name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs"
+            className="w-full pl-9 pr-3 py-2 border border-line rounded-lg text-xs"
           />
         </div>
 
@@ -87,7 +87,7 @@ export const AdminInventoryManagement: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all shrink-0 ${
                 filter === flt
                   ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
               }`}
             >
               {flt}
@@ -100,7 +100,7 @@ export const AdminInventoryManagement: React.FC = () => {
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+            <thead className="bg-sand-50 text-ink-muted font-bold border-b border-line">
               <tr>
                 <th className="p-3.5">Medicine & Generic Form</th>
                 <th className="p-3.5">Category</th>
@@ -110,22 +110,22 @@ export const AdminInventoryManagement: React.FC = () => {
                 <th className="p-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-line">
               {filtered.map(drug => {
                 const isLow = drug.stock <= drug.minThreshold;
                 const isOut = drug.stock === 0;
 
                 return (
-                  <tr key={drug.id} className="hover:bg-slate-50/60">
+                  <tr key={drug.id} className="hover:bg-sand-50/60">
                     <td className="p-3.5">
-                      <p className="font-bold text-slate-900">{drug.name}</p>
-                      <p className="text-[11px] text-slate-500">{drug.genericName} • {drug.dosage}</p>
+                      <p className="font-bold text-ink">{drug.name}</p>
+                      <p className="text-[11px] text-ink-soft">{drug.genericName} • {drug.dosage}</p>
                     </td>
-                    <td className="p-3.5 font-semibold text-slate-700">{drug.category}</td>
-                    <td className="p-3.5 text-slate-600">{drug.facilityName}</td>
+                    <td className="p-3.5 font-semibold text-sand-700">{drug.category}</td>
+                    <td className="p-3.5 text-ink-muted">{drug.facilityName}</td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-2">
-                        <span className={`font-bold ${isOut ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-slate-800'}`}>
+                        <span className={`font-bold ${isOut ? 'text-rose-600' : isLow ? 'text-amber-600' : 'text-ink'}`}>
                           {drug.stock} {drug.unit || 'units'}
                         </span>
                         {isLow && (
@@ -134,11 +134,11 @@ export const AdminInventoryManagement: React.FC = () => {
                           </Badge>
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-400">Reorder at: {drug.minThreshold}</span>
+                      <span className="text-[10px] text-ink-soft">Reorder at: {drug.minThreshold}</span>
                     </td>
                     <td className="p-3.5">
-                      <p className="font-mono text-slate-700">{drug.batchNumber}</p>
-                      <p className="text-[10px] text-slate-400">
+                      <p className="font-mono text-sand-700">{drug.batchNumber}</p>
+                      <p className="text-[10px] text-ink-soft">
                         Exp: {drug.expiryDate}
                       </p>
                     </td>
@@ -165,13 +165,13 @@ export const AdminInventoryManagement: React.FC = () => {
         title="Dispatch State Emergency Drug Indent"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-ink-muted">
             Submit a fast-track supply request directly to Haffkine Bio-Pharmaceutical Corporation & State Drug Warehouse.
           </p>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Target Facility / Warehouse</label>
-            <select className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+            <label className="block text-xs font-bold text-sand-700 mb-1">Target Facility / Warehouse</label>
+            <select className="w-full px-3 py-2 border border-line rounded-lg text-xs bg-surface">
               <option>PHC Paud, Mulshi Taluka (Pune)</option>
               <option>CHC Mulshi (Pune)</option>
               <option>District Hospital Aundh (Pune)</option>
@@ -180,11 +180,11 @@ export const AdminInventoryManagement: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Medicine & Required Quantity</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Medicine & Required Quantity</label>
             <input
               type="text"
               placeholder="e.g. Tab Metformin 500mg (10,000 Strips)"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
+              className="w-full px-3 py-2 border border-line rounded-lg text-xs"
             />
           </div>
 
@@ -197,7 +197,7 @@ export const AdminInventoryManagement: React.FC = () => {
             </button>
             <button
               onClick={() => setShowIndentModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-xs font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

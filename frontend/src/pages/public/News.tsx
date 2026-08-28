@@ -40,16 +40,16 @@ export const NewsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col antialiased">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 w-full">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink flex items-center gap-2.5">
             <Newspaper className="w-7 h-7 text-gov-700" />
             Maharashtra State Public Health Bulletins & News
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-ink-soft">
             Official announcements, epidemic advisories, vaccination drives, and healthcare policy updates.
           </p>
         </div>
@@ -58,22 +58,22 @@ export const NewsPage: React.FC = () => {
         {articles.filter((a) => a.featured).map((feat) => (
           <div
             key={feat.id}
-            className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs hover:shadow-card transition-all space-y-4"
+            className="bg-surface rounded-2xl border border-line p-6 sm:p-8 shadow-xs hover:shadow-card transition-all space-y-4"
           >
             <div className="flex items-center gap-2">
               <Badge variant="danger">
                 <BellRing className="w-3.5 h-3.5 mr-1" />
                 {feat.category}
               </Badge>
-              <span className="text-xs text-slate-400 font-medium">• {feat.date}</span>
+              <span className="text-xs text-ink-soft font-medium">• {feat.date}</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-ink leading-tight">
               {feat.title}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-4xl">
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
               {feat.summary}
             </p>
-            <div className="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100">
+            <div className="pt-2 flex items-center justify-between text-xs text-ink-soft border-t border-line">
               <span className="font-semibold">Source: {feat.source}</span>
               <button
                 onClick={() => alert(`Opening full bulletin: ${feat.title}`)}
@@ -90,21 +90,21 @@ export const NewsPage: React.FC = () => {
           {articles.filter((a) => !a.featured).map((art) => (
             <div
               key={art.id}
-              className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
+              className="bg-surface rounded-xl border border-line p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Badge variant="primary" size="sm">
                     {art.category}
                   </Badge>
-                  <span className="text-[11px] text-slate-400">{art.date}</span>
+                  <span className="text-[11px] text-ink-soft">{art.date}</span>
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm leading-snug">{art.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{art.summary}</p>
+                <h3 className="font-bold text-ink text-sm leading-snug">{art.title}</h3>
+                <p className="text-xs text-ink-muted leading-relaxed line-clamp-3">{art.summary}</p>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-[11px] text-slate-400 truncate max-w-[160px]">{art.source}</span>
+              <div className="mt-5 pt-3 border-t border-line flex items-center justify-between text-xs">
+                <span className="text-[11px] text-ink-soft truncate max-w-[160px]">{art.source}</span>
                 <button
                   onClick={() => alert(`Opening full report: ${art.title}`)}
                   className="font-bold text-gov-700 hover:underline"

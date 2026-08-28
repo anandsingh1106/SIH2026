@@ -116,18 +116,18 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
             <Volume2 className="w-5 h-5 animate-pulse" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 text-sm">Voice Prescription Assistant</h4>
-            <p className="text-xs text-slate-500">Accessible audio explanation for patients and caregivers</p>
+            <h4 className="font-bold text-ink text-sm">Voice Prescription Assistant</h4>
+            <p className="text-xs text-ink-soft">Accessible audio explanation for patients and caregivers</p>
           </div>
         </div>
 
         {/* Language Switcher */}
-        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1 text-xs">
+        <div className="flex items-center gap-1 bg-surface border border-line rounded-lg p-1 text-xs">
           <Globe className="w-3.5 h-3.5 text-gov-700 ml-1 shrink-0" />
           <button
             onClick={() => { setSelectedLang('mr'); handleStop(); }}
             className={`px-2.5 py-1 rounded font-semibold transition-colors ${
-              selectedLang === 'mr' ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+              selectedLang === 'mr' ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             मराठी (Marathi)
@@ -135,7 +135,7 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
           <button
             onClick={() => { setSelectedLang('hi'); handleStop(); }}
             className={`px-2.5 py-1 rounded font-semibold transition-colors ${
-              selectedLang === 'hi' ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+              selectedLang === 'hi' ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             हिंदी (Hindi)
@@ -143,7 +143,7 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
           <button
             onClick={() => { setSelectedLang('en'); handleStop(); }}
             className={`px-2.5 py-1 rounded font-semibold transition-colors ${
-              selectedLang === 'en' ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+              selectedLang === 'en' ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             English
@@ -168,7 +168,7 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
           </Button>
         )}
 
-        <span className="text-xs text-slate-500 italic">
+        <span className="text-xs text-ink-soft italic">
           {isPlaying ? '🔊 Speaking prescription instructions clearly...' : 'Press play to listen to dosage timings and advice.'}
         </span>
       </div>

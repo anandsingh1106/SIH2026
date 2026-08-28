@@ -123,11 +123,11 @@ export const AshaMaternalCarePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Baby className="w-6 h-6 text-gov-700" />
             Maternal Health (ANC) & High-Risk Pregnancy Ledger
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Monitor Expected Delivery Dates (EDD), 4 ANC milestones, JSSK benefits, and red-flag danger signs
           </p>
         </div>
@@ -147,8 +147,8 @@ export const AshaMaternalCarePage: React.FC = () => {
         {mothers.map((m) => (
           <div
             key={m.id}
-            className={`bg-white rounded-2xl border p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${
-              m.highRisk ? 'border-red-300 bg-red-50/20' : 'border-slate-200'
+            className={`bg-surface rounded-2xl border p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all ${
+              m.highRisk ? 'border-red-300 bg-red-50/20' : 'border-line'
             }`}
           >
             <div className="space-y-3 max-w-2xl">
@@ -156,30 +156,30 @@ export const AshaMaternalCarePage: React.FC = () => {
                 <Badge variant={m.highRisk ? 'critical' : 'success'} size="sm">
                   {m.highRisk ? 'HIGH RISK PREGNANCY (HRP)' : 'NORMAL GESTATION'}
                 </Badge>
-                <h3 className="font-bold text-slate-900 text-base">{m.name}</h3>
-                <span className="text-xs text-slate-500 font-medium">
+                <h3 className="font-bold text-ink text-base">{m.name}</h3>
+                <span className="text-xs text-ink-soft font-medium">
                   ({m.age} Yrs • Gravida {m.gravida}, Para {m.para})
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-sand-50 p-3 rounded-xl border border-line text-xs">
                 <div>
-                  <span className="text-[11px] text-slate-500">Gestation:</span>
+                  <span className="text-[11px] text-ink-soft">Gestation:</span>
                   <div className="font-bold text-gov-800">{m.gestationalWeeks} Weeks</div>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Expected Delivery:</span>
-                  <div className="font-bold text-slate-900">{m.edd}</div>
+                  <span className="text-[11px] text-ink-soft">Expected Delivery:</span>
+                  <div className="font-bold text-ink">{m.edd}</div>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Hemoglobin:</span>
-                  <div className={`font-bold ${m.hb < 8 ? 'text-red-600' : 'text-slate-800'}`}>
+                  <span className="text-[11px] text-ink-soft">Hemoglobin:</span>
+                  <div className={`font-bold ${m.hb < 8 ? 'text-red-600' : 'text-ink'}`}>
                     {m.hb} g/dL
                   </div>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500">Blood Pressure:</span>
-                  <div className="font-bold text-slate-800">{m.bp} mmHg</div>
+                  <span className="text-[11px] text-ink-soft">Blood Pressure:</span>
+                  <div className="font-bold text-ink">{m.bp} mmHg</div>
                 </div>
               </div>
 
@@ -201,11 +201,11 @@ export const AshaMaternalCarePage: React.FC = () => {
 
               {/* ANC Milestones Progress Bar */}
               <div className="space-y-1 text-xs pt-1">
-                <div className="flex justify-between text-[11px] font-semibold text-slate-600">
+                <div className="flex justify-between text-[11px] font-semibold text-ink-muted">
                   <span>ANC Checkups Completed: {m.ancCompleted} / 4</span>
                   <span className="text-gov-700 font-bold">{m.referralStatus}</span>
                 </div>
-                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-sand-200 rounded-full h-2 overflow-hidden">
                   <div
                     className="h-full bg-gov-600 rounded-full"
                     style={{ width: `${(m.ancCompleted / 4) * 100}%` }}

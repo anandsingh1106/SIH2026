@@ -38,11 +38,11 @@ export const AshaReportsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-gov-700" />
             Monthly ASHA Progress Report (MPR) & Performance Ledger
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Auto-generated service indicators and verified performance-based remuneration calculation
           </p>
         </div>
@@ -69,16 +69,16 @@ export const AshaReportsPage: React.FC = () => {
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Reporting Cycle</div>
-          <div className="text-xl font-bold text-slate-900">{selectedMonth}</div>
+        <div className="bg-surface p-5 rounded-2xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Reporting Cycle</div>
+          <div className="text-xl font-bold text-ink">{selectedMonth}</div>
           <div className="text-[11px] text-gov-700 font-medium">PHC Paud • Mulshi Block</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Overall KPI Compliance</div>
+        <div className="bg-surface p-5 rounded-2xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Overall KPI Compliance</div>
           <div className="text-xl font-bold text-emerald-600">96.5% Target Achieved</div>
-          <div className="text-[11px] text-slate-500">Grade A Frontline Performance</div>
+          <div className="text-[11px] text-ink-soft">Grade A Frontline Performance</div>
         </div>
 
         <div className="bg-gov-900 text-white p-5 rounded-2xl shadow-md border border-gov-800 space-y-1">
@@ -89,14 +89,14 @@ export const AshaReportsPage: React.FC = () => {
       </div>
 
       {/* Section 1: KPI Achievements */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-        <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+      <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+        <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
           Village Health Indicators & Performance Summary
         </h3>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-line">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
                 <th className="p-3">Healthcare Indicator / Milestone</th>
                 <th className="p-3">Target</th>
@@ -105,10 +105,10 @@ export const AshaReportsPage: React.FC = () => {
                 <th className="p-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-line text-ink">
               {performanceMetrics.map((m, idx) => (
-                <tr key={idx} className="hover:bg-slate-50">
-                  <td className="p-3 font-semibold text-slate-900">{m.indicator}</td>
+                <tr key={idx} className="hover:bg-sand-50">
+                  <td className="p-3 font-semibold text-ink">{m.indicator}</td>
                   <td className="p-3 font-mono">{m.target}</td>
                   <td className="p-3 font-mono font-bold text-gov-800">{m.achieved}</td>
                   <td className="p-3 font-bold">{m.percentage}</td>
@@ -125,17 +125,17 @@ export const AshaReportsPage: React.FC = () => {
       </div>
 
       {/* Section 2: Incentive Itemization */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+      <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
             National Health Mission Incentive Itemization
           </h3>
           <span className="text-xs font-bold text-gov-800">Total: {totalIncentive}</span>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-line">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
                 <th className="p-3">Approved NHM Activity</th>
                 <th className="p-3">Unit Remuneration Rate</th>
@@ -143,12 +143,12 @@ export const AshaReportsPage: React.FC = () => {
                 <th className="p-3">Total Payable</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-line text-ink">
               {incentives.map((inc, idx) => (
-                <tr key={idx} className="hover:bg-slate-50">
-                  <td className="p-3 font-semibold text-slate-900">{inc.activity}</td>
-                  <td className="p-3 text-slate-600">{inc.rate}</td>
-                  <td className="p-3 font-mono font-bold text-slate-800">{inc.count}</td>
+                <tr key={idx} className="hover:bg-sand-50">
+                  <td className="p-3 font-semibold text-ink">{inc.activity}</td>
+                  <td className="p-3 text-ink-muted">{inc.rate}</td>
+                  <td className="p-3 font-mono font-bold text-ink">{inc.count}</td>
                   <td className="p-3 font-mono font-bold text-emerald-700">{inc.total}</td>
                 </tr>
               ))}

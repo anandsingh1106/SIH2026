@@ -13,10 +13,10 @@ export const AshaVillageMapPage: React.FC = () => {
       />
 
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900">
+        <h1 className="text-2xl font-extrabold text-ink">
           Paud Village Health Grid & Household Geolocation
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           284 Households mapped across 4 Padas (Vetal Pada, Kolvan Road, Wadi Vasti, Gaothan)
         </p>
       </div>

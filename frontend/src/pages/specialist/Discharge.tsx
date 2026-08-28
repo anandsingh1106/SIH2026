@@ -63,8 +63,8 @@ export const SpecialistDischarge: React.FC = () => {
             <FileCheck2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">ABDM FHIR Electronic Discharge Summaries</h1>
-            <p className="text-sm text-slate-500">Author standardized discharge summaries, bundle digital Rx, and auto-dispatch to patient health locker</p>
+            <h1 className="text-xl font-bold text-ink">ABDM FHIR Electronic Discharge Summaries</h1>
+            <p className="text-sm text-ink-soft">Author standardized discharge summaries, bundle digital Rx, and auto-dispatch to patient health locker</p>
           </div>
         </div>
 
@@ -77,21 +77,21 @@ export const SpecialistDischarge: React.FC = () => {
       </div>
 
       {/* Discharge Summary Preview Card */}
-      <Card className="p-6 md:p-8 space-y-6 border-slate-300">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <Card className="p-6 md:p-8 space-y-6 border-sand-300">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-5">
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-xs uppercase tracking-wider text-emerald-700">Govt. of Maharashtra • Public Health Department</span>
               <Badge variant="success" className="text-[10px]">FHIR R4 Validated</Badge>
             </div>
-            <h2 className="text-xl font-extrabold text-slate-900 mt-1">Sassoon General Hospital & Medical College, Pune</h2>
-            <p className="text-xs text-slate-500">Tertiary Center Discharge Summary • Dept. of Cardiology & Medicine</p>
+            <h2 className="text-xl font-extrabold text-ink mt-1">Sassoon General Hospital & Medical College, Pune</h2>
+            <p className="text-xs text-ink-soft">Tertiary Center Discharge Summary • Dept. of Cardiology & Medicine</p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={printDocument}
-              className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50"
+              className="flex items-center gap-1.5 px-3 py-2 border border-line text-sand-700 text-xs font-semibold rounded-lg hover:bg-sand-50"
             >
               <Printer className="w-4 h-4" /> Print
             </button>
@@ -106,30 +106,30 @@ export const SpecialistDischarge: React.FC = () => {
         </div>
 
         {/* Patient metadata */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-sand-50 rounded-xl border border-line text-xs">
           <div>
-            <span className="text-slate-400">Patient Name:</span>
-            <p className="font-bold text-slate-900 mt-0.5">{summary.patientName}</p>
+            <span className="text-ink-soft">Patient Name:</span>
+            <p className="font-bold text-ink mt-0.5">{summary.patientName}</p>
           </div>
           <div>
-            <span className="text-slate-400">ABHA Address:</span>
-            <p className="font-mono font-semibold text-slate-800 mt-0.5">{summary.abhaId}</p>
+            <span className="text-ink-soft">ABHA Address:</span>
+            <p className="font-mono font-semibold text-ink mt-0.5">{summary.abhaId}</p>
           </div>
           <div>
-            <span className="text-slate-400">Admission / Discharge:</span>
-            <p className="font-semibold text-slate-800 mt-0.5">14 Aug 2026 / 18 Aug 2026</p>
+            <span className="text-ink-soft">Admission / Discharge:</span>
+            <p className="font-semibold text-ink mt-0.5">14 Aug 2026 / 18 Aug 2026</p>
           </div>
           <div>
-            <span className="text-slate-400">Attending Consultant:</span>
-            <p className="font-semibold text-slate-800 mt-0.5">Dr. Priya Kulkarni, MD, DM</p>
+            <span className="text-ink-soft">Attending Consultant:</span>
+            <p className="font-semibold text-ink mt-0.5">Dr. Priya Kulkarni, MD, DM</p>
           </div>
         </div>
 
         {/* Clinical sections */}
         <div className="space-y-4 text-xs">
           <div>
-            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Final Discharge Diagnosis</h3>
-            <p className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-800 font-medium">
+            <h3 className="font-bold text-ink uppercase tracking-wider mb-1 text-[11px]">Final Discharge Diagnosis</h3>
+            <p className="p-3 bg-sand-50 rounded-lg border border-line text-ink font-medium">
               1. Severe Refractory Essential Hypertension (Controlled at Discharge: 130/82 mmHg)<br />
               2. Type 2 Diabetes Mellitus with Mild Microalbuminuria<br />
               3. Mild Diastolic Dysfunction (E/A 0.8, preserved EF 58%)
@@ -137,17 +137,17 @@ export const SpecialistDischarge: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Hospital Course & Interventions</h3>
-            <p className="text-slate-700 leading-relaxed">
+            <h3 className="font-bold text-ink uppercase tracking-wider mb-1 text-[11px]">Hospital Course & Interventions</h3>
+            <p className="text-sand-700 leading-relaxed">
               Patient was transferred from PHC Paud with hypertensive urgency. Initiated on dual antihypertensive therapy. Tele-ECG and 2D Echo ruled out acute ischemic changes. Renal parameters stabilized (Serum Creatinine 1.05 mg/dL). Discharged in hemodynamically stable condition.
             </p>
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Discharge Medications & Regimen</h3>
-            <div className="border border-slate-200 rounded-xl overflow-x-auto">
+            <h3 className="font-bold text-ink uppercase tracking-wider mb-1 text-[11px]">Discharge Medications & Regimen</h3>
+            <div className="border border-line rounded-xl overflow-x-auto">
               <table className="w-full min-w-[560px] text-left">
-                <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                <thead className="bg-sand-100 text-ink-muted font-bold border-b border-line">
                   <tr>
                     <th className="p-2.5">Medicine Name</th>
                     <th className="p-2.5">Dosage</th>
@@ -155,24 +155,24 @@ export const SpecialistDischarge: React.FC = () => {
                     <th className="p-2.5">Instructions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line">
                   <tr>
-                    <td className="p-2.5 font-bold text-slate-900">Tab Telmisartan 40mg</td>
+                    <td className="p-2.5 font-bold text-ink">Tab Telmisartan 40mg</td>
                     <td className="p-2.5">1 Tab</td>
                     <td className="p-2.5 font-semibold text-gov-700">1-0-0 (Morning)</td>
-                    <td className="p-2.5 text-slate-600">After breakfast (सकाळी नाष्ट्यानंतर)</td>
+                    <td className="p-2.5 text-ink-muted">After breakfast (सकाळी नाष्ट्यानंतर)</td>
                   </tr>
                   <tr>
-                    <td className="p-2.5 font-bold text-slate-900">Tab Metformin 500mg ER</td>
+                    <td className="p-2.5 font-bold text-ink">Tab Metformin 500mg ER</td>
                     <td className="p-2.5">1 Tab</td>
                     <td className="p-2.5 font-semibold text-gov-700">1-0-1 (Morning & Night)</td>
-                    <td className="p-2.5 text-slate-600">With meals (जेवणासोबत)</td>
+                    <td className="p-2.5 text-ink-muted">With meals (जेवणासोबत)</td>
                   </tr>
                   <tr>
-                    <td className="p-2.5 font-bold text-slate-900">Tab Atorvastatin 20mg</td>
+                    <td className="p-2.5 font-bold text-ink">Tab Atorvastatin 20mg</td>
                     <td className="p-2.5">1 Tab</td>
                     <td className="p-2.5 font-semibold text-gov-700">0-0-1 (Night)</td>
-                    <td className="p-2.5 text-slate-600">At bedtime (रात्री झोपताना)</td>
+                    <td className="p-2.5 text-ink-muted">At bedtime (रात्री झोपताना)</td>
                   </tr>
                 </tbody>
               </table>
@@ -180,8 +180,8 @@ export const SpecialistDischarge: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-800 uppercase tracking-wider mb-1 text-[11px]">Handoff Directives to ASHA & PHC Paud</h3>
-            <ul className="list-disc list-inside space-y-1 text-slate-700">
+            <h3 className="font-bold text-ink uppercase tracking-wider mb-1 text-[11px]">Handoff Directives to ASHA & PHC Paud</h3>
+            <ul className="list-disc list-inside space-y-1 text-sand-700">
               <li>Paud ASHA worker Sunita Patil to conduct weekly home visit for BP recording.</li>
               <li>PHC Paud Medical Officer to recheck serum potassium after 3 weeks of ARB therapy.</li>
               <li>SOS red flags: Severe headache, chest pressure, dizziness — call 108 immediately.</li>
@@ -189,7 +189,7 @@ export const SpecialistDischarge: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <div className="pt-4 border-t border-line flex items-center justify-between text-xs text-ink-soft">
           <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Digitally Signed via Ayushman Bharat Health Account (ABHA Token Valid)
           </span>
@@ -205,11 +205,11 @@ export const SpecialistDischarge: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Select Admitted Patient</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Select Admitted Patient</label>
             <select
               value={selectedPatient}
               onChange={e => setSelectedPatient(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
             >
               <option value="Anandi Devi Patil">Anandi Devi Patil (ABHA: 91-8273-1928-4491)</option>
               <option value="Suresh More">Suresh More (ABHA: 91-1102-4829-0021)</option>
@@ -218,11 +218,11 @@ export const SpecialistDischarge: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Discharge Condition & Summary</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Discharge Condition & Summary</label>
             <textarea
               rows={3}
               placeholder="Record final clinical outcome, response to interventions, and stability metrics..."
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
+              className="w-full px-3 py-2 border border-line rounded-lg text-xs"
             />
           </div>
 
@@ -235,7 +235,7 @@ export const SpecialistDischarge: React.FC = () => {
             </button>
             <button
               onClick={() => setShowGenerateModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

@@ -27,22 +27,22 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center gap-2">
           <div className="w-10 h-10 rounded-2xl bg-gov-700 text-white flex items-center justify-center shadow-sm">
             <Shield className="w-6 h-6" />
           </div>
-          <span className="font-extrabold text-slate-900 text-lg">MahaAarogya Sangam</span>
+          <span className="font-extrabold text-ink text-lg">MahaAarogya Sangam</span>
         </Link>
-        <h2 className="mt-3 text-2xl font-extrabold text-slate-900">Reset Your Password</h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <h2 className="mt-3 text-2xl font-extrabold text-ink">Reset Your Password</h2>
+        <p className="text-xs text-ink-soft mt-1">
           We'll email you a secure link to set a new password
         </p>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="bg-white py-8 px-6 shadow-card rounded-2xl border border-slate-200 space-y-6">
+        <div className="bg-surface py-8 px-6 shadow-card rounded-2xl border border-line space-y-6">
           {sent ? (
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-2">
               <div className="flex items-center gap-2 font-bold text-sm text-emerald-800">
@@ -81,7 +81,7 @@ export const ForgotPasswordPage: React.FC = () => {
             </form>
           )}
 
-          <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
+          <div className="text-center text-xs text-ink-soft pt-2 border-t border-line">
             Remembered your password?{' '}
             <Link to="/login" className="text-gov-700 font-bold hover:underline">Sign In</Link>
           </div>

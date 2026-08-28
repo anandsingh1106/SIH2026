@@ -90,14 +90,14 @@ export const RegisterPage: React.FC = () => {
 
   if (confirmationSent) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4">
+      <div className="min-h-screen bg-sand-50 flex flex-col justify-center py-12 px-4">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-6 shadow-card rounded-2xl border border-slate-200 space-y-4 text-center">
+          <div className="bg-surface py-8 px-6 shadow-card rounded-2xl border border-line space-y-4 text-center">
             <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-            <h2 className="text-xl font-extrabold text-slate-900">Check your email</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-xl font-extrabold text-ink">Check your email</h2>
+            <p className="text-sm text-ink-muted">
               We sent a confirmation link to{' '}
-              <span className="font-semibold text-slate-800">{formData.email}</span>. Click it to
+              <span className="font-semibold text-ink">{formData.email}</span>. Click it to
               activate your account, then sign in.
             </p>
             <Link to="/login">
@@ -112,24 +112,24 @@ export const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center gap-2">
           <div className="w-10 h-10 rounded-2xl bg-gov-700 text-white flex items-center justify-center shadow-sm">
             <Shield className="w-6 h-6" />
           </div>
-          <span className="font-extrabold text-slate-900 text-lg">MahaAarogya Sangam</span>
+          <span className="font-extrabold text-ink text-lg">MahaAarogya Sangam</span>
         </Link>
-        <h2 className="mt-3 text-2xl font-extrabold text-slate-900">
+        <h2 className="mt-3 text-2xl font-extrabold text-ink">
           Create Healthcare / ABHA Account
         </h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-ink-soft mt-1">
           Join Maharashtra's integrated public health network
         </p>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg px-4">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-card rounded-2xl border border-slate-200 space-y-6">
+        <div className="bg-surface py-8 px-6 sm:px-10 shadow-card rounded-2xl border border-line space-y-6">
           {!configured && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
               Registration is not configured yet. Add <code>VITE_SUPABASE_URL</code> and{' '}
@@ -139,11 +139,11 @@ export const RegisterPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Account Role</label>
+              <label className="block text-xs font-semibold text-sand-700 mb-1.5">Account Role</label>
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-900 font-semibold focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
               >
                 <option value="patient">Citizen / Patient</option>
                 <option value="asha">ASHA Worker</option>
@@ -174,7 +174,7 @@ export const RegisterPage: React.FC = () => {
               helperText="Used to sign in. We'll send a confirmation link here."
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
               <Input
                 label="Password"
                 type="password"
@@ -208,11 +208,11 @@ export const RegisterPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">District</label>
+                <label className="block text-xs font-semibold text-sand-700 mb-1.5">District</label>
                 <select
                   value={formData.district}
                   onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:outline-none focus:border-gov-600"
+                  className="w-full text-xs border border-sand-300 rounded-lg p-2 bg-surface focus:outline-none focus:border-gov-600"
                 >
                   {MAHARASHTRA_DISTRICTS.map((d) => (
                     <option key={d} value={d}>{d}</option>
@@ -228,9 +228,9 @@ export const RegisterPage: React.FC = () => {
               />
             </div>
 
-            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
+            <div className="bg-sand-50 p-3.5 rounded-xl border border-line space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800">Ayushman Bharat Health Account (ABHA)</span>
+                <span className="font-bold text-ink">Ayushman Bharat Health Account (ABHA)</span>
                 <button
                   type="button"
                   onClick={handleGenerateAbha}
@@ -266,7 +266,7 @@ export const RegisterPage: React.FC = () => {
             </Button>
           </form>
 
-          <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
+          <div className="text-center text-xs text-ink-soft pt-2 border-t border-line">
             Already have an account?{' '}
             <Link to="/login" className="text-gov-700 font-bold hover:underline">
               Sign In

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -22,17 +22,58 @@ export const Modal: React.FC<ModalProps> = ({
   footer,
   size = 'md',
 }) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const descId = useId();
+
   useEffect(() => {
+    if (!isOpen) return;
+
+    // Return focus to whatever opened the dialog once it closes, so keyboard
+    // users are not dropped back at the top of the document.
+    const opener = document.activeElement as HTMLElement | null;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return;
+
+      // Trap Tab inside the panel.
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Move focus into the panel on open.
+    const t = window.setTimeout(() => {
+      panelRef.current
+        ?.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        ?.focus();
+    }, 0);
+
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
+      window.clearTimeout(t);
+      opener?.focus?.();
     };
   }, [isOpen, onClose]);
 
@@ -47,49 +88,51 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-sand-900/50 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Card */}
       <div
+        ref={panelRef}
         className={twMerge(
           clsx(
-            'relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-10 flex flex-col max-h-[90vh]',
+            'relative z-10 w-full flex flex-col max-h-[90vh] overflow-hidden animate-scale-in',
+            'bg-surface rounded-3xl shadow-premium border border-line',
             sizes[size]
           )
         )}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descId : undefined}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-          <div>
-            <h2 id="modal-title" className="text-lg font-bold text-slate-900">
+        <div className="flex items-start justify-between gap-4 p-5 border-b border-line bg-raised">
+          <div className="min-w-0">
+            <h2 id={titleId} className="font-display text-lg font-bold text-ink">
               {title}
             </h2>
-            {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
+            {description && (
+              <p id={descId} className="text-sm text-ink-soft mt-0.5">
+                {description}
+              </p>
+            )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            aria-label="Close modal"
+            className="p-2 -m-1 rounded-xl text-ink-soft hover:text-ink hover:bg-sand-100 transition-colors shrink-0"
+            aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6 overflow-y-auto space-y-4 flex-1">{children}</div>
 
-        {/* Footer */}
         {footer && (
-          <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+          <div className="p-4 bg-raised border-t border-line flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

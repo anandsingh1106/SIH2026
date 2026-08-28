@@ -1,11 +1,11 @@
 import React from 'react';
 
 export const Skeleton: React.FC<{ className?: string }> = ({ className = 'h-4 w-full' }) => (
-  <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+  <div className={`shimmer bg-sand-200 rounded-lg ${className}`} />
 );
 
 export const CardSkeleton: React.FC = () => (
-  <div className="p-5 rounded-xl border border-slate-200 bg-white space-y-3">
+  <div className="p-5 rounded-2xl border border-line bg-surface space-y-3">
     <Skeleton className="h-4 w-1/3" />
     <Skeleton className="h-8 w-1/2" />
     <Skeleton className="h-3 w-3/4" />
@@ -13,8 +13,8 @@ export const CardSkeleton: React.FC = () => (
 );
 
 export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => (
-  <div className="w-full border border-slate-200 rounded-xl overflow-hidden bg-white p-4 space-y-3">
-    <div className="flex gap-4 pb-2 border-b border-slate-100">
+  <div className="w-full border border-line rounded-2xl overflow-hidden bg-surface p-4 space-y-3">
+    <div className="flex gap-4 pb-2 border-b border-line">
       <Skeleton className="h-4 w-1/4" />
       <Skeleton className="h-4 w-1/4" />
       <Skeleton className="h-4 w-1/4" />

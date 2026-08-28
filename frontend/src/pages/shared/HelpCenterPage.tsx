@@ -46,11 +46,11 @@ export const HelpCenterPage: React.FC = () => {
       />
 
       <div className="text-center max-w-2xl mx-auto space-y-3 py-4">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center justify-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-ink flex items-center justify-center gap-2">
           <HelpCircle className="w-7 h-7 text-gov-700" />
           MahaAarogya Knowledge Base & Support
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
+        <p className="text-xs sm:text-sm text-ink-soft">
           Find operational manuals, offline troubleshooting, and technical escalation contacts
         </p>
 
@@ -61,10 +61,10 @@ export const HelpCenterPage: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
         {/* FAQs */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+        <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
             Operational FAQs
           </h3>
 
@@ -72,21 +72,21 @@ export const HelpCenterPage: React.FC = () => {
             {faqs.map((faq, idx) => (
               <div
                 key={idx}
-                className="border border-slate-200 rounded-xl overflow-hidden text-xs"
+                className="border border-line rounded-xl overflow-hidden text-xs"
               >
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                  className="w-full p-3.5 bg-slate-50 font-bold text-slate-900 flex items-center justify-between text-left hover:bg-slate-100 transition-colors"
+                  className="w-full p-3.5 bg-sand-50 font-bold text-ink flex items-center justify-between text-left hover:bg-sand-100 transition-colors"
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform ${
+                    className={`w-4 h-4 text-ink-soft transition-transform ${
                       expandedFaq === idx ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
                 {expandedFaq === idx && (
-                  <div className="p-4 bg-white text-slate-600 leading-relaxed border-t border-slate-200">
+                  <div className="p-4 bg-surface text-ink-muted leading-relaxed border-t border-line">
                     {faq.a}
                   </div>
                 )}
@@ -97,8 +97,8 @@ export const HelpCenterPage: React.FC = () => {
 
         {/* Training Manuals & Escalation */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
               Official SOPs & Training Manuals
             </h3>
 
@@ -106,11 +106,11 @@ export const HelpCenterPage: React.FC = () => {
               {guides.map((g, idx) => (
                 <div
                   key={idx}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs"
+                  className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between text-xs"
                 >
                   <div>
-                    <h5 className="font-bold text-slate-900">{g.title}</h5>
-                    <span className="text-[11px] text-slate-500">{g.role} • {g.pages}</span>
+                    <h5 className="font-bold text-ink">{g.title}</h5>
+                    <span className="text-[11px] text-ink-soft">{g.role} • {g.pages}</span>
                   </div>
                   <Button
                     size="sm"

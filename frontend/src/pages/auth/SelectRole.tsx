@@ -79,7 +79,7 @@ export const SelectRolePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 antialiased">
+    <div className="min-h-screen bg-sand-50 py-12 px-4 sm:px-6 lg:px-8 antialiased">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -87,7 +87,7 @@ export const SelectRolePage: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gov-700 text-white flex items-center justify-center font-bold text-lg shadow-sm">
               <Shield className="w-6 h-6" />
             </div>
-            <span className="font-extrabold text-slate-900 text-xl tracking-tight">
+            <span className="font-extrabold text-ink text-xl tracking-tight">
               MahaAarogya Sangam
             </span>
           </Link>
@@ -97,16 +97,16 @@ export const SelectRolePage: React.FC = () => {
             Choose Your Role
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight">
             Choose a Healthcare Persona to Register As
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
             MahaAarogya Sangam features dedicated, ergonomically distinct workspaces for each participant in Maharashtra's public healthcare ecosystem. Pick a role to create your account.
           </p>
         </div>
 
         {/* Personas Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger">
           {personas.map((p) => (
             <div
               key={p.role}
@@ -114,30 +114,30 @@ export const SelectRolePage: React.FC = () => {
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="p-3 bg-white rounded-xl shadow-2xs border border-slate-200">
+                  <div className="p-3 bg-surface rounded-xl shadow-2xs border border-line">
                     {p.icon}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-slate-200 text-slate-700">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-surface px-2.5 py-1 rounded-full border border-line text-sand-700">
                     {p.role}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 leading-snug">{p.title}</h3>
-                  <p className="text-xs text-slate-500 font-medium">{p.titleMr}</p>
-                  <div className="mt-2 text-xs font-semibold text-gov-800 bg-white/80 p-2 rounded-lg border border-slate-200/80">
+                  <h3 className="text-lg font-bold text-ink leading-snug">{p.title}</h3>
+                  <p className="text-xs text-ink-soft font-medium">{p.titleMr}</p>
+                  <div className="mt-2 text-xs font-semibold text-gov-800 bg-white/80 p-2 rounded-lg border border-line/80">
                     {p.name} <br />
-                    <span className="text-[11px] font-normal text-slate-500">{p.facility}</span>
+                    <span className="text-[11px] font-normal text-ink-soft">{p.facility}</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed">{p.desc}</p>
+                <p className="text-xs text-ink-muted leading-relaxed">{p.desc}</p>
 
-                <div className="space-y-1.5 pt-2 border-t border-slate-200/60">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="space-y-1.5 pt-2 border-t border-line/60">
+                  <div className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">
                     Core Capabilities:
                   </div>
-                  <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-700">
+                  <div className="grid grid-cols-2 gap-1 text-[11px] text-sand-700">
                     {p.features.map((f, idx) => (
                       <span key={idx} className="flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-gov-600 shrink-0" />

@@ -55,7 +55,7 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
       size="xl"
       footer={
         <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] text-slate-500 italic">
+          <span className="text-[11px] text-ink-soft italic">
             Mandatory human clinician validation required prior to ordering treatment.
           </span>
           <div className="flex gap-2">
@@ -83,14 +83,14 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
         {/* Input parameters */}
         <div className="space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-sand-700 mb-1">
               Reported Symptoms & Chief Complaints (comma-separated):
             </label>
             <textarea
               rows={2}
               value={symptomText}
               onChange={(e) => setSymptomText(e.target.value)}
-              className="w-full text-xs border border-slate-300 rounded-lg p-3 focus:outline-none focus:border-gov-600"
+              className="w-full text-xs border border-sand-300 rounded-lg p-3 focus:outline-none focus:border-gov-600"
               placeholder="e.g. high fever, severe headache, chest pain, breathless..."
             />
           </div>
@@ -98,7 +98,7 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
           <VitalsInputGroup vitals={vitals} onChange={setVitals} />
 
           <div className="flex items-center gap-4 text-xs pt-1">
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+            <label className="flex items-center gap-2 cursor-pointer font-medium text-sand-700">
               <input
                 type="checkbox"
                 checked={isPregnant}
@@ -108,12 +108,12 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
               <span>Patient is Pregnant (Maternal Triage Rules)</span>
             </label>
             <div className="flex items-center gap-2">
-              <span className="text-slate-600 font-medium">Age:</span>
+              <span className="text-ink-muted font-medium">Age:</span>
               <input
                 type="number"
                 value={age}
                 onChange={(e) => setAge(parseInt(e.target.value) || 30)}
-                className="w-16 text-xs border border-slate-300 rounded px-2 py-1"
+                className="w-16 text-xs border border-sand-300 rounded px-2 py-1"
               />
             </div>
             <Button
@@ -136,27 +136,27 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
 
         {/* Explainable AI Results Breakdown */}
         {result && (
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4 animate-in fade-in">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div className="rounded-xl border border-line bg-sand-50 p-5 space-y-4 animate-in fade-in">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
               <div className="flex items-center gap-3">
                 <TriageBadge priority={result.riskLevel} size="lg" />
                 <div>
-                  <div className="text-xs font-bold text-slate-800">
+                  <div className="text-xs font-bold text-ink">
                     Calculated Triage Severity: {result.score} / 100
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-[11px] text-ink-soft">
                     Confidence Level: {result.confidence}% (Standard Protocol Match)
                   </div>
                 </div>
               </div>
-              <div className="text-xs font-bold text-gov-800 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+              <div className="text-xs font-bold text-gov-800 bg-surface px-3 py-1.5 rounded-lg border border-line">
                 Primary Assessment: {result.primaryConcern}
               </div>
             </div>
 
             {/* Contributing Factor Explanations */}
             <div>
-              <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <h5 className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4 text-gov-700" />
                 Explainable Contributing Factors & Weightage:
               </h5>
@@ -164,7 +164,7 @@ export const ExplainableTriageModal: React.FC<ExplainableTriageModalProps> = ({
                 {result.contributingFactors.map((factor, i) => (
                   <div
                     key={i}
-                    className="p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 flex items-start gap-2"
+                    className="p-2.5 bg-surface border border-line rounded-lg text-xs font-medium text-ink flex items-start gap-2"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-gov-600 shrink-0 mt-1.5" />
                     <span>{factor}</span>

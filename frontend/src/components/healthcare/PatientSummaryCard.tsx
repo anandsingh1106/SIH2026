@@ -10,7 +10,7 @@ export const PatientSummaryCard: React.FC<{ patient: Patient; className?: string
 }) => {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-wrap items-center justify-between gap-4 ${className}`}
+      className={`rounded-xl border border-line bg-surface p-4 shadow-xs flex flex-wrap items-center justify-between gap-4 ${className}`}
     >
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-gov-100 border border-gov-300 flex items-center justify-center text-gov-800 font-bold text-base shrink-0">
@@ -18,12 +18,12 @@ export const PatientSummaryCard: React.FC<{ patient: Patient; className?: string
         </div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-bold text-slate-900 text-base">{patient.name}</h3>
-            {patient.nameMr && <span className="text-xs text-slate-500 font-medium">({patient.nameMr})</span>}
+            <h3 className="font-bold text-ink text-base">{patient.name}</h3>
+            {patient.nameMr && <span className="text-xs text-ink-soft font-medium">({patient.nameMr})</span>}
             <TriageBadge priority={patient.riskCategory === 'critical' ? 'critical' : patient.riskCategory === 'high' ? 'high' : patient.riskCategory === 'moderate' ? 'moderate' : 'low'} size="sm" />
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1">
-            <span className="font-semibold text-slate-700">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft mt-1">
+            <span className="font-semibold text-sand-700">
               {patient.age ?? '—'} Yrs / {(patient.gender ?? 'other').toUpperCase()}
             </span>
             <span>•</span>
@@ -32,12 +32,12 @@ export const PatientSummaryCard: React.FC<{ patient: Patient; className?: string
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-slate-400" />
+              <Phone className="w-3 h-3 text-ink-soft" />
               {patient.phone}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-slate-400" />
+              <MapPin className="w-3 h-3 text-ink-soft" />
               {patient.village}, {patient.district}
             </span>
           </div>

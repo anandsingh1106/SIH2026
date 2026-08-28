@@ -64,11 +64,11 @@ export const DoctorDrugInventoryPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Pill className="w-6 h-6 text-gov-700" />
             Essential Drugs List (EDL) Inventory & Stock Monitoring
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Real-time pharmacy stock balances, batch expiry vigilance, and automated replenishment indents
           </p>
         </div>
@@ -98,7 +98,7 @@ export const DoctorDrugInventoryPage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="bg-surface p-4 rounded-xl border border-line shadow-xs">
         <SearchInput
           placeholder="Search essential medicine, generic molecule, or therapeutic category..."
           onChange={setSearchQuery}
@@ -106,10 +106,10 @@ export const DoctorDrugInventoryPage: React.FC = () => {
       </div>
 
       {/* Medicines Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
                 <th className="p-3.5">Medicine Formulation</th>
                 <th className="p-3.5">Category</th>
@@ -120,25 +120,25 @@ export const DoctorDrugInventoryPage: React.FC = () => {
                 <th className="p-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-line text-ink">
               {filtered.map((m) => {
                 const isLow = m.stock < m.minThreshold;
                 const ordered = orderedIndents[m.id];
                 return (
-                  <tr key={m.id} className="hover:bg-slate-50">
+                  <tr key={m.id} className="hover:bg-sand-50">
                     <td className="p-3.5">
-                      <div className="font-bold text-slate-900">{m.name}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{m.genericName}</div>
+                      <div className="font-bold text-ink">{m.name}</div>
+                      <div className="text-[10px] text-ink-soft font-mono">{m.genericName}</div>
                     </td>
-                    <td className="p-3.5 text-slate-600 font-medium">{m.category}</td>
+                    <td className="p-3.5 text-ink-muted font-medium">{m.category}</td>
                     <td className="p-3.5">
-                      <div className="font-mono text-slate-700 font-bold">{m.batchNumber}</div>
-                      <div className="text-[10px] text-slate-400">Exp: {m.expiryDate}</div>
+                      <div className="font-mono text-sand-700 font-bold">{m.batchNumber}</div>
+                      <div className="text-[10px] text-ink-soft">Exp: {m.expiryDate}</div>
                     </td>
-                    <td className="p-3.5 font-bold text-base text-slate-900">
+                    <td className="p-3.5 font-bold text-base text-ink">
                       {m.stock} {m.unit}
                     </td>
-                    <td className="p-3.5 text-slate-500 font-mono">
+                    <td className="p-3.5 text-ink-soft font-mono">
                       {m.minThreshold} {m.unit}
                     </td>
                     <td className="p-3.5">
@@ -163,7 +163,7 @@ export const DoctorDrugInventoryPage: React.FC = () => {
                             <Truck className="w-3.5 h-3.5 shrink-0" />
                             Order Placed
                           </span>
-                          <span className="font-mono text-[11px] text-slate-500">
+                          <span className="font-mono text-[11px] text-ink-soft">
                             {ordered.token} • {ordered.quantity} {m.unit}
                           </span>
                         </div>
@@ -206,7 +206,7 @@ export const DoctorDrugInventoryPage: React.FC = () => {
               value={indentQty}
               onChange={(e) => setIndentQty(parseInt(e.target.value) || 0)}
             />
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+            <div className="p-3 bg-sand-50 border border-line rounded-xl text-xs text-ink-muted">
               Electronic Indent will be routed to District Central Medical Store (DCMS Aundh). Typical replenishment delivery time is 48-72 hours.
             </div>
             <div className="flex justify-end gap-2 pt-2">

@@ -68,21 +68,29 @@ export const BottomNav: React.FC = () => {
   const items = getItems();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg">
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-t border-line px-2 pt-1.5 flex items-center justify-around shadow-elevated"
+      style={{ paddingBottom: 'calc(0.375rem + env(safe-area-inset-bottom))' }}
+    >
       {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           className={({ isActive }) =>
-            `relative flex flex-col items-center justify-center py-1 px-2 rounded-lg text-[10px] font-medium transition-colors ${
-              isActive ? 'text-gov-700 font-bold' : 'text-slate-500 hover:text-slate-800'
+            `group relative flex flex-col items-center justify-center min-w-[56px] py-1.5 px-2 rounded-xl text-[11px] font-semibold 
+             transition-[color,background-color] duration-200 ${
+              isActive ? 'text-gov-800 bg-gov-50' : 'text-ink-soft hover:text-ink active:bg-sand-100'
             }`
           }
         >
           {({ isActive }) => (
             <>
-              {isActive && <span className="absolute -top-1.5 w-6 h-0.5 rounded-full bg-gov-600" />}
-              {item.icon}
+              <span
+                className={`absolute -top-1 h-0.5 rounded-full bg-saffron-500 transition-all duration-200 ${
+                  isActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
+                }`}
+              />
+              <span className="transition-transform duration-200 group-active:scale-90">{item.icon}</span>
               <span className="mt-0.5">{item.label}</span>
             </>
           )}

@@ -64,7 +64,7 @@ export const SpecialistDashboard: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              className="bg-white text-gov-900 hover:bg-gov-50 font-bold"
+              className="bg-surface text-gov-900 hover:bg-gov-50 font-bold"
               leftIcon={<ArrowRightLeft className="w-4 h-4 text-gov-700" />}
             >
               Inward Referral Triage
@@ -139,9 +139,9 @@ export const SpecialistDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Inward Referrals Queue (Left 8 Cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
                 <ArrowRightLeft className="w-4 h-4 text-gov-700" />
                 Active Inward Transfers from District Network
               </h3>
@@ -154,21 +154,21 @@ export const SpecialistDashboard: React.FC = () => {
               {pendingInward.map((ref) => (
                 <div
                   key={ref.id}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-100/80 transition-colors"
+                  className="p-4 bg-sand-50 border border-line rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-sand-100/80 transition-colors"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-gov-800 bg-white px-2 py-0.5 rounded border border-slate-200 text-[11px]">
+                      <span className="font-mono font-bold text-gov-800 bg-surface px-2 py-0.5 rounded border border-line text-[11px]">
                         {ref.referralCode}
                       </span>
                       <TriageBadge priority={ref.priority} size="sm" />
-                      <span className="font-bold text-slate-900 text-sm">{ref.patientName}</span>
-                      <span className="text-slate-500 font-medium">({ref.patientAge}y/{ref.patientGender})</span>
+                      <span className="font-bold text-ink text-sm">{ref.patientName}</span>
+                      <span className="text-ink-soft font-medium">({ref.patientAge}y/{ref.patientGender})</span>
                     </div>
 
-                    <p className="text-slate-600 font-medium">{ref.provisionalDiagnosis}</p>
+                    <p className="text-ink-muted font-medium">{ref.provisionalDiagnosis}</p>
 
-                    <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-0.5">
+                    <div className="text-[11px] text-ink-soft flex items-center gap-2 pt-0.5">
                       <span>🏥 From: {ref.referringFacilityName}</span>
                       <span>•</span>
                       <span>👨‍⚕️ Ref Doctor: {ref.referringDoctorName}</span>
@@ -193,9 +193,9 @@ export const SpecialistDashboard: React.FC = () => {
         {/* Right 4 Cols: Bed Census Snapshot & Modules */}
         <div className="lg:col-span-4 space-y-6">
           {/* Bed Census Widget */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <h4 className="font-bold text-ink text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <BedDouble className="w-4 h-4 text-gov-700" />
                 Department Bed Roster
               </h4>
@@ -209,22 +209,22 @@ export const SpecialistDashboard: React.FC = () => {
                 <span className="text-[10px] font-bold text-emerald-800 block uppercase">Available</span>
                 <span className="text-xl font-extrabold text-emerald-700">{availableBeds.length}</span>
               </div>
-              <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
-                <span className="text-[10px] font-bold text-slate-600 block uppercase">Occupied</span>
-                <span className="text-xl font-extrabold text-slate-900">{beds.length - availableBeds.length}</span>
+              <div className="bg-sand-50 border border-line p-3 rounded-xl text-center">
+                <span className="text-[10px] font-bold text-ink-muted block uppercase">Occupied</span>
+                <span className="text-xl font-extrabold text-ink">{beds.length - availableBeds.length}</span>
               </div>
             </div>
 
             <div className="space-y-1.5 pt-1 text-xs">
-              <div className="flex justify-between text-[11px] text-slate-600">
+              <div className="flex justify-between text-[11px] text-ink-muted">
                 <span>ICU Ventilator Bed 02</span>
                 <span className="text-emerald-700 font-bold">READY (Available)</span>
               </div>
-              <div className="flex justify-between text-[11px] text-slate-600">
+              <div className="flex justify-between text-[11px] text-ink-muted">
                 <span>Maternal ICU Bed 04</span>
                 <span className="text-amber-700 font-bold">RESERVED (In Transit)</span>
               </div>
-              <div className="flex justify-between text-[11px] text-slate-600">
+              <div className="flex justify-between text-[11px] text-ink-muted">
                 <span>Cath Lab Post-Op Bed 01</span>
                 <span className="text-red-700 font-bold">OCCUPIED</span>
               </div>
@@ -232,21 +232,21 @@ export const SpecialistDashboard: React.FC = () => {
           </div>
 
           {/* Quick Tertiary Links */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-2 text-xs font-semibold">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider mb-2">
+          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-2 text-xs font-semibold">
+            <h4 className="font-bold text-ink text-xs uppercase tracking-wider mb-2">
               Tertiary Care Stations
             </h4>
-            <Link to="/specialist/treatment-plans" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+            <Link to="/specialist/treatment-plans" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
               <span>Multi-Week Treatment Pathways</span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
             </Link>
-            <Link to="/specialist/follow-ups" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+            <Link to="/specialist/follow-ups" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
               <span>Grassroots Follow-Up Coordinator</span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
             </Link>
-            <Link to="/specialist/discharge" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+            <Link to="/specialist/discharge" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
               <span>MJPJAY Discharge Summaries</span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
             </Link>
           </div>
         </div>

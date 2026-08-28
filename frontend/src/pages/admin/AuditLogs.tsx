@@ -41,12 +41,12 @@ export const AdminAuditLogs: React.FC = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-sand-900 text-white flex items-center justify-center font-bold">
             <ShieldCheck className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">ABDM FHIR Compliance & Access Audit Trail</h1>
-            <p className="text-sm text-slate-500">Immutable ledger of patient record access, consent token validations, and clinical actions</p>
+            <h1 className="text-xl font-bold text-ink">ABDM FHIR Compliance & Access Audit Trail</h1>
+            <p className="text-sm text-ink-soft">Immutable ledger of patient record access, consent token validations, and clinical actions</p>
           </div>
         </div>
 
@@ -58,13 +58,13 @@ export const AdminAuditLogs: React.FC = () => {
       {/* Filter and Search */}
       <Card className="p-4 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by actor, action description, or ABHA resource ID..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs"
+            className="w-full pl-9 pr-3 py-2 border border-line rounded-lg text-xs"
           />
         </div>
 
@@ -75,8 +75,8 @@ export const AdminAuditLogs: React.FC = () => {
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
                 statusFilter === st
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-sand-900 text-white shadow-sm'
+                  : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
               }`}
             >
               {st}
@@ -89,7 +89,7 @@ export const AdminAuditLogs: React.FC = () => {
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+            <thead className="bg-sand-50 text-ink-muted font-bold border-b border-line">
               <tr>
                 <th className="p-3.5">Timestamp</th>
                 <th className="p-3.5">Actor & Role</th>
@@ -99,17 +99,17 @@ export const AdminAuditLogs: React.FC = () => {
                 <th className="p-3.5">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 font-mono">
+            <tbody className="divide-y divide-line font-mono">
               {filtered.map(entry => (
-                <tr key={entry.id} className="hover:bg-slate-50/60 font-sans">
-                  <td className="p-3.5 text-slate-500 font-mono text-[11px] whitespace-nowrap">{entry.timestamp}</td>
+                <tr key={entry.id} className="hover:bg-sand-50/60 font-sans">
+                  <td className="p-3.5 text-ink-soft font-mono text-[11px] whitespace-nowrap">{entry.timestamp}</td>
                   <td className="p-3.5">
-                    <p className="font-bold text-slate-900">{entry.actor}</p>
+                    <p className="font-bold text-ink">{entry.actor}</p>
                     <Badge variant="info" className="text-[9px] uppercase mt-0.5">{entry.role}</Badge>
                   </td>
-                  <td className="p-3.5 font-medium text-slate-800">{entry.action}</td>
-                  <td className="p-3.5 font-mono text-slate-700 text-[11px]">{entry.resource}</td>
-                  <td className="p-3.5 text-slate-500 text-[11px]">
+                  <td className="p-3.5 font-medium text-ink">{entry.action}</td>
+                  <td className="p-3.5 font-mono text-sand-700 text-[11px]">{entry.resource}</td>
+                  <td className="p-3.5 text-ink-soft text-[11px]">
                     <div>IP: {entry.ipAddress}</div>
                     {entry.consentRef && <div className="text-emerald-700 font-semibold">{entry.consentRef}</div>}
                   </td>

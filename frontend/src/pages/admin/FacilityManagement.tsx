@@ -76,8 +76,8 @@ export const AdminFacilityManagement: React.FC = () => {
             <Building2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Healthcare Facility Registry & Management</h1>
-            <p className="text-sm text-slate-500">Directory of PHCs, CHCs, Subcenters, and District Hospitals across Maharashtra</p>
+            <h1 className="text-xl font-bold text-ink">Healthcare Facility Registry & Management</h1>
+            <p className="text-sm text-ink-soft">Directory of PHCs, CHCs, Subcenters, and District Hospitals across Maharashtra</p>
           </div>
         </div>
 
@@ -92,13 +92,13 @@ export const AdminFacilityManagement: React.FC = () => {
       {/* Search & Filter */}
       <Card className="p-4 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by facility name, district, or taluka..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs"
+            className="w-full pl-9 pr-3 py-2 border border-line rounded-lg text-xs"
           />
         </div>
 
@@ -110,7 +110,7 @@ export const AdminFacilityManagement: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase transition-all shrink-0 ${
                 typeFilter === tf
                   ? 'bg-gov-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
               }`}
             >
               {tf}
@@ -120,37 +120,37 @@ export const AdminFacilityManagement: React.FC = () => {
       </Card>
 
       {/* Facilities Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
         {filtered.map(fac => (
           <Card key={fac.id} className="p-5 space-y-4">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-slate-900 text-base">{fac.name}</h3>
+                  <h3 className="font-bold text-ink text-base">{fac.name}</h3>
                   <Badge variant="info" className="uppercase text-[10px]">{fac.type}</Badge>
                   <Badge variant="success" className="text-[10px] capitalize">
                     Active
                   </Badge>
                 </div>
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" /> {fac.taluka}, {fac.district}
+                <p className="text-xs text-ink-soft mt-1 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-ink-soft" /> {fac.taluka}, {fac.district}
                 </p>
               </div>
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-xs">
+            <div className="grid grid-cols-3 gap-2 p-3 bg-sand-50 rounded-xl border border-line text-center text-xs">
               <div>
-                <span className="text-slate-400">Total Beds</span>
-                <p className="font-bold text-slate-800 mt-0.5">{fac.totalBeds} ({fac.availableBeds} free)</p>
+                <span className="text-ink-soft">Total Beds</span>
+                <p className="font-bold text-ink mt-0.5">{fac.totalBeds} ({fac.availableBeds} free)</p>
               </div>
               <div>
-                <span className="text-slate-400">Doctors</span>
-                <p className="font-bold text-slate-800 mt-0.5">{fac.doctorsCount} Doctors</p>
+                <span className="text-ink-soft">Doctors</span>
+                <p className="font-bold text-ink mt-0.5">{fac.doctorsCount} Doctors</p>
               </div>
               <div>
-                <span className="text-slate-400">ICU / Vent</span>
-                <p className="font-bold text-slate-800 mt-0.5">{fac.icuBeds} / {fac.ventilators}</p>
+                <span className="text-ink-soft">ICU / Vent</span>
+                <p className="font-bold text-ink mt-0.5">{fac.icuBeds} / {fac.ventilators}</p>
               </div>
             </div>
 
@@ -161,7 +161,7 @@ export const AdminFacilityManagement: React.FC = () => {
               {fac.bloodBankAvailable && <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200 font-semibold">Blood Bank Hub</span>}
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft">
               <span>Helpline: <strong>{fac.phone}</strong></span>
               <button className="text-gov-600 font-bold hover:underline">Edit Configuration →</button>
             </div>
@@ -177,24 +177,24 @@ export const AdminFacilityManagement: React.FC = () => {
       >
         <form onSubmit={handleAddFacility} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Facility Name</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Facility Name</label>
             <input
               type="text"
               required
               placeholder="e.g. Primary Health Centre Pirangut"
               value={newFacility.name}
               onChange={e => setNewFacility({ ...newFacility, name: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Facility Type</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Facility Type</label>
               <select
                 value={newFacility.type}
                 onChange={e => setNewFacility({ ...newFacility, type: e.target.value as any })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
               >
                 <option value="PHC">PHC (Primary Health Centre)</option>
                 <option value="CHC">CHC (Community Health Centre)</option>
@@ -203,33 +203,33 @@ export const AdminFacilityManagement: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Total Inpatient Beds</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Total Inpatient Beds</label>
               <input
                 type="number"
                 value={newFacility.totalBeds}
                 onChange={e => setNewFacility({ ...newFacility, totalBeds: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">District</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">District</label>
               <input
                 type="text"
                 value={newFacility.district}
                 onChange={e => setNewFacility({ ...newFacility, district: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Taluka</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Taluka</label>
               <input
                 type="text"
                 value={newFacility.taluka}
                 onChange={e => setNewFacility({ ...newFacility, taluka: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
           </div>
@@ -244,7 +244,7 @@ export const AdminFacilityManagement: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

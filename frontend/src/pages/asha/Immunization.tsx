@@ -56,21 +56,21 @@ export const AshaImmunizationPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Syringe className="w-6 h-6 text-gov-700" />
             Universal Immunization Tracking Ledger
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             National Health Mission Immunization Schedule (Birth to 5 Years & Pregnant Mothers)
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-2xs text-xs font-semibold">
+        <div className="flex bg-surface p-1 rounded-xl border border-line shadow-2xs text-xs font-semibold">
           <button
             onClick={() => setActiveTab('due')}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'due' ? 'bg-gov-700 text-white font-bold' : 'text-slate-600 hover:bg-slate-100'
+              activeTab === 'due' ? 'bg-gov-700 text-white font-bold' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             Due & Overdue (3)
@@ -78,7 +78,7 @@ export const AshaImmunizationPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('completed')}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'completed' ? 'bg-gov-700 text-white font-bold' : 'text-slate-600 hover:bg-slate-100'
+              activeTab === 'completed' ? 'bg-gov-700 text-white font-bold' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             Completed Sessions
@@ -86,7 +86,7 @@ export const AshaImmunizationPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              activeTab === 'all' ? 'bg-gov-700 text-white font-bold' : 'text-slate-600 hover:bg-slate-100'
+              activeTab === 'all' ? 'bg-gov-700 text-white font-bold' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             All Ledger Records
@@ -99,12 +99,12 @@ export const AshaImmunizationPage: React.FC = () => {
         {filtered.map((r) => (
           <div
             key={r.id}
-            className={`bg-white rounded-2xl border p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+            className={`bg-surface rounded-2xl border p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
               r.status === 'overdue'
                 ? 'border-red-300 bg-red-50/20'
                 : r.status === 'completed'
                 ? 'border-emerald-200 bg-emerald-50/10'
-                : 'border-slate-200'
+                : 'border-line'
             }`}
           >
             <div className="space-y-1.5">
@@ -121,8 +121,8 @@ export const AshaImmunizationPage: React.FC = () => {
                 >
                   {r.status.toUpperCase()}
                 </Badge>
-                <h3 className="font-bold text-slate-900 text-sm">{r.childName}</h3>
-                <span className="text-xs text-slate-500 font-medium">({r.gender.toUpperCase()}, DOB: {r.dob})</span>
+                <h3 className="font-bold text-ink text-sm">{r.childName}</h3>
+                <span className="text-xs text-ink-soft font-medium">({r.gender.toUpperCase()}, DOB: {r.dob})</span>
               </div>
 
               <div className="font-semibold text-gov-800 text-xs flex items-center gap-1.5">
@@ -130,7 +130,7 @@ export const AshaImmunizationPage: React.FC = () => {
                 <span>{r.vaccine}</span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 pt-0.5">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft pt-0.5">
                 <span>👩 <strong>Mother:</strong> {r.motherName}</span>
                 <span>•</span>
                 <span>🏠 {r.village}</span>

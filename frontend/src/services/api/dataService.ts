@@ -243,6 +243,66 @@ function mapReferral(r: Record<string, unknown>): Referral {
   };
 }
 
+/**
+ * Normalises a public facility record into the shape the UI renders.
+ *
+ * The `/api/public/facilities` payload is deliberately lean -- it carries
+ * identity, location and contact details, but none of the bed counts, service
+ * lists or capability flags the directory displays. Casting the response
+ * straight to `Facility` type-checked but produced objects whose array fields
+ * were `undefined`, so the first `.services.some(...)` threw and took the whole
+ * page down. Every optional field is given a safe default here instead.
+ */
+function mapFacility(f: Record<string, unknown>): Facility {
+  const num = (key: string): number => {
+    const v = f[key];
+    return typeof v === 'number' && Number.isFinite(v) ? v : 0;
+  };
+  const str = (key: string): string => {
+    const v = f[key];
+    return typeof v === 'string' ? v : '';
+  };
+  const bool = (key: string): boolean => f[key] === true;
+
+  // The API sends SCREAMING_SNAKE type codes; the UI labels are title-cased.
+  const TYPE_LABELS: Record<string, Facility['type']> = {
+    PHC: 'PHC',
+    CHC: 'CHC',
+    SUB_DISTRICT_HOSPITAL: 'Sub-District Hospital',
+    DISTRICT_HOSPITAL: 'District Hospital',
+    MEDICAL_COLLEGE: 'GMC',
+    GMC: 'GMC',
+    PRIVATE_EMPANELED: 'Private Empaneled',
+  };
+  const rawType = str('type').toUpperCase();
+
+  return {
+    id: str('id'),
+    name: str('name'),
+    nameMr: typeof f.nameMr === 'string' ? f.nameMr : undefined,
+    type: TYPE_LABELS[rawType] ?? 'PHC',
+    district: str('district'),
+    taluka: str('taluka'),
+    address: str('address') || [str('village'), str('taluka'), str('district')].filter(Boolean).join(', '),
+    phone: str('phone'),
+    totalBeds: num('totalBeds'),
+    availableBeds: num('availableBeds'),
+    icuBeds: num('icuBeds'),
+    availableIcuBeds: num('availableIcuBeds'),
+    ventilators: num('ventilators'),
+    availableVentilators: num('availableVentilators'),
+    // `emergencyAvailable` is the API's name for this flag.
+    emergencyReady: bool('emergencyReady') || bool('emergencyAvailable'),
+    bloodBankAvailable: bool('bloodBankAvailable'),
+    oxygenAvailable: bool('oxygenAvailable'),
+    services: Array.isArray(f.services) ? (f.services as string[]) : [],
+    doctorsCount: num('doctorsCount'),
+    distanceKm: typeof f.distanceKm === 'number' ? f.distanceKm : undefined,
+    latitude: num('latitude'),
+    longitude: num('longitude'),
+  };
+}
+
 function mapBed(b: Record<string, unknown>): Bed {
   return {
     ...(b as unknown as Bed),
@@ -572,7 +632,12 @@ class DataService {
   // --- FACILITIES / BEDS ---
   public getFacilities(): Promise<Facility[]> {
     return this.safeList(
-      async () => page(await api.get<Paginated<Facility>>('/api/public/facilities', { query: { limit: 100 } })),
+      async () => {
+        const res = await api.get<Paginated<Record<string, unknown>>>('/api/public/facilities', {
+          query: { limit: 100 },
+        });
+        return page(res).map(mapFacility);
+      },
       'facilities'
     );
   }

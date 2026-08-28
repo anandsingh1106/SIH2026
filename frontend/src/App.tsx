@@ -116,17 +116,20 @@ const queryClient = new QueryClient({
 
 // ─── Page Loading Fallback ───────────────────────────────────────────────────
 const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-10 h-10 border-4 border-gov-600 border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-slate-500 font-medium">Loading workspace…</p>
+  <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative w-12 h-12">
+        <div className="absolute inset-0 rounded-full border-[3px] border-line" />
+        <div className="absolute inset-0 rounded-full border-[3px] border-gov-700 border-t-transparent animate-spin" />
+      </div>
+      <p className="text-sm text-ink-soft font-semibold">Loading workspace…</p>
     </div>
   </div>
 );
 
 // ─── Public Layout (navbar + footer) ────────────────────────────────────────
 const PublicLayout: React.FC = () => (
-  <div className="min-h-screen flex flex-col bg-white">
+  <div className="min-h-screen flex flex-col bg-surface">
     <PublicNavbar />
     <main className="flex-1">
       <Outlet />

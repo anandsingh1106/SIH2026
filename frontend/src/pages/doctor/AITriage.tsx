@@ -46,11 +46,11 @@ export const DoctorAITriagePage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-gov-700" />
           Explainable Clinical Decision Support Triage Engine
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Deterministic scoring calibrated against National Health Mission Maharashtra emergency triage guidelines
         </p>
       </div>
@@ -64,22 +64,22 @@ export const DoctorAITriagePage: React.FC = () => {
       </div>
 
       {/* Input Parameters Form */}
-      <form onSubmit={handleAnalyze} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
+      <form onSubmit={handleAnalyze} className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="block text-xs font-semibold text-sand-700 mb-1.5">
             Reported Chief Complaints & Physical Symptoms (comma separated)
           </label>
           <textarea
             rows={2}
             value={symptomInput}
             onChange={(e) => setSymptomInput(e.target.value)}
-            className="w-full text-xs border border-slate-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
+            className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
           />
         </div>
 
         <VitalsInputGroup vitals={vitals} onChange={setVitals} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-line">
           <Input
             label="Patient Age (Years)"
             type="number"
@@ -87,7 +87,7 @@ export const DoctorAITriagePage: React.FC = () => {
             onChange={(e) => setAge(parseInt(e.target.value) || 0)}
           />
           <div className="flex items-center pt-6">
-            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs font-semibold text-sand-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={isPregnant}
@@ -119,36 +119,36 @@ export const DoctorAITriagePage: React.FC = () => {
 
       {/* Results Breakdown */}
       {result && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6 animate-in fade-in">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6 animate-in fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
             <div className="flex items-center gap-3">
               <TriageBadge priority={result.riskLevel} size="lg" />
               <div>
-                <div className="text-sm font-extrabold text-slate-900">
+                <div className="text-sm font-extrabold text-ink">
                   Calculated Risk Score: {result.score} / 100
                 </div>
-                <div className="text-[11px] text-slate-500 font-medium">
+                <div className="text-[11px] text-ink-soft font-medium">
                   Confidence Rating: {result.confidence}% Match with NHM Guidelines
                 </div>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Primary Assessment</span>
+              <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Primary Assessment</span>
               <div className="text-sm font-bold text-gov-800">{result.primaryConcern}</div>
             </div>
           </div>
 
           {/* Explainable Factor Weights */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider">
               Explainable Clinical Risk Drivers & Contributing Factors:
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {result.contributingFactors.map((factor, idx) => (
                 <div
                   key={idx}
-                  className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 flex items-start gap-2"
+                  className="p-3 bg-sand-50 border border-line rounded-xl text-xs font-medium text-ink flex items-start gap-2"
                 >
                   <span className="w-2 h-2 rounded-full bg-gov-600 shrink-0 mt-1" />
                   <span>{factor}</span>
@@ -166,17 +166,17 @@ export const DoctorAITriagePage: React.FC = () => {
           {/* Narrative explanation, when an AI provider is configured */}
           {result.explanation && (
             <div>
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2">
                 Explanation {result.aiAssisted && <span className="text-gov-600">(AI-assisted)</span>}:
               </h4>
-              <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <p className="text-xs text-sand-700 leading-relaxed bg-sand-50 p-3 rounded-lg border border-line">
                 {result.explanation}
               </p>
             </div>
           )}
 
           {result.disclaimer && (
-            <p className="text-[11px] text-slate-500 italic border-t border-slate-200 pt-3">
+            <p className="text-[11px] text-ink-soft italic border-t border-line pt-3">
               {result.disclaimer}
             </p>
           )}

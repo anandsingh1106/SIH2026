@@ -78,8 +78,8 @@ export const SpecialistTreatmentPlans: React.FC = () => {
             <ClipboardList className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Tertiary Treatment Plans & Protocols</h1>
-            <p className="text-sm text-slate-500">Multi-stage longitudinal disease pathways, titration guidelines, and surgical plans</p>
+            <h1 className="text-xl font-bold text-ink">Tertiary Treatment Plans & Protocols</h1>
+            <p className="text-sm text-ink-soft">Multi-stage longitudinal disease pathways, titration guidelines, and surgical plans</p>
           </div>
         </div>
 
@@ -94,22 +94,22 @@ export const SpecialistTreatmentPlans: React.FC = () => {
       <div className="space-y-6">
         {plans.map(plan => (
           <Card key={plan.id} className="p-5 md:p-6 space-y-4">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-line pb-4">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg font-bold text-slate-900">{plan.patientName}</h2>
+                  <h2 className="text-lg font-bold text-ink">{plan.patientName}</h2>
                   <Badge variant={plan.status === 'active' ? 'info' : plan.status === 'review_required' ? 'warning' : 'success'}>
                     {plan.status.replace('_', ' ').toUpperCase()}
                   </Badge>
-                  <span className="text-xs text-slate-400">Plan Ref: #{plan.id}</span>
+                  <span className="text-xs text-ink-soft">Plan Ref: #{plan.id}</span>
                 </div>
                 <p className="text-sm font-semibold text-blue-900 mt-1">{plan.condition}</p>
-                <p className="text-xs text-slate-500 mt-0.5">Specialty: {plan.specialty} • Initiated: {plan.startDate}</p>
+                <p className="text-xs text-ink-soft mt-0.5">Specialty: {plan.specialty} • Initiated: {plan.startDate}</p>
               </div>
 
               <div className="text-right">
-                <span className="text-xs text-slate-400">Care Plan Completion</span>
-                <p className="text-lg font-bold text-slate-800">
+                <span className="text-xs text-ink-soft">Care Plan Completion</span>
+                <p className="text-lg font-bold text-ink">
                   {Math.round((plan.phases.filter(p => p.completed).length / plan.phases.length) * 100)}%
                 </p>
               </div>
@@ -117,7 +117,7 @@ export const SpecialistTreatmentPlans: React.FC = () => {
 
             {/* Phases timeline */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Treatment Plan Progression & Milestones</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-soft">Treatment Plan Progression & Milestones</h3>
               <div className="space-y-2">
                 {plan.phases.map((phase, idx) => (
                   <div
@@ -126,7 +126,7 @@ export const SpecialistTreatmentPlans: React.FC = () => {
                     className={`p-3.5 rounded-xl border flex items-start justify-between gap-3 cursor-pointer transition-all ${
                       phase.completed
                         ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950'
-                        : 'bg-white border-slate-200 hover:border-blue-300'
+                        : 'bg-surface border-line hover:border-blue-300'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -134,19 +134,19 @@ export const SpecialistTreatmentPlans: React.FC = () => {
                         {phase.completed ? (
                           <CheckCircle className="w-5 h-5 text-emerald-600" />
                         ) : (
-                          <Clock className="w-5 h-5 text-slate-400" />
+                          <Clock className="w-5 h-5 text-ink-soft" />
                         )}
                       </div>
                       <div>
-                        <p className={`text-sm font-bold ${phase.completed ? 'line-through text-emerald-800' : 'text-slate-800'}`}>
+                        <p className={`text-sm font-bold ${phase.completed ? 'line-through text-emerald-800' : 'text-ink'}`}>
                           {phase.phaseName}
                         </p>
-                        <p className="text-xs text-slate-600 mt-0.5">{phase.description}</p>
+                        <p className="text-xs text-ink-muted mt-0.5">{phase.description}</p>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-[11px] font-medium text-slate-400">Target: {phase.targetDate}</span>
+                      <span className="text-[11px] font-medium text-ink-soft">Target: {phase.targetDate}</span>
                     </div>
                   </div>
                 ))}
@@ -154,8 +154,8 @@ export const SpecialistTreatmentPlans: React.FC = () => {
             </div>
 
             {/* Specialist Advisory Notes */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700">
-              <span className="font-bold text-slate-900">Clinical Directives for PHC / Subcenter: </span>
+            <div className="p-3.5 bg-sand-50 rounded-xl border border-line text-xs text-sand-700">
+              <span className="font-bold text-ink">Clinical Directives for PHC / Subcenter: </span>
               {plan.notes}
             </div>
           </Card>
@@ -170,29 +170,29 @@ export const SpecialistTreatmentPlans: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Patient Name / ABHA</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Patient Name / ABHA</label>
             <input
               type="text"
               placeholder="e.g. Ramesh Kulkarni (91-9921-2291-0021)"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Clinical Protocol Title</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Clinical Protocol Title</label>
             <input
               type="text"
               placeholder="e.g. Stage 3 CKD Management & Proteinuria Control"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Clinical Directives for PHC Medical Officer</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Clinical Directives for PHC Medical Officer</label>
             <textarea
               rows={3}
               placeholder="Specify target BP/Sugar ranges, red-flag symptoms, and titration rules..."
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
+              className="w-full px-3 py-2 border border-line rounded-lg text-xs"
             />
           </div>
 
@@ -205,7 +205,7 @@ export const SpecialistTreatmentPlans: React.FC = () => {
             </button>
             <button
               onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

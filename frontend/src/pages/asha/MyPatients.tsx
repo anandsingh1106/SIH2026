@@ -100,11 +100,11 @@ export const AshaMyPatientsPage: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Users className="w-6 h-6 text-gov-700" />
             My Registered Patients
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             {isLoading
               ? 'Loading your caseload…'
               : `${patients.length} patient${patients.length === 1 ? '' : 's'} assigned to you`}
@@ -141,11 +141,11 @@ export const AshaMyPatientsPage: React.FC = () => {
         </div>
 
         {villages.length > 0 && (
-          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 text-xs overflow-x-auto max-w-full">
+          <div className="flex items-center gap-1.5 bg-surface p-1 rounded-xl border border-line text-xs overflow-x-auto max-w-full">
             <button
               onClick={() => setVillageFilter('all')}
               className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors ${
-                villageFilter === 'all' ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                villageFilter === 'all' ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
               }`}
             >
               All villages
@@ -155,7 +155,7 @@ export const AshaMyPatientsPage: React.FC = () => {
                 key={v}
                 onClick={() => setVillageFilter(v)}
                 className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors ${
-                  villageFilter === v ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                  villageFilter === v ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
                 }`}
               >
                 {v}
@@ -173,11 +173,11 @@ export const AshaMyPatientsPage: React.FC = () => {
 
       {/* Patient list */}
       {isLoading ? (
-        <div className="p-12 text-center text-xs text-slate-500">Loading patients…</div>
+        <div className="p-12 text-center text-xs text-ink-soft">Loading patients…</div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 bg-white rounded-xl border border-dashed border-slate-300 text-center space-y-3">
-          <Users className="w-8 h-8 mx-auto text-slate-300" />
-          <p className="text-xs text-slate-500">
+        <div className="p-12 bg-surface rounded-xl border border-dashed border-sand-300 text-center space-y-3">
+          <Users className="w-8 h-8 mx-auto text-sand-300" />
+          <p className="text-xs text-ink-soft">
             {patients.length === 0
               ? 'No patients are assigned to you yet.'
               : 'No patients match this search.'}
@@ -200,12 +200,12 @@ export const AshaMyPatientsPage: React.FC = () => {
             return (
               <div
                 key={p.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-card transition-shadow space-y-3"
+                className="bg-surface rounded-2xl border border-line p-5 shadow-xs hover:shadow-card transition-shadow space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-slate-900 text-sm truncate">{p.name}</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <h3 className="font-bold text-ink text-sm truncate">{p.name}</h3>
+                    <p className="text-[11px] text-ink-soft mt-0.5">
                       {age !== null ? `${age} yrs` : 'Age not recorded'}
                       {p.gender ? ` · ${p.gender}` : ''}
                       {p.bloodGroup ? ` · ${p.bloodGroup}` : ''}
@@ -216,10 +216,10 @@ export const AshaMyPatientsPage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="space-y-1.5 text-xs text-slate-600">
+                <div className="space-y-1.5 text-xs text-ink-muted">
                   {p.village && (
                     <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <MapPin className="w-3.5 h-3.5 text-ink-soft shrink-0" />
                       <span className="truncate">
                         {p.village}
                         {p.taluka ? `, ${p.taluka}` : ''}
@@ -229,7 +229,7 @@ export const AshaMyPatientsPage: React.FC = () => {
                   )}
                   {p.phone && (
                     <div className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <Phone className="w-3.5 h-3.5 text-ink-soft shrink-0" />
                       <span>{p.phone}</span>
                     </div>
                   )}
@@ -238,7 +238,7 @@ export const AshaMyPatientsPage: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 pt-3 border-t border-line">
                   <Button
                     size="sm"
                     variant="outline"
@@ -263,7 +263,7 @@ export const AshaMyPatientsPage: React.FC = () => {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <p className="text-xs text-slate-400 text-center">
+        <p className="text-xs text-ink-soft text-center">
           Showing {filtered.length} of {patients.length} assigned patients
         </p>
       )}

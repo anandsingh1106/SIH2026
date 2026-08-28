@@ -38,11 +38,11 @@ export const DoctorLiveQueuePage: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="font-display text-2xl font-extrabold text-ink flex items-center gap-2">
             <Users className="w-6 h-6 text-gov-700" />
             Live OPD Patient Queue Management
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Real-time digital token dispatch with automated voice call-out and triage tier sorting
           </p>
         </div>
@@ -54,14 +54,14 @@ export const DoctorLiveQueuePage: React.FC = () => {
       </div>
 
       {/* Queue List */}
-      <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 shadow-soft overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line divide-y divide-line shadow-soft overflow-hidden">
         {queueItems.map((item) => {
           const isCurrent = calledToken === item.token;
           return (
             <div
               key={item.token}
               className={`p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                isCurrent ? 'bg-gov-50/50 border-l-4 border-l-gov-700 shadow-glow' : 'hover:bg-slate-50'
+                isCurrent ? 'bg-gov-50/50 border-l-4 border-l-gov-700 shadow-glow' : 'hover:bg-sand-50'
               }`}
             >
               <div className="flex items-start gap-4">
@@ -69,7 +69,7 @@ export const DoctorLiveQueuePage: React.FC = () => {
                   className={`w-12 h-12 rounded-2xl font-display font-extrabold text-base flex items-center justify-center shrink-0 ${
                     isCurrent
                       ? 'bg-gradient-to-br from-gov-600 to-gov-700 text-white ring-4 ring-gov-100 shadow-soft'
-                      : 'bg-slate-100 text-slate-700'
+                      : 'bg-sand-100 text-sand-700'
                   }`}
                 >
                   #{item.token}
@@ -77,8 +77,8 @@ export const DoctorLiveQueuePage: React.FC = () => {
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-slate-900 text-base">{item.name}</span>
-                    <span className="text-xs text-slate-500 font-medium">({item.age} Yrs / {item.gender})</span>
+                    <span className="font-bold text-ink text-base">{item.name}</span>
+                    <span className="text-xs text-ink-soft font-medium">({item.age} Yrs / {item.gender})</span>
                     <TriageBadge priority={item.priority} size="sm" />
                     {isCurrent && (
                       <span className="px-2 py-0.5 text-[10px] font-bold bg-gov-700 text-white rounded-full animate-pulse">
@@ -87,11 +87,11 @@ export const DoctorLiveQueuePage: React.FC = () => {
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-700 font-medium">
-                    Reason for Visit: <span className="font-semibold text-slate-900">{item.reason}</span>
+                  <p className="text-xs text-sand-700 font-medium">
+                    Reason for Visit: <span className="font-semibold text-ink">{item.reason}</span>
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-x-3 text-xs text-slate-500 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-3 text-xs text-ink-soft pt-0.5">
                     <span className="font-mono text-gov-800 font-semibold">ABHA: {item.abha}</span>
                     <span>•</span>
                     <span>Waiting Time: {item.wait}</span>

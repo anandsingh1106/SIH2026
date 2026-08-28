@@ -108,8 +108,8 @@ export const PatientFamilyMembers: React.FC = () => {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Family Health Folder & ABHA Linking</h1>
-            <p className="text-sm text-slate-500">Manage health records, appointments, and consents for all household members</p>
+            <h1 className="text-xl font-bold text-ink">Family Health Folder & ABHA Linking</h1>
+            <p className="text-sm text-ink-soft">Manage health records, appointments, and consents for all household members</p>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export const PatientFamilyMembers: React.FC = () => {
       </Card>
 
       {/* Family Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
         {family.map(mem => (
           <Card
             key={mem.id}
@@ -155,36 +155,36 @@ export const PatientFamilyMembers: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-900 text-base">{mem.name}</h3>
+                  <h3 className="font-bold text-ink text-base">{mem.name}</h3>
                   {mem.isHead && <Badge variant="warning" className="text-[10px]">Head of Family</Badge>}
                 </div>
-                <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                <p className="text-xs font-semibold text-ink-soft mt-0.5">
                   {mem.relation} • {mem.age} yrs • {mem.gender}
                 </p>
               </div>
-              <div className="w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full border border-sand-300 flex items-center justify-center">
                 {selectedMember === mem.id && <CheckCircle2 className="w-5 h-5 text-purple-600" />}
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+            <div className="mt-4 pt-3 border-t border-line space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">ABHA Address / ID:</span>
-                <span className="font-mono font-medium text-slate-700">{mem.abhaId}</span>
+                <span className="text-ink-soft">ABHA Address / ID:</span>
+                <span className="font-mono font-medium text-sand-700">{mem.abhaId}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Blood Group:</span>
-                <span className="font-semibold text-slate-800">{mem.bloodGroup}</span>
+                <span className="text-ink-soft">Blood Group:</span>
+                <span className="font-semibold text-ink">{mem.bloodGroup}</span>
               </div>
               {mem.activeConditions.length > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Care Program:</span>
+                  <span className="text-ink-soft">Care Program:</span>
                   <span className="font-medium text-purple-700">{mem.activeConditions.join(', ')}</span>
                 </div>
               )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between">
               <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5" /> ABDM Consent Active
               </span>
@@ -210,24 +210,24 @@ export const PatientFamilyMembers: React.FC = () => {
       >
         <form onSubmit={handleAddMember} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Full Name</label>
             <input
               type="text"
               required
               placeholder="e.g. Rohini Patil"
               value={newMember.name}
               onChange={e => setNewMember({ ...newMember, name: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Relationship</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Relationship</label>
               <select
                 value={newMember.relation}
                 onChange={e => setNewMember({ ...newMember, relation: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
               >
                 <option value="Spouse">Spouse</option>
                 <option value="Child">Child</option>
@@ -238,27 +238,27 @@ export const PatientFamilyMembers: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Age</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Age</label>
               <input
                 type="number"
                 placeholder="Years"
                 value={newMember.age}
                 onChange={e => setNewMember({ ...newMember, age: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">14-Digit ABHA ID (Optional)</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">14-Digit ABHA ID (Optional)</label>
             <input
               type="text"
               placeholder="91-XXXX-XXXX-XXXX"
               value={newMember.abhaId}
               onChange={e => setNewMember({ ...newMember, abhaId: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm font-mono"
             />
-            <p className="text-[11px] text-slate-400 mt-1">If not available, can be generated via Aadhaar OTP later.</p>
+            <p className="text-[11px] text-ink-soft mt-1">If not available, can be generated via Aadhaar OTP later.</p>
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -271,7 +271,7 @@ export const PatientFamilyMembers: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

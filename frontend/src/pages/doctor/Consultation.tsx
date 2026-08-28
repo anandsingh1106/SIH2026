@@ -178,11 +178,11 @@ export const DoctorConsultationPage: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Stethoscope className="w-6 h-6 text-gov-700" />
             Clinical Consultation & E-Prescribing Station
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Structured diagnosis, formulary prescription generator, and allergy safety verification
           </p>
         </div>
@@ -198,17 +198,17 @@ export const DoctorConsultationPage: React.FC = () => {
       </div>
 
       {isSubmitted ? (
-        <div className="bg-white rounded-2xl border border-emerald-200 p-8 shadow-card text-center space-y-4 animate-in fade-in">
+        <div className="bg-surface rounded-2xl border border-emerald-200 p-8 shadow-card text-center space-y-4 animate-in fade-in">
           {/* Off-screen; only this is sent to the printer. */}
           <PrintablePrescription prescription={issuedRx} />
 
           <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-ink">
             Consultation & E-Prescription Finalized!
           </h2>
-          <p className="text-xs text-slate-600 max-w-md mx-auto">
+          <p className="text-xs text-ink-muted max-w-md mx-auto">
             Prescription generated for <strong>{selectedPatient?.name}</strong>. The digital prescription and trilingual voice audio explanation have been delivered to the patient portal.
           </p>
           <div className="pt-4 flex justify-center gap-3">
@@ -235,14 +235,14 @@ export const DoctorConsultationPage: React.FC = () => {
       ) : (
         <form onSubmit={handleCompleteConsultation} className="space-y-6">
           {/* Patient Selector */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0">
+          <div className="bg-surface p-4 rounded-xl border border-line shadow-xs flex items-center gap-3">
+            <label className="text-xs font-bold text-sand-700 uppercase tracking-wider shrink-0">
               Active Patient:
             </label>
             <select
               value={selectedPatientId}
               onChange={(e) => setSelectedPatientId(e.target.value)}
-              className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-900 font-semibold focus:outline-none focus:border-gov-600"
+              className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
             >
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -270,25 +270,25 @@ export const DoctorConsultationPage: React.FC = () => {
           )}
 
           {/* Section 1: Complaints & Vitals */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
               1. Chief Complaints & Clinical History
             </h3>
             <textarea
               rows={2}
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
-              className="w-full text-xs border border-slate-300 rounded-xl p-3 focus:outline-none focus:border-gov-600"
+              className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600"
             />
             <VitalsInputGroup vitals={vitals} onChange={setVitals} />
           </div>
 
           {/* Section 2: Assessment & Diagnosis */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
               2. Assessment & Diagnosis (ICD-11 Code)
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
               <Input
                 label="Provisional / Final Diagnosis"
                 required
@@ -302,20 +302,20 @@ export const DoctorConsultationPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Physical Examination Findings</label>
+              <label className="block text-xs font-semibold text-sand-700 mb-1.5">Physical Examination Findings</label>
               <textarea
                 rows={2}
                 value={examNotes}
                 onChange={(e) => setExamNotes(e.target.value)}
-                className="w-full text-xs border border-slate-300 rounded-xl p-3 focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600"
               />
             </div>
           </div>
 
           {/* Section 3: E-Prescription Creator */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
                 <Pill className="w-4 h-4 text-gov-700" />
                 3. Formulary E-Prescription & Dosage Schedule
               </h3>
@@ -334,10 +334,10 @@ export const DoctorConsultationPage: React.FC = () => {
               {medicines.map((med, idx) => (
                 <div
                   key={idx}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs"
+                  className="p-4 bg-sand-50 border border-line rounded-xl space-y-3 text-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 text-sm">
+                    <span className="font-bold text-ink text-sm">
                       #{idx + 1}. {med.name} ({med.genericName})
                     </span>
                     <button
@@ -391,7 +391,7 @@ export const DoctorConsultationPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger">
                     <Input
                       label="Instructions (English)"
                       value={med.instructions}
@@ -423,8 +423,8 @@ export const DoctorConsultationPage: React.FC = () => {
             </div>
           )}
 
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
-            <span className="text-xs text-slate-500">
+          <div className="pt-4 border-t border-line flex items-center justify-between">
+            <span className="text-xs text-ink-soft">
               Prescription digitally signed & linked to ABHA Record
             </span>
             <Button

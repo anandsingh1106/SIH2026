@@ -84,24 +84,24 @@ export const AshaNcdScreeningPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <Activity className="w-6 h-6 text-gov-700" />
           Community Based Assessment Checklist (CBAC) for NCDs
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           National Programme for Prevention & Control of Cancer, Diabetes, CVD and Stroke (NPCDCS)
         </p>
       </div>
 
       {isSubmitted ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-card text-center space-y-4 animate-in fade-in">
+        <div className="bg-surface rounded-2xl border border-line p-8 shadow-card text-center space-y-4 animate-in fade-in">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-ink">
             CBAC Screening Form Logged Successfully!
           </h2>
-          <p className="text-xs text-slate-600 max-w-md mx-auto">
+          <p className="text-xs text-ink-muted max-w-md mx-auto">
             Calculated CBAC Score: <strong>{cbacScore}</strong>. Patient {patientName} has been flagged and an automatic NCD referral has been routed to the PHC Paud Medical Officer queue.
           </p>
           <Button
@@ -116,10 +116,10 @@ export const AshaNcdScreeningPage: React.FC = () => {
           </Button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6">
           {/* Section 1: Demographics */}
           <div>
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider mb-3">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider mb-3">
               1. Individual Demographics
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -137,11 +137,11 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 onChange={(e) => setAge(parseInt(e.target.value) || 0)}
               />
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Gender</label>
+                <label className="block text-xs font-semibold text-sand-700 mb-1.5">Gender</label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-gov-600"
+                  className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface focus:outline-none focus:border-gov-600"
                 >
                   <option value="female">Female</option>
                   <option value="male">Male</option>
@@ -151,9 +151,9 @@ export const AshaNcdScreeningPage: React.FC = () => {
           </div>
 
           {/* Section 2: Part A Risk Score */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
+          <div className="space-y-3 pt-2 border-t border-line">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
                 2. Part A: Risk Factor Assessment Score
               </h3>
               <span className="text-xs font-bold text-gov-800 bg-gov-50 px-3 py-1 rounded-full border border-gov-200">
@@ -161,8 +161,8 @@ export const AshaNcdScreeningPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Tobacco Use (Smoking, Khaini, Gutkha)</span>
                 <input
                   type="checkbox"
@@ -172,7 +172,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 />
               </label>
 
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Alcohol Consumption Weekly</span>
                 <input
                   type="checkbox"
@@ -182,7 +182,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 />
               </label>
 
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Engaged in Physical Activity (&gt;150 mins/week)</span>
                 <input
                   type="checkbox"
@@ -192,7 +192,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 />
               </label>
 
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Family History of Diabetes / High BP / Heart Disease</span>
                 <input
                   type="checkbox"
@@ -205,8 +205,8 @@ export const AshaNcdScreeningPage: React.FC = () => {
           </div>
 
           {/* Section 3: Measurements */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+          <div className="space-y-3 pt-2 border-t border-line">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
               3. Physical Measurements & Clinical Checks
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -235,13 +235,13 @@ export const AshaNcdScreeningPage: React.FC = () => {
           </div>
 
           {/* Section 4: Warning Sign Checks */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-red-700 flex items-center gap-1.5">
+          <div className="space-y-3 pt-2 border-t border-line">
+            <h3 className="font-bold text-ink text-sm uppercase tracking-wider text-red-700 flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4" />
               4. Common Cancer Early Warning Symptoms
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Non-healing white/red patch in mouth</span>
                 <input
                   type="checkbox"
@@ -251,7 +251,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 />
               </label>
 
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Lump or nipple discharge in breast</span>
                 <input
                   type="checkbox"
@@ -261,7 +261,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 />
               </label>
 
-              <label className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer text-xs">
+              <label className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between cursor-pointer text-xs">
                 <span>Bleeding between periods / post-menopause</span>
                 <input
                   type="checkbox"
@@ -273,8 +273,8 @@ export const AshaNcdScreeningPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-xs text-slate-500">
+          <div className="pt-4 border-t border-line flex items-center justify-between">
+            <div className="text-xs text-ink-soft">
               {requiresReferral ? (
                 <span className="text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
                   ⚠️ Score &ge; 4: Auto-generates PHC Doctor NCD Referral

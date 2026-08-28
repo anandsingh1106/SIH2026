@@ -123,23 +123,23 @@ export const PatientDashboard: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
         {/* Next Appointment */}
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-5 h-5 text-gov-600" />
-            <h2 className="font-display font-bold text-slate-800">Next Appointment</h2>
+            <h2 className="font-display font-bold text-ink">Next Appointment</h2>
           </div>
           <div className="bg-gov-50 rounded-xl p-4 border border-gov-100">
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-bold text-gov-800">{nextAppointment.type}</p>
-                <p className="text-sm text-slate-600 mt-1">{nextAppointment.doctor}</p>
-                <p className="text-xs text-slate-500">{nextAppointment.facility}</p>
+                <p className="text-sm text-ink-muted mt-1">{nextAppointment.doctor}</p>
+                <p className="text-xs text-ink-soft">{nextAppointment.facility}</p>
               </div>
               <div className="text-right">
                 <p className="font-bold text-gov-700">{nextAppointment.date}</p>
-                <p className="text-sm text-slate-500">{nextAppointment.time}</p>
+                <p className="text-sm text-ink-soft">{nextAppointment.time}</p>
               </div>
             </div>
             <div className="flex gap-2 mt-4">
@@ -161,7 +161,7 @@ export const PatientDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Pill className="w-5 h-5 text-gov-600" />
-              <h2 className="font-display font-bold text-slate-800">Current Medicines</h2>
+              <h2 className="font-display font-bold text-ink">Current Medicines</h2>
             </div>
             <Link to="/patient/prescriptions" className="text-xs text-gov-600 font-semibold hover:underline flex items-center gap-1">
               View all <ChevronRight className="w-3 h-3" />
@@ -173,10 +173,10 @@ export const PatientDashboard: React.FC = () => {
               { name: 'Metformin 500mg', frequency: '1-0-1', instructions: 'After meals' },
               { name: 'Aspirin 75mg', frequency: '0-1-0', instructions: 'After lunch' },
             ]).map((med: any, i: number) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div key={i} className="flex items-center justify-between p-3 bg-sand-50 rounded-lg">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">{med.name}</p>
-                  <p className="text-xs text-slate-500">{med.instructions || 'As directed'}</p>
+                  <p className="text-sm font-semibold text-ink">{med.name}</p>
+                  <p className="text-xs text-ink-soft">{med.instructions || 'As directed'}</p>
                 </div>
                 <Badge variant="info" className="text-xs shrink-0">{med.frequency}</Badge>
               </div>
@@ -196,19 +196,19 @@ export const PatientDashboard: React.FC = () => {
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <ArrowRightLeft className="w-5 h-5 text-amber-600" />
-              <h2 className="font-display font-bold text-slate-800">Active Referral</h2>
+              <h2 className="font-display font-bold text-ink">Active Referral</h2>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Specialty</span>
+                <span className="text-sm text-ink-muted">Specialty</span>
                 <span className="text-sm font-semibold">{referral.specialty}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Referred to</span>
+                <span className="text-sm text-ink-muted">Referred to</span>
                 <span className="text-sm font-semibold text-right max-w-[150px]">{referral.targetFacilityName}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Status</span>
+                <span className="text-sm text-ink-muted">Status</span>
                 <Badge
                   variant={referral.status === 'accepted' ? 'success' : referral.status === 'created' ? 'info' : 'warning'}
                   className="capitalize text-xs"
@@ -230,7 +230,7 @@ export const PatientDashboard: React.FC = () => {
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Bell className="w-5 h-5 text-gov-600" />
-            <h2 className="font-display font-bold text-slate-800">Health Reminders</h2>
+            <h2 className="font-display font-bold text-ink">Health Reminders</h2>
           </div>
           <div className="space-y-3">
             <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
@@ -262,7 +262,7 @@ export const PatientDashboard: React.FC = () => {
 
       {/* Quick Links */}
       <Card className="p-5">
-        <h2 className="font-display font-bold text-slate-800 mb-4">Quick Access</h2>
+        <h2 className="font-display font-bold text-ink mb-4">Quick Access</h2>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
             { label: 'Health Timeline', icon: <Clock className="w-5 h-5" />, to: '/patient/timeline', color: 'text-gov-600 bg-gov-50' },
@@ -274,12 +274,12 @@ export const PatientDashboard: React.FC = () => {
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-slate-50 hover:shadow-soft transition-all hover:-translate-y-0.5"
+              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-sand-50 hover:shadow-soft transition-all hover:-translate-y-0.5"
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-2xs ${item.color}`}>
                 {item.icon}
               </div>
-              <span className="text-xs font-medium text-slate-700 text-center">{item.label}</span>
+              <span className="text-xs font-medium text-sand-700 text-center">{item.label}</span>
             </Link>
           ))}
         </div>

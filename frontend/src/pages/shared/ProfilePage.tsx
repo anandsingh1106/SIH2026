@@ -36,10 +36,10 @@ export const ProfilePage: React.FC = () => {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">
+          <h1 className="text-2xl font-extrabold text-ink">
             Personal Profile & Government Credentials
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Verified National Health Authority ABHA ID & Facility Credentials
           </p>
         </div>
@@ -60,10 +60,10 @@ export const ProfilePage: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger">
         {/* Left Column: ABHA Virtual Card */}
         <div className="space-y-4">
-          <div className="bg-gradient-to-br from-gov-800 via-teal-800 to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-gov-700 space-y-4">
+          <div className="bg-gradient-to-br from-gov-800 via-teal-800 to-sand-900 text-white rounded-2xl p-6 shadow-xl border border-gov-700 space-y-4">
             <div className="flex items-center justify-between border-b border-gov-700/60 pb-3">
               <span className="text-[10px] text-gov-200 uppercase tracking-widest font-bold">
                 Government of Maharashtra
@@ -96,13 +96,13 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* Right Columns: Profile Form */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-100 pb-3">
+        <div className="lg:col-span-2 bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider border-b border-line pb-3">
             Contact & Professional Information
           </h3>
 
           <form onSubmit={handleSave} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
               <Input
                 label="Full Name"
                 disabled={!isEditing}
@@ -119,7 +119,7 @@ export const ProfilePage: React.FC = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
               <Input
                 label="Official Email Address"
                 disabled={!isEditing}

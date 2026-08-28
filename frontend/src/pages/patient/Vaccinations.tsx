@@ -77,8 +77,8 @@ export const PatientVaccinations: React.FC = () => {
             <Syringe className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">U-WIN & National Immunization Passport</h1>
-            <p className="text-sm text-slate-500">Universal digital immunization registry, reminders, and verification badges</p>
+            <h1 className="text-xl font-bold text-ink">U-WIN & National Immunization Passport</h1>
+            <p className="text-sm text-ink-soft">Universal digital immunization registry, reminders, and verification badges</p>
           </div>
         </div>
 
@@ -125,27 +125,27 @@ export const PatientVaccinations: React.FC = () => {
       </div>
 
       {/* Vaccine Records List */}
-      <Card className="divide-y divide-slate-100 overflow-hidden">
-        <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="font-bold text-slate-800 text-sm">Vaccination History & Forecast</h2>
-          <span className="text-xs text-slate-500 font-medium">ABHA ID: 91-8273-1928-4491</span>
+      <Card className="divide-y divide-line overflow-hidden">
+        <div className="p-4 bg-sand-50 border-b border-line flex items-center justify-between">
+          <h2 className="font-bold text-ink text-sm">Vaccination History & Forecast</h2>
+          <span className="text-xs text-ink-soft font-medium">ABHA ID: 91-8273-1928-4491</span>
         </div>
 
         {vaccines.map(vac => (
-          <div key={vac.id} className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors">
+          <div key={vac.id} className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-sand-50/60 transition-colors">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-slate-900">{vac.vaccineName}</span>
+                <span className="font-bold text-ink">{vac.vaccineName}</span>
                 {vac.status === 'completed' && <Badge variant="success">Completed</Badge>}
                 {vac.status === 'upcoming' && <Badge variant="warning">Upcoming</Badge>}
                 {vac.status === 'overdue' && <Badge variant="danger">Action Needed: Overdue</Badge>}
               </div>
-              <p className="text-xs font-medium text-slate-600">Dose: {vac.dose}</p>
-              <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+              <p className="text-xs font-medium text-ink-muted">Dose: {vac.dose}</p>
+              <div className="flex items-center gap-3 text-xs text-ink-soft flex-wrap">
                 <span>Facility: <strong>{vac.facility}</strong></span>
                 {vac.givenDate && <span>• Administered: <strong>{vac.givenDate}</strong></span>}
                 {!vac.givenDate && <span>• Due by: <strong>{vac.dueDate}</strong></span>}
-                {vac.batchNumber && <span>• Batch: <code className="text-slate-700 bg-slate-100 px-1 py-0.5 rounded">{vac.batchNumber}</code></span>}
+                {vac.batchNumber && <span>• Batch: <code className="text-sand-700 bg-sand-100 px-1 py-0.5 rounded">{vac.batchNumber}</code></span>}
               </div>
             </div>
 
@@ -188,35 +188,35 @@ export const PatientVaccinations: React.FC = () => {
                 <CheckCircle2 className="w-4 h-4 text-teal-600" />
                 VERIFIED DIGITAL IMMUNIZATION CREDENTIAL
               </div>
-              <h3 className="font-bold text-slate-900 text-lg">{selectedVaccine.vaccineName}</h3>
-              <p className="text-xs text-slate-600">Beneficiary: <strong>{INITIAL_PATIENTS[0].name}</strong> | ABHA: <strong>{INITIAL_PATIENTS[0].abhaId}</strong></p>
+              <h3 className="font-bold text-ink text-lg">{selectedVaccine.vaccineName}</h3>
+              <p className="text-xs text-ink-muted">Beneficiary: <strong>{INITIAL_PATIENTS[0].name}</strong> | ABHA: <strong>{INITIAL_PATIENTS[0].abhaId}</strong></p>
               
-              <div className="grid grid-cols-2 gap-2 text-left bg-white p-3 rounded-lg border border-teal-100 text-xs mt-3">
+              <div className="grid grid-cols-2 gap-2 text-left bg-surface p-3 rounded-lg border border-teal-100 text-xs mt-3">
                 <div>
-                  <span className="text-slate-400">Date of Dose:</span>
-                  <p className="font-semibold text-slate-800">{selectedVaccine.givenDate || selectedVaccine.dueDate}</p>
+                  <span className="text-ink-soft">Date of Dose:</span>
+                  <p className="font-semibold text-ink">{selectedVaccine.givenDate || selectedVaccine.dueDate}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Vaccinator:</span>
-                  <p className="font-semibold text-slate-800">{selectedVaccine.administeredBy || 'Staff Nurse / ANM'}</p>
+                  <span className="text-ink-soft">Vaccinator:</span>
+                  <p className="font-semibold text-ink">{selectedVaccine.administeredBy || 'Staff Nurse / ANM'}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Location:</span>
-                  <p className="font-semibold text-slate-800">{selectedVaccine.facility}</p>
+                  <span className="text-ink-soft">Location:</span>
+                  <p className="font-semibold text-ink">{selectedVaccine.facility}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Batch Ref:</span>
-                  <p className="font-semibold text-slate-800">{selectedVaccine.batchNumber || 'IND-VAC-2026-X'}</p>
+                  <span className="text-ink-soft">Batch Ref:</span>
+                  <p className="font-semibold text-ink">{selectedVaccine.batchNumber || 'IND-VAC-2026-X'}</p>
                 </div>
               </div>
 
               <div className="pt-2">
-                <div className="w-28 h-28 mx-auto bg-slate-900 rounded-lg p-2 text-white flex flex-col items-center justify-center text-[10px] text-center">
+                <div className="w-28 h-28 mx-auto bg-sand-900 rounded-lg p-2 text-white flex flex-col items-center justify-center text-[10px] text-center">
                   <div className="w-full h-full border border-teal-400 flex items-center justify-center font-mono font-bold tracking-tighter">
                     [QR VERIFIED]
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Scan to verify cryptographic signature on National Health Gateway</p>
+                <p className="text-[10px] text-ink-soft mt-1">Scan to verify cryptographic signature on National Health Gateway</p>
               </div>
             </div>
 
@@ -229,7 +229,7 @@ export const PatientVaccinations: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowCertificateModal(false)}
-                className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+                className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
               >
                 Close
               </button>

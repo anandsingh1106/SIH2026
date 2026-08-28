@@ -47,17 +47,17 @@ export const DoctorPatientRecordsPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <FileText className="w-6 h-6 text-gov-700" />
           Longitudinal Electronic Health Records (EHR)
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Unified patient health histories anchored on Ayushman Bharat Health Account (ABHA) IDs
         </p>
       </div>
 
       {/* Search Input */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="bg-surface p-4 rounded-xl border border-line shadow-xs">
         <SearchInput
           placeholder="Search patient by Name, 14-digit ABHA ID, or Phone..."
           onChange={setSearchQuery}
@@ -67,7 +67,7 @@ export const DoctorPatientRecordsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Patient Selection List (Left 4 Cols) */}
         <div className="lg:col-span-4 space-y-3">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-sand-700 uppercase tracking-wider">
             Patient Registry ({filtered.length})
           </h3>
 
@@ -81,17 +81,17 @@ export const DoctorPatientRecordsPage: React.FC = () => {
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-gov-50/60 border-gov-600 shadow-xs font-semibold'
-                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                      : 'bg-surface border-line hover:bg-sand-50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-slate-900">{p.name}</span>
+                    <span className="text-sm font-bold text-ink">{p.name}</span>
                     <Badge variant={p.riskCategory === 'critical' ? 'critical' : p.riskCategory === 'high' ? 'danger' : 'primary'} size="sm">
                       {(p.riskCategory ?? 'normal').toUpperCase()}
                     </Badge>
                   </div>
-                  <div className="text-xs text-slate-500 font-mono mt-0.5">ABHA: {p.abhaId}</div>
-                  <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
+                  <div className="text-xs text-ink-soft font-mono mt-0.5">ABHA: {p.abhaId}</div>
+                  <div className="text-[11px] text-ink-soft mt-1 flex justify-between">
                     <span>{p.age} Yrs / {p.gender}</span>
                     <span>{p.village}</span>
                   </div>
@@ -107,9 +107,9 @@ export const DoctorPatientRecordsPage: React.FC = () => {
             <div className="space-y-4">
               <PatientSummaryCard patient={selectedPatient} />
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6">
+                <div className="flex items-center justify-between border-b border-line pb-3">
+                  <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gov-700" />
                     Longitudinal Care Timeline & Historical Consultations
                   </h3>
@@ -124,17 +124,17 @@ export const DoctorPatientRecordsPage: React.FC = () => {
                 </div>
 
                 {/* Timeline Feed */}
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200">
+                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-sand-200">
                   {timelineEvents.map((evt, idx) => (
                     <div key={idx} className="relative flex items-start gap-4 pl-8">
                       <div className="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-gov-700 border-2 border-white shadow-2xs" />
-                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 w-full space-y-1.5 text-xs">
+                      <div className="bg-sand-50 p-4 rounded-xl border border-line w-full space-y-1.5 text-xs">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900 text-sm">{evt.title}</span>
-                          <span className="text-[11px] text-slate-400 font-semibold">{evt.date}</span>
+                          <span className="font-bold text-ink text-sm">{evt.title}</span>
+                          <span className="text-[11px] text-ink-soft font-semibold">{evt.date}</span>
                         </div>
                         <div className="text-[11px] text-gov-800 font-medium">{evt.doctor}</div>
-                        <p className="text-slate-600 leading-relaxed">{evt.notes}</p>
+                        <p className="text-ink-muted leading-relaxed">{evt.notes}</p>
                       </div>
                     </div>
                   ))}
@@ -142,7 +142,7 @@ export const DoctorPatientRecordsPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-500">
+            <div className="p-12 bg-surface rounded-2xl border border-line text-center text-xs text-ink-soft">
               Select a patient record to inspect their complete clinical timeline.
             </div>
           )}

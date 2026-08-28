@@ -66,8 +66,8 @@ export const PatientAudioPrescription: React.FC = () => {
         <div className="flex items-center gap-3">
           <Volume2 className="w-6 h-6 text-gov-600" />
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Audio Prescription</h1>
-            <p className="text-sm text-slate-500">Listen to your medicine instructions in Marathi, Hindi, or English</p>
+            <h1 className="text-xl font-bold text-ink">Audio Prescription</h1>
+            <p className="text-sm text-ink-soft">Listen to your medicine instructions in Marathi, Hindi, or English</p>
           </div>
         </div>
         <Button
@@ -158,9 +158,9 @@ export const PatientAudioPrescription: React.FC = () => {
             {!isLoading &&
               filteredPrescriptions.map((pres) => (
                 <Card key={pres.id} className="overflow-hidden">
-                  <div className="px-5 pt-5 pb-3 border-b border-slate-100">
-                    <p className="font-bold text-slate-800">Prescription — {pres.date}</p>
-                    <p className="text-sm text-slate-500 mt-0.5">{pres.doctorName} · {pres.facilityName}</p>
+                  <div className="px-5 pt-5 pb-3 border-b border-line">
+                    <p className="font-bold text-ink">Prescription — {pres.date}</p>
+                    <p className="text-sm text-ink-soft mt-0.5">{pres.doctorName} · {pres.facilityName}</p>
                   </div>
                   <div className="p-5">
                     <AudioPrescriptionPlayer

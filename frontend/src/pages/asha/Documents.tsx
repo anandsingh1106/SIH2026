@@ -46,11 +46,11 @@ export const AshaDocumentsPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <FileText className="w-6 h-6 text-gov-700" />
           Offline-Cached IEC Visual Materials & Educational Flyers
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Standardized communication tools for maternal nutrition counseling, immunization awareness, and snakebite first aid
         </p>
       </div>
@@ -60,20 +60,20 @@ export const AshaDocumentsPage: React.FC = () => {
         {docs.map((doc) => (
           <div
             key={doc.id}
-            className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
+            className="bg-surface rounded-2xl border border-line p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Badge variant="primary" size="sm">
                   {doc.category}
                 </Badge>
-                <span className="text-[11px] font-semibold text-slate-500">{doc.lang}</span>
+                <span className="text-[11px] font-semibold text-ink-soft">{doc.lang}</span>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm leading-snug">{doc.title}</h3>
-              <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{doc.description}</p>
+              <h3 className="font-bold text-ink text-sm leading-snug">{doc.title}</h3>
+              <p className="text-xs text-ink-muted leading-relaxed line-clamp-3">{doc.description}</p>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <div className="mt-5 pt-3 border-t border-line flex items-center justify-between gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -104,8 +104,8 @@ export const AshaDocumentsPage: React.FC = () => {
           description={`Category: ${selectedDoc.category} • Directorate of Health Services`}
           size="lg"
         >
-          <div className="space-y-4 text-xs text-slate-800 leading-relaxed">
-            <p className="text-slate-600 italic bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <div className="space-y-4 text-xs text-ink leading-relaxed">
+            <p className="text-ink-muted italic bg-sand-50 p-3 rounded-lg border border-line">
               {selectedDoc.description}
             </p>
             <div className="bg-gov-50/50 p-4 rounded-xl border border-gov-200 font-medium whitespace-pre-line space-y-2">

@@ -91,8 +91,8 @@ export const PatientMedicineOrders: React.FC = () => {
           <ShoppingCart className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Order Prescribed Medicines</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-ink">Order Prescribed Medicines</h1>
+          <p className="text-sm text-ink-soft">
             Reserve the medicines on your prescription and collect them from the pharmacy counter
           </p>
         </div>
@@ -141,7 +141,7 @@ export const PatientMedicineOrders: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Prescription picker */}
           <div className="lg:col-span-4 space-y-2">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-sand-700 uppercase tracking-wider">
               Your Prescriptions ({prescriptions.length})
             </h3>
             {prescriptions.map((rx) => (
@@ -151,18 +151,18 @@ export const PatientMedicineOrders: React.FC = () => {
                 className={`w-full text-left p-3.5 rounded-xl border transition-all ${
                   selectedRx?.id === rx.id
                     ? 'bg-gov-50/60 border-gov-600 shadow-xs'
-                    : 'bg-white border-slate-200 hover:bg-slate-50'
+                    : 'bg-surface border-line hover:bg-sand-50'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-ink">
                     {rx.doctorName || 'Prescription'}
                   </span>
                   <Badge variant="secondary" size="sm">
                     {(rx.medicines ?? []).length} med
                   </Badge>
                 </div>
-                <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                <div className="text-[11px] text-ink-soft mt-1 flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   {rx.date || '—'}
                 </div>
@@ -173,10 +173,10 @@ export const PatientMedicineOrders: React.FC = () => {
           {/* Medicines to order */}
           <div className="lg:col-span-8">
             <Card className="p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="font-bold text-slate-900 text-sm">Medicines on this prescription</h3>
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="font-bold text-ink text-sm">Medicines on this prescription</h3>
                 {selectedRx?.facilityName && (
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <span className="text-[11px] text-ink-soft flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {selectedRx.facilityName}
                   </span>
@@ -184,13 +184,13 @@ export const PatientMedicineOrders: React.FC = () => {
               </div>
 
               {isLoadingStock && (
-                <p className="text-xs text-slate-500 flex items-center gap-2 py-4">
+                <p className="text-xs text-ink-soft flex items-center gap-2 py-4">
                   <Loader2 className="w-4 h-4 animate-spin" /> Checking pharmacy stock…
                 </p>
               )}
 
               {!isLoadingStock && availability.length === 0 && (
-                <p className="text-xs text-slate-500 py-4">
+                <p className="text-xs text-ink-soft py-4">
                   No medicines were recorded on this prescription.
                 </p>
               )}
@@ -201,8 +201,8 @@ export const PatientMedicineOrders: React.FC = () => {
                     key={a.medicineName}
                     className={`flex items-start gap-3 p-3.5 rounded-xl border ${
                       a.available
-                        ? 'bg-white border-slate-200 cursor-pointer hover:bg-slate-50'
-                        : 'bg-slate-50 border-slate-200 opacity-70'
+                        ? 'bg-surface border-line cursor-pointer hover:bg-sand-50'
+                        : 'bg-sand-50 border-line opacity-70'
                     }`}
                   >
                     <input
@@ -216,20 +216,20 @@ export const PatientMedicineOrders: React.FC = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-slate-900">{a.medicineName}</span>
+                        <span className="font-bold text-sm text-ink">{a.medicineName}</span>
                         {a.available ? (
                           <Badge variant="success" size="sm">IN STOCK ({a.inStock})</Badge>
                         ) : (
                           <Badge variant="danger" size="sm">OUT OF STOCK</Badge>
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-ink-soft mt-0.5">
                         {[a.dosage, a.frequency, a.duration].filter(Boolean).join(' • ') || '—'}
                       </p>
                       <div className="flex items-center gap-3 mt-1 text-[11px]">
-                        <span className="text-slate-600 font-semibold">Qty: {a.quantity || 1}</span>
+                        <span className="text-ink-muted font-semibold">Qty: {a.quantity || 1}</span>
                         {a.unitPrice != null && (
-                          <span className="text-slate-600 flex items-center">
+                          <span className="text-ink-muted flex items-center">
                             <IndianRupee className="w-3 h-3" />
                             {a.unitPrice}/unit
                           </span>
@@ -252,13 +252,13 @@ export const PatientMedicineOrders: React.FC = () => {
 
               {/* Order bar */}
               {!isLoadingStock && availability.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-line">
                   <div className="text-xs">
-                    <span className="text-slate-500">
+                    <span className="text-ink-soft">
                       {selectedItems.length} of {availability.length} selected
                     </span>
                     {totalCost > 0 && (
-                      <span className="ml-3 font-bold text-slate-900 inline-flex items-center">
+                      <span className="ml-3 font-bold text-ink inline-flex items-center">
                         Total: <IndianRupee className="w-3.5 h-3.5 ml-1" />
                         {totalCost.toFixed(2)}
                       </span>

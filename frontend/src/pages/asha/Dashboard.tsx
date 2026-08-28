@@ -75,7 +75,7 @@ export const AshaDashboard: React.FC = () => {
 
         <div className="flex flex-wrap gap-2">
           <Link to="/asha/register-patient">
-            <Button variant="primary" size="sm" className="bg-white text-gov-900 hover:bg-gov-50 font-bold" leftIcon={<UserPlus className="w-4 h-4 text-gov-700" />}>
+            <Button variant="primary" size="sm" className="bg-surface text-gov-900 hover:bg-gov-50 font-bold" leftIcon={<UserPlus className="w-4 h-4 text-gov-700" />}>
               Register Patient
             </Button>
           </Link>
@@ -139,13 +139,13 @@ export const AshaDashboard: React.FC = () => {
       </div>
 
       {/* Core Operational Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger">
         {/* Left 2 Cols: Today's Tasks & Actions */}
         <div className="lg:col-span-2 space-y-6">
           {/* Priority Tasks List */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-gov-700" />
                 Today's Daily Task Action List
               </h3>
@@ -158,7 +158,7 @@ export const AshaDashboard: React.FC = () => {
               {pendingTasks.slice(0, 4).map((task) => (
                 <div
                   key={task.id}
-                  className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-start justify-between gap-3 text-xs hover:bg-slate-100/80 transition-colors"
+                  className="p-3.5 bg-sand-50 border border-line rounded-xl flex items-start justify-between gap-3 text-xs hover:bg-sand-100/80 transition-colors"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -168,10 +168,10 @@ export const AshaDashboard: React.FC = () => {
                       >
                         {(task.priority ?? '').toUpperCase()}
                       </Badge>
-                      <span className="font-bold text-slate-900 text-sm">{task.title}</span>
+                      <span className="font-bold text-ink text-sm">{task.title}</span>
                     </div>
-                    <p className="text-slate-600">{task.description}</p>
-                    <div className="text-[11px] text-slate-500 flex items-center gap-2 pt-0.5">
+                    <p className="text-ink-muted">{task.description}</p>
+                    <div className="text-[11px] text-ink-soft flex items-center gap-2 pt-0.5">
                       <span>👤 {task.patientName}</span>
                       <span>•</span>
                       <span>🏠 {task.village} ({task.householdNumber})</span>
@@ -194,42 +194,42 @@ export const AshaDashboard: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Link
               to="/asha/home-visits"
-              className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
+              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
             >
               <div className="p-2.5 bg-gov-50 text-gov-700 rounded-xl w-fit mx-auto group-hover:bg-gov-700 group-hover:text-white transition-colors">
                 <Home className="w-5 h-5" />
               </div>
-              <div className="font-bold text-xs text-slate-800">Record Home Visit</div>
+              <div className="font-bold text-xs text-ink">Record Home Visit</div>
             </Link>
 
             <Link
               to="/asha/maternal-care"
-              className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
+              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
             >
               <div className="p-2.5 bg-red-50 text-red-700 rounded-xl w-fit mx-auto group-hover:bg-red-600 group-hover:text-white transition-colors">
                 <Baby className="w-5 h-5" />
               </div>
-              <div className="font-bold text-xs text-slate-800">Maternal ANC (HRP)</div>
+              <div className="font-bold text-xs text-ink">Maternal ANC (HRP)</div>
             </Link>
 
             <Link
               to="/asha/immunization"
-              className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
+              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
             >
               <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl w-fit mx-auto group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <Syringe className="w-5 h-5" />
               </div>
-              <div className="font-bold text-xs text-slate-800">Immunization Due</div>
+              <div className="font-bold text-xs text-ink">Immunization Due</div>
             </Link>
 
             <Link
               to="/asha/ncd-screening"
-              className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
+              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
             >
               <div className="p-2.5 bg-purple-50 text-purple-700 rounded-xl w-fit mx-auto group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <Activity className="w-5 h-5" />
               </div>
-              <div className="font-bold text-xs text-slate-800">NCD CBAC Form</div>
+              <div className="font-bold text-xs text-ink">NCD CBAC Form</div>
             </Link>
           </div>
         </div>
@@ -237,8 +237,8 @@ export const AshaDashboard: React.FC = () => {
         {/* Right Col: Quick Village Status & Referral Watch */}
         <div className="space-y-6">
           {/* Active Referrals Tracker */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center justify-between">
+          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-4">
+            <h3 className="font-bold text-ink text-xs uppercase tracking-wider flex items-center justify-between">
               <span>Village Patients in Referral Care</span>
               <Link to="/asha/referrals" className="text-gov-700 hover:underline">
                 View ({referrals.length})
@@ -247,15 +247,15 @@ export const AshaDashboard: React.FC = () => {
 
             <div className="space-y-3">
               {referrals.map((r) => (
-                <div key={r.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
+                <div key={r.id} className="p-3 bg-sand-50 border border-line rounded-xl text-xs space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">{r.patientName}</span>
+                    <span className="font-bold text-ink">{r.patientName}</span>
                     <Badge variant={r.priority === 'critical' ? 'critical' : 'warning'} size="sm">
                       {r.status.replace('_', ' ').toUpperCase()}
                     </Badge>
                   </div>
-                  <p className="text-slate-500 text-[11px] truncate">{r.provisionalDiagnosis}</p>
-                  <div className="text-[10px] text-gov-800 font-semibold pt-1 border-t border-slate-200">
+                  <p className="text-ink-soft text-[11px] truncate">{r.provisionalDiagnosis}</p>
+                  <div className="text-[10px] text-gov-800 font-semibold pt-1 border-t border-line">
                     To: {r.targetFacilityName}
                   </div>
                 </div>

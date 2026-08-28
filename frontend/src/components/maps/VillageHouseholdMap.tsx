@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Home, MapPin, User, AlertTriangle, CheckCircle, Navigation, Phone, Calendar } from 'lucide-react';
+import React, { useCallback, useRef, useState } from 'react';
+import { Home, MapPin, User, AlertTriangle, CheckCircle, Navigation, Phone, Calendar, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
@@ -25,6 +25,64 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
 }) => {
   const [selectedHh, setSelectedHh] = useState<Household | null>(null);
   const [filter, setFilter] = useState<'all' | 'critical' | 'high_risk' | 'pending'>('all');
+  const [hoveredHh, setHoveredHh] = useState<string | null>(null);
+
+  // Pan/zoom over the 0-100 SVG user space. Kept in state rather than CSS
+  // transform so the pins keep their true coordinates and stay clickable.
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+
+  const clampPan = useCallback((p: { x: number; y: number }, z: number) => {
+    // At zoom z the visible window is 100/z wide, so the pan may range over
+    // whatever is left. Without this the map can be dragged into empty space.
+    const limit = Math.max(0, 100 - 100 / z);
+    return {
+      x: Math.min(Math.max(p.x, 0), limit),
+      y: Math.min(Math.max(p.y, 0), limit),
+    };
+  }, []);
+
+  const zoomBy = (factor: number) => {
+    setZoom((z) => {
+      const next = Math.min(Math.max(z * factor, 1), 4);
+      // Zoom about the centre of the current view.
+      setPan((p) => {
+        const cx = p.x + 50 / z;
+        const cy = p.y + 50 / z;
+        return clampPan({ x: cx - 50 / next, y: cy - 50 / next }, next);
+      });
+      return next;
+    });
+  };
+
+  const resetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (zoom <= 1) return;
+    dragRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    // Convert pixel drag into SVG user units for the current zoom level.
+    const dx = ((e.clientX - d.x) / rect.width) * (100 / zoom);
+    const dy = ((e.clientY - d.y) / rect.height) * (100 / zoom);
+    setPan(clampPan({ x: d.panX - dx, y: d.panY - dy }, zoom));
+  };
+
+  const endDrag = (e: React.PointerEvent<SVGSVGElement>) => {
+    dragRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
 
   const households: Household[] = [
     { id: 'hh-1', number: 'HH-104', headName: 'Sachin Gaikwad', pada: 'Kolvan Road', x: 28, y: 35, status: 'critical', membersCount: 4, alerts: ['Kavita Gaikwad (28 Wks ANC, Severe Anemia)', 'Aarav Gaikwad (MR-1 Vaccine Due)'], patientName: 'Kavita Gaikwad', patientId: 'pat-102', dueTask: '108 Ambulance Coordination' },
@@ -45,9 +103,9 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
   const getPinColor = (status: Household['status']) => {
     switch (status) {
       case 'critical':
-        return 'fill-red-600 stroke-white animate-bounce';
+        return 'fill-red-600 stroke-white';
       case 'high_risk':
-        return 'fill-amber-500 stroke-white';
+        return 'fill-saffron-500 stroke-white';
       case 'visited':
         return 'fill-emerald-600 stroke-white';
       default:
@@ -56,24 +114,24 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+    <div className="bg-surface rounded-xl border border-line p-5 shadow-xs space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+          <h3 className="font-bold text-ink text-base flex items-center gap-2">
             <MapPin className="w-5 h-5 text-gov-700" />
             {villageName} — Frontline Household Health Map
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Real-time geolocation tagging for maternal care, immunization, and NCD screenings
           </p>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg text-xs">
+        <div className="flex items-center gap-1.5 bg-sand-100 p-1 rounded-lg text-xs">
           <button
             onClick={() => setFilter('all')}
             className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-              filter === 'all' ? 'bg-white text-gov-800 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
+              filter === 'all' ? 'bg-surface text-gov-800 shadow-2xs font-bold' : 'text-ink-muted hover:text-ink'
             }`}
           >
             All Households ({households.length})
@@ -84,23 +142,65 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
               filter === 'critical' ? 'bg-red-600 text-white font-bold' : 'text-red-700 hover:bg-red-50'
             }`}
           >
-            Critical Maternal (1)
+            Critical Maternal ({households.filter((h) => h.status === 'critical').length})
           </button>
           <button
             onClick={() => setFilter('high_risk')}
             className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-              filter === 'high_risk' ? 'bg-amber-600 text-white font-bold' : 'text-amber-700 hover:bg-amber-50'
+              filter === 'high_risk' ? 'bg-saffron-600 text-white font-bold' : 'text-saffron-800 hover:bg-saffron-50'
             }`}
           >
-            High Risk (2)
+            High Risk ({households.filter((h) => h.status === 'high_risk').length})
           </button>
         </div>
       </div>
 
       {/* Interactive Map Visualizer */}
-      <div className="relative w-full h-[400px] bg-emerald-50/50 rounded-xl border border-emerald-100 overflow-hidden select-none">
+      <div className="relative w-full h-[440px] bg-emerald-50/50 rounded-2xl border border-emerald-100 overflow-hidden select-none">
+        {/* Zoom controls */}
+        <div className="absolute top-3 right-3 z-20 flex flex-col gap-1 rounded-xl border border-line bg-surface/95 backdrop-blur-sm p-1 shadow-card">
+          <button
+            onClick={() => zoomBy(1.5)}
+            disabled={zoom >= 4}
+            aria-label="Zoom in"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-sand-100 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => zoomBy(1 / 1.5)}
+            disabled={zoom <= 1}
+            aria-label="Zoom out"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-sand-100 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button
+            onClick={resetView}
+            disabled={zoom === 1 && pan.x === 0 && pan.y === 0}
+            aria-label="Reset view"
+            className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-sand-100 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Showing-count pill */}
+        <div className="absolute top-3 left-3 z-20 rounded-full border border-line bg-surface/95 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-ink-muted shadow-card">
+          Showing {filteredHouseholds.length} of {households.length} households
+          {zoom > 1 && <span className="text-ink-soft"> · {zoom.toFixed(1)}x</span>}
+        </div>
+
         {/* Subtle terrain contours */}
-        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <svg
+          className={`w-full h-full touch-none ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : ''}`}
+          viewBox={`${pan.x} ${pan.y} ${100 / zoom} ${100 / zoom}`}
+          preserveAspectRatio="none"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+        >
           <defs>
             <radialGradient id="gradTerrain" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#d1fae5" stopOpacity="0.8" />
@@ -140,50 +240,95 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
           </g>
 
           {/* Household Pins */}
-          {filteredHouseholds.map((hh) => (
-            <g
-              key={hh.id}
-              transform={`translate(${hh.x}, ${hh.y})`}
-              className="cursor-pointer transition-transform hover:scale-125"
-              onClick={() => {
-                setSelectedHh(hh);
-                if (onSelectHousehold) onSelectHousehold(hh);
-              }}
-            >
-              <circle r="4" className={getPinColor(hh.status)} strokeWidth="1" />
-              <text
-                x="0"
-                y="1.2"
-                fontSize="2.4"
-                textAnchor="middle"
-                fill="#ffffff"
-                fontWeight="bold"
+          {filteredHouseholds.map((hh) => {
+            const isHovered = hoveredHh === hh.id;
+            // Labels and strokes are drawn in SVG user units, so they would
+            // balloon as the view zooms. Dividing by zoom keeps them constant.
+            const k = 1 / zoom;
+
+            return (
+              <g
+                key={hh.id}
+                transform={`translate(${hh.x}, ${hh.y})`}
+                className="cursor-pointer focus:outline-none"
+                tabIndex={0}
+                role="button"
+                aria-label={`Household ${hh.number}, ${hh.headName}, ${hh.status.replace('_', ' ')}`}
+                onMouseEnter={() => setHoveredHh(hh.id)}
+                onMouseLeave={() => setHoveredHh(null)}
+                onFocus={() => setHoveredHh(hh.id)}
+                onBlur={() => setHoveredHh(null)}
+                onClick={() => {
+                  setSelectedHh(hh);
+                  if (onSelectHousehold) onSelectHousehold(hh);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedHh(hh);
+                    if (onSelectHousehold) onSelectHousehold(hh);
+                  }
+                }}
               >
-                {hh.number.replace('HH-', '')}
-              </text>
-              <text
-                x="0"
-                y="6.5"
-                fontSize="2"
-                textAnchor="middle"
-                fill="#334155"
-                fontWeight="bold"
-              >
-                {hh.headName.split(' ')[0]}
-              </text>
-            </g>
-          ))}
+                {/* Attention halo on the critical cases only -- if everything
+                    pulses, nothing reads as urgent. */}
+                {hh.status === 'critical' && (
+                  <circle
+                    r={6 * k}
+                    className="fill-red-500/25 animate-ping"
+                    style={{ transformOrigin: 'center' }}
+                  />
+                )}
+
+                <circle
+                  r={(isHovered ? 5.2 : 4) * k}
+                  className={getPinColor(hh.status)}
+                  strokeWidth={1.2 * k}
+                  style={{ transition: 'r 150ms ease-out' }}
+                />
+
+                <text
+                  y={1.2 * k}
+                  fontSize={2.4 * k}
+                  textAnchor="middle"
+                  fill="#ffffff"
+                  fontWeight="bold"
+                  pointerEvents="none"
+                >
+                  {hh.number.replace('HH-', '')}
+                </text>
+
+                <text
+                  y={(isHovered ? 7.6 : 6.5) * k}
+                  fontSize={2 * k}
+                  textAnchor="middle"
+                  fill="#2d2418"
+                  fontWeight="bold"
+                  pointerEvents="none"
+                  style={{
+                    paintOrder: 'stroke',
+                    stroke: 'rgba(255,253,249,0.85)',
+                    strokeWidth: 0.7 * k,
+                    strokeLinejoin: 'round',
+                    transition: 'y 150ms ease-out',
+                  }}
+                >
+                  {isHovered ? hh.headName : hh.headName.split(' ')[0]}
+                </text>
+              </g>
+            );
+          })}
         </svg>
 
         {/* Floating Legend */}
-        <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs p-2.5 rounded-lg border border-slate-200 shadow-sm text-[11px] space-y-1.5">
-          <div className="font-bold text-slate-800 border-b pb-1">Map Legend</div>
+        <div className="absolute bottom-3 left-3 z-20 bg-surface/95 backdrop-blur-sm p-2.5 rounded-xl border border-line shadow-card text-[11px] space-y-1.5">
+          <div className="font-bold text-ink border-b border-line pb-1">Map Legend</div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-600" />
             <span>Critical Emergency Case</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-saffron-500" />
             <span>High Risk / Due Visit</span>
           </div>
           <div className="flex items-center gap-2">
@@ -206,7 +351,7 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
           description={`Location: ${selectedHh.pada}, Paud Village • ${selectedHh.membersCount} Family Members`}
           footer={
             <div className="flex items-center justify-between w-full">
-              <span className="text-xs text-slate-500 font-medium">GPS Accuracy: ± 3m</span>
+              <span className="text-xs text-ink-soft font-medium">GPS Accuracy: ± 3m</span>
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" onClick={() => setSelectedHh(null)}>
                   Close
@@ -228,34 +373,34 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
         >
           <div className="space-y-4">
             <div>
-              <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              <h5 className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2">
                 Active Health Alerts & Required Actions:
               </h5>
               <div className="space-y-2">
                 {selectedHh.alerts.map((a, i) => (
                   <div
                     key={i}
-                    className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-900 flex items-center gap-2"
+                    className="p-3 bg-saffron-50 border border-saffron-200 rounded-xl text-xs font-semibold text-saffron-900 flex items-center gap-2"
                   >
-                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <AlertTriangle className="w-4 h-4 text-saffron-600 shrink-0" />
                     <span>{a}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1.5">
+            <div className="bg-raised p-3 rounded-xl border border-line text-xs space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-slate-500">Scheduled Visit:</span>
-                <span className="font-semibold text-slate-800">Today, 09:30 AM</span>
+                <span className="text-ink-soft">Scheduled Visit:</span>
+                <span className="font-semibold text-ink">Today, 09:30 AM</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Assigned Task:</span>
+                <span className="text-ink-soft">Assigned Task:</span>
                 <span className="font-semibold text-gov-800">{selectedHh.dueTask}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Primary Contact:</span>
-                <span className="font-semibold text-slate-800">+91 97654 32109</span>
+                <span className="text-ink-soft">Primary Contact:</span>
+                <span className="font-semibold text-ink">+91 97654 32109</span>
               </div>
             </div>
           </div>

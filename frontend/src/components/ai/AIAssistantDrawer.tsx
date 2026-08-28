@@ -71,7 +71,7 @@ export const AIAssistantDrawer: React.FC = () => {
 
       {/* Floating Chat Drawer */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[560px] animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 w-full max-w-md bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col h-[560px] animate-in slide-in-from-bottom-5 duration-200">
           {/* Header */}
           <div className="p-4 bg-gradient-to-r from-gov-800 to-teal-800 text-white flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
@@ -103,7 +103,7 @@ export const AIAssistantDrawer: React.FC = () => {
           </div>
 
           {/* Chat Messages */}
-          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-slate-50/50">
+          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-sand-50/50">
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -113,19 +113,19 @@ export const AIAssistantDrawer: React.FC = () => {
                   className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-2xs whitespace-pre-line ${
                     m.sender === 'user'
                       ? 'bg-gov-700 text-white rounded-br-xs'
-                      : 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs'
+                      : 'bg-surface text-ink border border-line rounded-bl-xs'
                   }`}
                 >
                   {m.text}
 
                   {m.sources && (
-                    <div className="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-semibold">
+                    <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft font-semibold">
                       📚 Sources: {m.sources.join(' • ')}
                     </div>
                   )}
 
                   {m.suggestedActions && (
-                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                    <div className="mt-2.5 pt-2 border-t border-line flex flex-wrap gap-1.5">
                       {m.suggestedActions.map((act, i) => (
                         <button
                           key={i}
@@ -143,11 +143,11 @@ export const AIAssistantDrawer: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <span className="text-[9px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
+                <span className="text-[9px] text-ink-soft mt-1 px-1">{m.timestamp}</span>
               </div>
             ))}
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 bg-white p-3 rounded-xl border border-slate-200 w-fit">
+              <div className="flex items-center gap-2 text-xs text-ink-soft bg-surface p-3 rounded-xl border border-line w-fit">
                 <Sparkles className="w-3.5 h-3.5 text-gov-600 animate-spin" />
                 <span>Analyzing clinical database & protocols...</span>
               </div>
@@ -155,12 +155,12 @@ export const AIAssistantDrawer: React.FC = () => {
           </div>
 
           {/* Quick Prompts */}
-          <div className="p-2 bg-slate-100/70 border-t border-slate-200 flex gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="p-2 bg-sand-100/70 border-t border-line flex gap-1.5 overflow-x-auto no-scrollbar">
             {(rolePresets[currentRole] || []).map((preset, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSend(preset)}
-                className="whitespace-nowrap px-2.5 py-1 bg-white hover:bg-gov-50 text-slate-700 hover:text-gov-800 rounded-full border border-slate-200 text-[11px] font-medium transition-colors shadow-2xs shrink-0"
+                className="whitespace-nowrap px-2.5 py-1 bg-surface hover:bg-gov-50 text-sand-700 hover:text-gov-800 rounded-full border border-line text-[11px] font-medium transition-colors shadow-2xs shrink-0"
               >
                 💡 {preset}
               </button>
@@ -168,14 +168,14 @@ export const AIAssistantDrawer: React.FC = () => {
           </div>
 
           {/* Input Bar */}
-          <div className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+          <div className="p-3 bg-surface border-t border-line flex items-center gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask Aarogya AI (e.g. summarize records, dosage, guidelines)..."
-              className="flex-1 text-xs border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-200"
+              className="flex-1 text-xs border border-sand-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-200"
             />
             <Button
               size="sm"

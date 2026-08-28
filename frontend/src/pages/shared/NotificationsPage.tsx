@@ -61,11 +61,11 @@ export const NotificationsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Bell className="w-6 h-6 text-gov-700" />
             Healthcare Notifications & Priority Alerts
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             System alerts, emergency transfer dispatches, and clinical queue updates
           </p>
         </div>
@@ -83,7 +83,7 @@ export const NotificationsPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap gap-1">
           {['All', 'emergency', 'referral', 'medicine', 'system'].map((cat) => (
             <button
@@ -92,7 +92,7 @@ export const NotificationsPage: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg capitalize font-medium transition-colors ${
                 selectedCategory === cat
                   ? 'bg-gov-700 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : 'text-ink-muted hover:bg-sand-100'
               }`}
             >
               {cat}
@@ -101,11 +101,11 @@ export const NotificationsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 font-semibold">Priority:</span>
+          <span className="text-ink-soft font-semibold">Priority:</span>
           <select
             value={selectedPriority}
             onChange={(e) => setSelectedPriority(e.target.value)}
-            className="border border-slate-300 rounded-lg p-1.5 bg-white text-xs text-slate-800 focus:outline-none focus:border-gov-600"
+            className="border border-sand-300 rounded-lg p-1.5 bg-surface text-xs text-ink focus:outline-none focus:border-gov-600"
           >
             <option value="All">All Tiers</option>
             <option value="critical">Critical Only</option>
@@ -117,9 +117,9 @@ export const NotificationsPage: React.FC = () => {
       </div>
 
       {/* Notifications List */}
-      <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 shadow-xs overflow-hidden">
+      <div className="bg-surface rounded-xl border border-line divide-y divide-line shadow-xs overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500">
+          <div className="p-12 text-center text-xs text-ink-soft">
             No notifications found in this category.
           </div>
         ) : (
@@ -127,18 +127,18 @@ export const NotificationsPage: React.FC = () => {
             <div
               key={n.id}
               onClick={() => handleNotificationClick(n)}
-              className={`p-4 text-xs transition-colors hover:bg-slate-50 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              className={`p-4 text-xs transition-colors hover:bg-sand-50 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                 !n.isRead ? 'bg-gov-50/30' : ''
               }`}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   {!n.isRead && <span className="w-2 h-2 rounded-full bg-gov-600 shrink-0" />}
-                  <h4 className="font-bold text-slate-900 text-sm">{n.title}</h4>
+                  <h4 className="font-bold text-ink text-sm">{n.title}</h4>
                   {getPriorityBadge(n.priority)}
                 </div>
-                <p className="text-slate-600 leading-relaxed text-xs">{n.message}</p>
-                <div className="text-[11px] text-slate-400 font-medium">
+                <p className="text-ink-muted leading-relaxed text-xs">{n.message}</p>
+                <div className="text-[11px] text-ink-soft font-medium">
                   {n.timestamp} • Category: <span className="capitalize">{n.category}</span>
                 </div>
               </div>

@@ -40,23 +40,23 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 antialiased">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center gap-2.5">
           <div className="w-12 h-12 rounded-2xl bg-gov-700 text-white flex items-center justify-center shadow-md">
             <Shield className="w-7 h-7" />
           </div>
         </Link>
-        <h2 className="mt-3 text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h2 className="mt-3 text-2xl font-extrabold text-ink tracking-tight">
           Sign In to MahaAarogya Sangam
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-soft">
           Government of Maharashtra Digital Public Health Platform
         </p>
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-card rounded-2xl border border-slate-200 space-y-6">
+        <div className="bg-surface py-8 px-6 sm:px-10 shadow-card rounded-2xl border border-line space-y-6">
           {!configured && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
               Sign-in is not configured yet. Add <code>VITE_SUPABASE_URL</code> and{' '}
@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          <div className="pt-2 flex items-center justify-center text-xs text-slate-500 border-t border-slate-100">
+          <div className="pt-2 flex items-center justify-center text-xs text-ink-soft border-t border-line">
             <Link to="/register" className="text-gov-700 font-semibold hover:underline">
               New here? Create an Account
             </Link>

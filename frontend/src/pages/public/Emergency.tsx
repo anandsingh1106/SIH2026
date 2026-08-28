@@ -7,7 +7,7 @@ export const EmergencyPage: React.FC = () => {
     { number: '108', title: 'Free 24x7 Ambulance & Trauma Dispatch', desc: 'Emergency response for severe road accidents, acute heart attacks, strokes, respiratory failure, and snakebites with GPS dispatch.', color: 'bg-red-600 hover:bg-red-700 text-white' },
     { number: '102', title: 'Maternal & Sick Infant Transport (JSSK)', desc: 'Dedicated cashless transport for pregnant women in labour, post-delivery drop-back, and sick infants under 1 year.', color: 'bg-emerald-600 hover:bg-emerald-700 text-white' },
     { number: '104', title: 'State Health Advice & Triage Helpline', desc: 'Consult registered government doctors and counsellors for fever guidance, mental health support, and poison advice.', color: 'bg-gov-700 hover:bg-gov-800 text-white' },
-    { number: '112', title: 'National Emergency Unified Response', desc: 'Police, Fire, Disaster Management, and multi-agency coordination.', color: 'bg-slate-800 hover:bg-slate-900 text-white' },
+    { number: '112', title: 'National Emergency Unified Response', desc: 'Police, Fire, Disaster Management, and multi-agency coordination.', color: 'bg-sand-800 hover:bg-sand-900 text-white' },
   ];
 
   const firstResponseProtocols = [
@@ -54,7 +54,7 @@ export const EmergencyPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col antialiased">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1 w-full">
         {/* High-Alert Header */}
@@ -74,7 +74,7 @@ export const EmergencyPage: React.FC = () => {
 
           <a
             href="tel:108"
-            className="px-8 py-4 bg-white text-red-700 font-extrabold text-xl rounded-2xl shadow-2xl hover:bg-red-50 transition-all flex items-center gap-3 active:scale-95 shrink-0"
+            className="px-8 py-4 bg-surface text-red-700 font-extrabold text-xl rounded-2xl shadow-2xl hover:bg-red-50 transition-all flex items-center gap-3 active:scale-95 shrink-0"
           >
             <PhoneCall className="w-7 h-7 fill-red-600 animate-pulse" />
             <span>CALL 108 NOW</span>
@@ -82,16 +82,16 @@ export const EmergencyPage: React.FC = () => {
         </div>
 
         {/* Hotlines Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
           {hotlines.map((h) => (
             <div
               key={h.number}
-              className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between"
+              className="bg-surface rounded-xl border border-line p-5 shadow-xs flex flex-col justify-between"
             >
               <div>
-                <div className="text-3xl font-extrabold text-slate-900 tracking-tight">{h.number}</div>
-                <h4 className="font-bold text-slate-800 text-sm mt-1">{h.title}</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">{h.desc}</p>
+                <div className="text-3xl font-extrabold text-ink tracking-tight">{h.number}</div>
+                <h4 className="font-bold text-ink text-sm mt-1">{h.title}</h4>
+                <p className="text-xs text-ink-soft mt-2 leading-relaxed">{h.desc}</p>
               </div>
               <a
                 href={`tel:${h.number}`}
@@ -105,21 +105,21 @@ export const EmergencyPage: React.FC = () => {
 
         {/* First-Response Clinical Protocols */}
         <div className="space-y-4">
-          <div className="border-b border-slate-200 pb-2">
-            <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+          <div className="border-b border-line pb-2">
+            <h2 className="text-xl font-extrabold text-ink flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-red-600" />
               Standard First-Response Protocols While Waiting for 108 Ambulance
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-soft mt-0.5">
               Evidence-based pre-hospital instructions approved by the Directorate of Health Services, Maharashtra.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
             {firstResponseProtocols.map((p, idx) => (
-              <div key={idx} className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-3">
-                <h3 className="font-bold text-slate-900 text-sm border-b border-slate-100 pb-2">{p.title}</h3>
-                <ul className="space-y-1.5 text-xs text-slate-700">
+              <div key={idx} className="bg-surface rounded-xl border border-line p-5 shadow-xs space-y-3">
+                <h3 className="font-bold text-ink text-sm border-b border-line pb-2">{p.title}</h3>
+                <ul className="space-y-1.5 text-xs text-sand-700">
                   {p.steps.map((step, sIdx) => (
                     <li key={sIdx} className="flex items-start gap-2">
                       <span className="font-bold text-gov-700 shrink-0">{sIdx + 1}.</span>

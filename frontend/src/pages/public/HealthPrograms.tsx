@@ -9,26 +9,26 @@ export const HealthProgramsPage: React.FC = () => {
   const [selectedProgram, setSelectedProgram] = useState<(typeof HEALTH_PROGRAMS_DATA)[0] | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col antialiased">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 w-full">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink flex items-center gap-2.5">
             <Shield className="w-7 h-7 text-gov-700" />
             Government Healthcare Schemes & Financial Protection Programs
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-ink-soft">
             Cashless super-specialty treatment, maternal entitlements, and tribal health missions across Maharashtra.
           </p>
         </div>
 
         {/* Programs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger">
           {HEALTH_PROGRAMS_DATA.map((prog) => (
             <div
               key={prog.id}
-              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
+              className="bg-surface rounded-2xl border border-line p-6 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -36,23 +36,23 @@ export const HealthProgramsPage: React.FC = () => {
                     <Badge variant="primary" size="sm">
                       {prog.coverageAmount}
                     </Badge>
-                    <h3 className="font-bold text-slate-900 text-base mt-2">{prog.name}</h3>
-                    {prog.nameMr && <p className="text-xs text-slate-500 font-medium">{prog.nameMr}</p>}
+                    <h3 className="font-bold text-ink text-base mt-2">{prog.name}</h3>
+                    {prog.nameMr && <p className="text-xs text-ink-soft font-medium">{prog.nameMr}</p>}
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed">{prog.description}</p>
+                <p className="text-xs text-ink-muted leading-relaxed">{prog.description}</p>
 
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-xs">
-                  <div className="font-semibold text-slate-800">Target Beneficiaries:</div>
-                  <div className="text-slate-600">{prog.beneficiaries}</div>
+                <div className="bg-sand-50 p-3 rounded-xl border border-line space-y-1.5 text-xs">
+                  <div className="font-semibold text-ink">Target Beneficiaries:</div>
+                  <div className="text-ink-muted">{prog.beneficiaries}</div>
                 </div>
 
                 <div>
-                  <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  <div className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2">
                     Key Entitlements & Coverage:
                   </div>
-                  <ul className="space-y-1 text-xs text-slate-600">
+                  <ul className="space-y-1 text-xs text-ink-muted">
                     {prog.keyBenefits.map((b, idx) => (
                       <li key={idx} className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-gov-600 shrink-0" />
@@ -63,8 +63,8 @@ export const HealthProgramsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                <a href={`tel:${prog.helpline.split('/')[0].trim()}`} className="text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:text-gov-700">
+              <div className="mt-6 pt-4 border-t border-line flex items-center justify-between gap-3">
+                <a href={`tel:${prog.helpline.split('/')[0].trim()}`} className="text-xs font-bold text-sand-700 flex items-center gap-1.5 hover:text-gov-700">
                   <Phone className="w-3.5 h-3.5 text-gov-700" />
                   <span>Helpline: {prog.helpline}</span>
                 </a>
@@ -99,12 +99,12 @@ export const HealthProgramsPage: React.FC = () => {
           >
             <div className="space-y-4 text-xs">
               <div>
-                <h5 className="font-bold text-slate-900 uppercase tracking-wider mb-2">Required Identification Documents:</h5>
+                <h5 className="font-bold text-ink uppercase tracking-wider mb-2">Required Identification Documents:</h5>
                 <div className="space-y-1.5">
                   {selectedProgram.requiredDocuments.map((doc, idx) => (
-                    <div key={idx} className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2">
+                    <div key={idx} className="p-2.5 bg-sand-50 border border-line rounded-lg flex items-center gap-2">
                       <FileCheck className="w-4 h-4 text-gov-700 shrink-0" />
-                      <span className="font-semibold text-slate-800">{doc}</span>
+                      <span className="font-semibold text-ink">{doc}</span>
                     </div>
                   ))}
                 </div>

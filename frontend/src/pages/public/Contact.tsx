@@ -29,16 +29,16 @@ export const ContactPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col antialiased">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1 w-full">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink flex items-center gap-2.5">
             <Building2 className="w-7 h-7 text-gov-700" />
             Contact & Citizen Grievance Redressal Portal
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-ink-soft">
             Directorate of Health Services, District Nodal Officers directory, and official citizen support.
           </p>
         </div>
@@ -46,13 +46,13 @@ export const ContactPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: HQ Details & Grievance Form */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+            <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+              <h3 className="font-bold text-ink text-base flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-gov-700" />
                 State Health Directorate Headquarters
               </h3>
 
-              <div className="text-xs text-slate-600 space-y-2">
+              <div className="text-xs text-ink-muted space-y-2">
                 <p className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-gov-700 shrink-0 mt-0.5" />
                   <span><strong>Arogya Bhavan:</strong> St. George Hospital Compound, P. D'Mello Road, Fort, Mumbai - 400001</span>
@@ -69,8 +69,8 @@ export const ContactPage: React.FC = () => {
             </div>
 
             {/* Grievance Submission Form */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <h3 className="font-bold text-slate-900 text-base">
+            <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+              <h3 className="font-bold text-ink text-base">
                 Submit Citizen Grievance / Facility Feedback
               </h3>
 
@@ -81,14 +81,14 @@ export const ContactPage: React.FC = () => {
                     Grievance Registered Successfully
                   </div>
                   <p>Your Grievance Tracking Token Number is: <strong className="font-mono text-sm">{submittedId}</strong></p>
-                  <p className="text-slate-600">The District Civil Surgeon office has been notified and will address your ticket within 48 business hours.</p>
+                  <p className="text-ink-muted">The District Civil Surgeon office has been notified and will address your ticket within 48 business hours.</p>
                   <Button size="sm" variant="outline" className="mt-2" onClick={() => setSubmittedId(null)}>
                     Submit Another Query
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
                     <Input
                       label="Full Name"
                       required
@@ -106,7 +106,7 @@ export const ContactPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
                     <Input
                       label="Email Address (Optional)"
                       type="email"
@@ -115,11 +115,11 @@ export const ContactPage: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Relevant District</label>
+                      <label className="block text-xs font-semibold text-sand-700 mb-1.5">Relevant District</label>
                       <select
                         value={formData.district}
                         onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                        className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white focus:outline-none focus:border-gov-600"
+                        className="w-full text-xs border border-sand-300 rounded-lg p-2 bg-surface focus:outline-none focus:border-gov-600"
                       >
                         <option value="Pune">Pune</option>
                         <option value="Mumbai City">Mumbai City</option>
@@ -132,14 +132,14 @@ export const ContactPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Detailed Grievance / Inquiry</label>
+                    <label className="block text-xs font-semibold text-sand-700 mb-1.5">Detailed Grievance / Inquiry</label>
                     <textarea
                       rows={3}
                       required
                       placeholder="Describe your query or facility issue..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full text-xs border border-slate-300 rounded-lg p-3 focus:outline-none focus:border-gov-600"
+                      className="w-full text-xs border border-sand-300 rounded-lg p-3 focus:outline-none focus:border-gov-600"
                     />
                   </div>
 
@@ -153,22 +153,22 @@ export const ContactPage: React.FC = () => {
 
           {/* Right Column: District Nodal Officers Directory */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
+            <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
                 District Nodal Health Officers Directory
               </h3>
 
               <div className="space-y-3">
                 {nodalOfficers.map((no, idx) => (
-                  <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                  <div key={idx} className="p-3 bg-sand-50 border border-line rounded-xl text-xs space-y-1">
                     <div className="flex justify-between items-start">
-                      <span className="font-bold text-slate-900">{no.district} District</span>
+                      <span className="font-bold text-ink">{no.district} District</span>
                       <span className="text-[10px] text-gov-800 bg-gov-100 font-semibold px-2 py-0.5 rounded">
                         {no.role}
                       </span>
                     </div>
-                    <div className="text-slate-700 font-medium">{no.officer}</div>
-                    <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1">
+                    <div className="text-sand-700 font-medium">{no.officer}</div>
+                    <div className="text-[11px] text-ink-soft flex items-center justify-between pt-1">
                       <span>📞 {no.phone}</span>
                       <a href={`mailto:${no.email}`} className="text-gov-700 hover:underline">
                         ✉️ Email

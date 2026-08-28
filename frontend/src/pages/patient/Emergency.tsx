@@ -25,8 +25,8 @@ export const PatientEmergency: React.FC = () => {
           <AlertOctagon className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Emergency & 108 SOS Response</h1>
-          <p className="text-sm text-slate-500">Immediate distress beacon, emergency medical card, and emergency contacts</p>
+          <h1 className="text-xl font-bold text-ink">Emergency & 108 SOS Response</h1>
+          <p className="text-sm text-ink-soft">Immediate distress beacon, emergency medical card, and emergency contacts</p>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ export const PatientEmergency: React.FC = () => {
           {!sosTriggered ? (
             <button
               onClick={handleSos}
-              className="mt-4 px-8 py-5 bg-white text-red-700 font-extrabold text-xl rounded-2xl shadow-2xl hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto border-4 border-rose-200 animate-pulse"
+              className="mt-4 px-8 py-5 bg-surface text-red-700 font-extrabold text-xl rounded-2xl shadow-2xl hover:bg-rose-50 active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto border-4 border-rose-200 animate-pulse"
             >
               <PhoneCall className="w-6 h-6" />
               TRIGGER 108 AMBULANCE SOS
@@ -76,31 +76,31 @@ export const PatientEmergency: React.FC = () => {
       </Card>
 
       {/* Emergency Medical ID Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger">
         <Card className="p-5 border-l-4 border-l-rose-500 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 text-sm">Emergency Medical Card</h3>
+            <h3 className="font-bold text-ink text-sm">Emergency Medical Card</h3>
             <Badge variant="danger">High Priority</Badge>
           </div>
 
           <div className="space-y-3 text-sm">
             <div>
-              <span className="text-xs text-slate-400">Full Name</span>
-              <p className="font-bold text-slate-800">{patient.name}</p>
+              <span className="text-xs text-ink-soft">Full Name</span>
+              <p className="font-bold text-ink">{patient.name}</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-xs text-slate-400">Blood Group</span>
+                <span className="text-xs text-ink-soft">Blood Group</span>
                 <p className="font-extrabold text-rose-600 text-base">{patient.bloodGroup || 'O +ve'}</p>
               </div>
               <div>
-                <span className="text-xs text-slate-400">Age / Gender</span>
-                <p className="font-semibold text-slate-800">{patient.age} yrs / {patient.gender}</p>
+                <span className="text-xs text-ink-soft">Age / Gender</span>
+                <p className="font-semibold text-ink">{patient.age} yrs / {patient.gender}</p>
               </div>
             </div>
 
             <div>
-              <span className="text-xs text-slate-400">Known Allergies</span>
+              <span className="text-xs text-ink-soft">Known Allergies</span>
               <div className="flex gap-1.5 flex-wrap mt-1">
                 {patient.allergies && patient.allergies.length > 0 ? (
                   patient.allergies.map((a, i) => (
@@ -109,14 +109,14 @@ export const PatientEmergency: React.FC = () => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-500">No documented drug allergies</span>
+                  <span className="text-xs text-ink-soft">No documented drug allergies</span>
                 )}
               </div>
             </div>
 
             <div>
-              <span className="text-xs text-slate-400">Chronic Conditions</span>
-              <p className="text-xs font-semibold text-slate-700 mt-0.5">
+              <span className="text-xs text-ink-soft">Chronic Conditions</span>
+              <p className="text-xs font-semibold text-sand-700 mt-0.5">
                 {patient.chronicConditions?.join(', ') || 'Hypertension, Type 2 Diabetes'}
               </p>
             </div>
@@ -126,17 +126,17 @@ export const PatientEmergency: React.FC = () => {
         {/* Emergency Contacts */}
         <Card className="p-5 space-y-4 lg:col-span-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 text-sm">Designated Emergency Contacts & Caregivers</h3>
+            <h3 className="font-bold text-ink text-sm">Designated Emergency Contacts & Caregivers</h3>
             <button className="text-xs text-gov-600 font-semibold hover:underline">Edit Contacts</button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger">
+            <div className="p-3.5 bg-sand-50 rounded-xl border border-line space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800 text-sm">Ramesh Patil</span>
+                <span className="font-bold text-ink text-sm">Ramesh Patil</span>
                 <Badge variant="default" className="text-[10px]">Son / Primary</Badge>
               </div>
-              <p className="text-xs text-slate-500">Lives nearby (Paud Gaon)</p>
+              <p className="text-xs text-ink-soft">Lives nearby (Paud Gaon)</p>
               <div className="flex items-center gap-2 pt-1">
                 <a
                   href="tel:+919822019923"
@@ -147,12 +147,12 @@ export const PatientEmergency: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div className="p-3.5 bg-sand-50 rounded-xl border border-line space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800 text-sm">Sunita Patil (ASHA)</span>
+                <span className="font-bold text-ink text-sm">Sunita Patil (ASHA)</span>
                 <Badge variant="info" className="text-[10px]">Local Health Worker</Badge>
               </div>
-              <p className="text-xs text-slate-500">Assigned ASHA Worker (Ward 3)</p>
+              <p className="text-xs text-ink-soft">Assigned ASHA Worker (Ward 3)</p>
               <div className="flex items-center gap-2 pt-1">
                 <a
                   href="tel:+919423188231"

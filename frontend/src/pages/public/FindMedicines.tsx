@@ -41,16 +41,16 @@ export const FindMedicinesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
+    <div className="min-h-screen bg-sand-50 flex flex-col antialiased">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 flex-1 w-full">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink flex items-center gap-2.5">
             <Pill className="w-7 h-7 text-gov-700" />
             Maharashtra Essential Medicine Availability & Stock Discovery
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-ink-soft">
             Check real-time stock levels of free essential medications across government hospital pharmacies and rural PHCs.
           </p>
         </div>
@@ -64,7 +64,7 @@ export const FindMedicinesPage: React.FC = () => {
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-xs space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <SearchInput
@@ -77,7 +77,7 @@ export const FindMedicinesPage: React.FC = () => {
               <select
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
-                className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink focus:outline-none focus:border-gov-600"
               >
                 <option value="All">All Districts</option>
                 {MAHARASHTRA_DISTRICTS.map((d) => (
@@ -92,7 +92,7 @@ export const FindMedicinesPage: React.FC = () => {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink focus:outline-none focus:border-gov-600"
               >
                 <option value="All">All Therapeutic Categories</option>
                 {categories.map((c) => (
@@ -106,10 +106,10 @@ export const FindMedicinesPage: React.FC = () => {
         </div>
 
         {/* Medicines Table */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="bg-surface rounded-xl border border-line overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
                 <tr>
                   <th className="p-3.5">Medicine & Generic Formulation</th>
                   <th className="p-3.5">Therapeutic Category</th>
@@ -119,32 +119,32 @@ export const FindMedicinesPage: React.FC = () => {
                   <th className="p-3.5">Batch / Expiry</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-800">
+              <tbody className="divide-y divide-line text-ink">
                 {filteredMedicines.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-slate-500">
+                    <td colSpan={6} className="p-8 text-center text-ink-soft">
                       No medicines found matching your search.
                     </td>
                   </tr>
                 ) : (
                   filteredMedicines.map((med) => (
-                    <tr key={med.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={med.id} className="hover:bg-sand-50/80 transition-colors">
                       <td className="p-3.5">
-                        <div className="font-bold text-slate-900 text-sm">{med.name}</div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{med.genericName}</div>
+                        <div className="font-bold text-ink text-sm">{med.name}</div>
+                        <div className="text-[11px] text-ink-soft font-mono mt-0.5">{med.genericName}</div>
                       </td>
-                      <td className="p-3.5 text-slate-600 font-medium">{med.category}</td>
+                      <td className="p-3.5 text-ink-muted font-medium">{med.category}</td>
                       <td className="p-3.5 font-bold text-gov-800">{med.dosage}</td>
                       <td className="p-3.5">{getStockBadge(med.stock, med.minThreshold)}</td>
                       <td className="p-3.5">
-                        <div className="font-semibold text-slate-800 flex items-center gap-1">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                        <div className="font-semibold text-ink flex items-center gap-1">
+                          <Building2 className="w-3.5 h-3.5 text-ink-soft" />
                           {med.facilityName}
                         </div>
-                        <div className="text-[10px] text-slate-400">{med.district} District</div>
+                        <div className="text-[10px] text-ink-soft">{med.district} District</div>
                       </td>
-                      <td className="p-3.5 text-[11px] text-slate-500">
-                        <div>Batch: <span className="font-mono font-semibold text-slate-700">{med.batchNumber}</span></div>
+                      <td className="p-3.5 text-[11px] text-ink-soft">
+                        <div>Batch: <span className="font-mono font-semibold text-sand-700">{med.batchNumber}</span></div>
                         <div>Exp: {med.expiryDate}</div>
                       </td>
                     </tr>

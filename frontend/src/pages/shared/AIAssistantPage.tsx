@@ -78,9 +78,9 @@ export const AIAssistantPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col h-[700px]">
+      <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden flex flex-col h-[700px]">
         {/* Top Header */}
-        <div className="p-5 bg-gradient-to-r from-gov-800 to-slate-900 text-white flex items-center justify-between">
+        <div className="p-5 bg-gradient-to-r from-gov-800 to-sand-900 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-white/10 rounded-xl">
               <Bot className="w-6 h-6 text-gov-200" />
@@ -111,7 +111,7 @@ export const AIAssistantPage: React.FC = () => {
         </div>
 
         {/* Chat Feed */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/40">
+        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-sand-50/40">
           {messages.map((m, idx) => (
             <div
               key={idx}
@@ -121,21 +121,21 @@ export const AIAssistantPage: React.FC = () => {
                 className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed shadow-2xs whitespace-pre-line ${
                   m.sender === 'user'
                     ? 'bg-gov-700 text-white rounded-br-xs'
-                    : 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs'
+                    : 'bg-surface text-ink border border-line rounded-bl-xs'
                 }`}
               >
                 {m.text}
                 {m.sources && (
-                  <div className="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 font-semibold">
+                  <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft font-semibold">
                     📚 Grounded in: {m.sources.join(' • ')}
                   </div>
                 )}
               </div>
-              <span className="text-[10px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
+              <span className="text-[10px] text-ink-soft mt-1 px-1">{m.timestamp}</span>
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 bg-white p-3 rounded-xl border border-slate-200 w-fit">
+            <div className="flex items-center gap-2 text-xs text-ink-soft bg-surface p-3 rounded-xl border border-line w-fit">
               <Sparkles className="w-4 h-4 text-gov-600 animate-spin" />
               <span>Analyzing patient EHR & NHM protocol database...</span>
             </div>
@@ -143,12 +143,12 @@ export const AIAssistantPage: React.FC = () => {
         </div>
 
         {/* Quick Prompts Bar */}
-        <div className="p-3 bg-slate-100 border-t border-slate-200 flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="p-3 bg-sand-100 border-t border-line flex gap-2 overflow-x-auto no-scrollbar">
           {(samplePrompts[currentRole] || []).map((prompt, i) => (
             <button
               key={i}
               onClick={() => handleSend(prompt)}
-              className="whitespace-nowrap px-3 py-1.5 bg-white hover:bg-gov-50 text-slate-700 hover:text-gov-800 rounded-full border border-slate-200 text-xs font-medium transition-colors shadow-2xs shrink-0"
+              className="whitespace-nowrap px-3 py-1.5 bg-surface hover:bg-gov-50 text-sand-700 hover:text-gov-800 rounded-full border border-line text-xs font-medium transition-colors shadow-2xs shrink-0"
             >
               💡 {prompt}
             </button>
@@ -156,14 +156,14 @@ export const AIAssistantPage: React.FC = () => {
         </div>
 
         {/* Composer */}
-        <div className="p-4 bg-white border-t border-slate-200 flex items-center gap-2">
+        <div className="p-4 bg-surface border-t border-line flex items-center gap-2">
           <input
             type="text"
             placeholder="Ask anything (e.g. clinical protocols, patient summaries, emergency guidelines)..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            className="flex-1 text-xs border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
+            className="flex-1 text-xs border border-sand-300 rounded-xl px-4 py-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
           />
           <Button
             size="md"

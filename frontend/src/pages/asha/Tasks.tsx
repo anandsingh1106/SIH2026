@@ -152,11 +152,11 @@ export const AshaTasksPage: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <CheckSquare className="w-6 h-6 text-gov-700" />
             Field Tasks &amp; Patient Visits Schedule
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             {todayCount > 0
               ? `${todayCount} task${todayCount === 1 ? '' : 's'} due today`
               : 'No tasks due today'}
@@ -180,7 +180,7 @@ export const AshaTasksPage: React.FC = () => {
       </div>
 
       {/* Filter Pills */}
-      <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs text-xs w-fit">
+      <div className="flex items-center gap-1.5 bg-surface p-1 rounded-xl border border-line shadow-2xs text-xs w-fit">
         {([
           ['today', 'Today'],
           ['pending', 'Pending'],
@@ -191,7 +191,7 @@ export const AshaTasksPage: React.FC = () => {
             key={key}
             onClick={() => setFilter(key)}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
-              filter === key ? 'bg-gov-700 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+              filter === key ? 'bg-gov-700 text-white shadow-xs' : 'text-ink-muted hover:bg-sand-100'
             }`}
           >
             {label}
@@ -207,10 +207,10 @@ export const AshaTasksPage: React.FC = () => {
       {/* Task Cards */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="p-12 text-center text-xs text-slate-500">Loading tasks…</div>
+          <div className="p-12 text-center text-xs text-ink-soft">Loading tasks…</div>
         ) : filteredTasks.length === 0 ? (
-          <div className="p-12 bg-white rounded-xl border border-dashed border-slate-300 text-center space-y-3">
-            <p className="text-xs text-slate-500">
+          <div className="p-12 bg-surface rounded-xl border border-dashed border-sand-300 text-center space-y-3">
+            <p className="text-xs text-ink-soft">
               {filter === 'today' ? 'No tasks due today.' : 'No tasks in this view.'}
             </p>
             <Button size="sm" variant="outline" leftIcon={<Plus className="w-3.5 h-3.5" />}
@@ -222,12 +222,12 @@ export const AshaTasksPage: React.FC = () => {
           filteredTasks.map((t) => (
             <div
               key={t.id}
-              className={`bg-white rounded-2xl border p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+              className={`bg-surface rounded-2xl border p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
                 isDone(t)
                   ? 'border-emerald-200 bg-emerald-50/20 opacity-75'
                   : String(t.priority).toLowerCase() === 'urgent'
                   ? 'border-red-300 border-l-4 border-l-red-600'
-                  : 'border-slate-200'
+                  : 'border-line'
               }`}
             >
               <div className="space-y-1.5">
@@ -235,7 +235,7 @@ export const AshaTasksPage: React.FC = () => {
                   <Badge variant={priorityBadge(t.priority)} size="sm">
                     {String(t.priority).toUpperCase()}
                   </Badge>
-                  <h3 className="font-bold text-slate-900 text-sm">{t.title}</h3>
+                  <h3 className="font-bold text-ink text-sm">{t.title}</h3>
                   {isToday(t) && !isDone(t) && (
                     <span className="text-[10px] font-bold text-gov-700 bg-gov-50 border border-gov-200 px-2 py-0.5 rounded-full">
                       TODAY
@@ -244,10 +244,10 @@ export const AshaTasksPage: React.FC = () => {
                 </div>
 
                 {t.description && (
-                  <p className="text-xs text-slate-600 leading-relaxed">{t.description}</p>
+                  <p className="text-xs text-ink-muted leading-relaxed">{t.description}</p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 pt-1 font-medium">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft pt-1 font-medium">
                   {t.patientName && (
                     <>
                       <span>👤 <strong>Patient:</strong> {t.patientName}</span>
@@ -257,20 +257,20 @@ export const AshaTasksPage: React.FC = () => {
                   {t.village && (
                     <>
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <MapPin className="w-3.5 h-3.5 text-ink-soft" />
                         {t.village}
                       </span>
                       <span>•</span>
                     </>
                   )}
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <Clock className="w-3.5 h-3.5 text-ink-soft" />
                     Due: {t.dueDate ?? '—'}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line">
                 {!isDone(t) ? (
                   <>
                     <Button size="sm" variant="primary" onClick={() => navigate('/asha/home-visits')}>

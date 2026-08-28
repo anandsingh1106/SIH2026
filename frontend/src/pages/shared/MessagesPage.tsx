@@ -65,17 +65,17 @@ export const MessagesPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col md:flex-row h-[600px]">
+      <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden flex flex-col md:flex-row h-[600px]">
         {/* Contact List */}
-        <div className="w-full md:w-80 border-r border-slate-200 bg-slate-50/50 flex flex-col">
-          <div className="p-4 border-b border-slate-200">
-            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+        <div className="w-full md:w-80 border-r border-line bg-sand-50/50 flex flex-col">
+          <div className="p-4 border-b border-line">
+            <h3 className="font-bold text-sm text-ink flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-gov-700" />
               Care Team Conversations
             </h3>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-line">
             {contacts.map((c) => {
               const isSelected = selectedContact.id === c.id;
               return (
@@ -83,14 +83,14 @@ export const MessagesPage: React.FC = () => {
                   key={c.id}
                   onClick={() => setSelectedContact(c)}
                   className={`p-3.5 text-xs cursor-pointer transition-colors ${
-                    isSelected ? 'bg-white font-bold border-l-4 border-l-gov-700 shadow-2xs' : 'hover:bg-slate-100'
+                    isSelected ? 'bg-surface font-bold border-l-4 border-l-gov-700 shadow-2xs' : 'hover:bg-sand-100'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">{c.name}</span>
+                    <span className="font-bold text-ink">{c.name}</span>
                     <span className="text-[10px] text-emerald-600 font-semibold">● {c.status}</span>
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate mt-0.5">{c.role}</div>
+                  <div className="text-[11px] text-ink-soft truncate mt-0.5">{c.role}</div>
                 </div>
               );
             })}
@@ -98,12 +98,12 @@ export const MessagesPage: React.FC = () => {
         </div>
 
         {/* Chat Thread */}
-        <div className="flex-1 flex flex-col justify-between bg-white">
+        <div className="flex-1 flex flex-col justify-between bg-surface">
           {/* Top Chat Bar */}
-          <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+          <div className="p-4 border-b border-line bg-sand-50 flex items-center justify-between">
             <div>
-              <h4 className="font-bold text-sm text-slate-900">{selectedContact.name}</h4>
-              <p className="text-[11px] text-slate-500">{selectedContact.role}</p>
+              <h4 className="font-bold text-sm text-ink">{selectedContact.name}</h4>
+              <p className="text-[11px] text-ink-soft">{selectedContact.role}</p>
             </div>
             <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">
               Encrypted Government LAN Channel
@@ -111,7 +111,7 @@ export const MessagesPage: React.FC = () => {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/30">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-sand-50/30">
             {messages.map((m) => {
               const isMe = m.senderRole === currentRole;
               return (
@@ -123,7 +123,7 @@ export const MessagesPage: React.FC = () => {
                     className={`max-w-[80%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-2xs ${
                       isMe
                         ? 'bg-gov-700 text-white rounded-br-xs'
-                        : 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs'
+                        : 'bg-surface text-ink border border-line rounded-bl-xs'
                     }`}
                   >
                     {!isMe && (
@@ -133,7 +133,7 @@ export const MessagesPage: React.FC = () => {
                     )}
                     <p>{m.text}</p>
                   </div>
-                  <span className="text-[10px] text-slate-400 mt-1 px-1 flex items-center gap-1">
+                  <span className="text-[10px] text-ink-soft mt-1 px-1 flex items-center gap-1">
                     {m.timestamp} {isMe && <CheckCheck className="w-3 h-3 text-gov-600" />}
                   </span>
                 </div>
@@ -142,11 +142,11 @@ export const MessagesPage: React.FC = () => {
           </div>
 
           {/* Input Bar */}
-          <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 bg-white flex items-center gap-2">
+          <form onSubmit={handleSendMessage} className="p-3 border-t border-line bg-surface flex items-center gap-2">
             <button
               type="button"
               onClick={() => alert('Simulating attachment upload (EHR slip, ECG report, Photo)...')}
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              className="p-2 text-ink-soft hover:text-sand-700 rounded-lg hover:bg-sand-100"
               title="Attach clinical report / photo"
             >
               <Paperclip className="w-4 h-4" />
@@ -156,7 +156,7 @@ export const MessagesPage: React.FC = () => {
               placeholder={`Type a clinical message to ${selectedContact.name}...`}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 text-xs border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
+              className="flex-1 text-xs border border-sand-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
             />
             <Button type="submit" variant="primary" size="sm" className="rounded-xl h-9 px-4 font-bold">
               <Send className="w-3.5 h-3.5" />

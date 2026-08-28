@@ -91,24 +91,24 @@ export const AshaRegisterPatientPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <UserPlus className="w-6 h-6 text-gov-700" />
           Frontline Patient ABHA Registration
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Step-by-step registration with offline IndexedDB storage and automatic queue sync
         </p>
       </div>
 
       {isSuccess ? (
-        <div className="bg-white rounded-2xl border border-emerald-200 p-8 shadow-card text-center space-y-4 animate-in zoom-in-95">
+        <div className="bg-surface rounded-2xl border border-emerald-200 p-8 shadow-card text-center space-y-4 animate-in zoom-in-95">
           <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-ink">
             Patient Registered Successfully!
           </h2>
-          <p className="text-xs text-slate-600 max-w-md mx-auto">
+          <p className="text-xs text-ink-muted max-w-md mx-auto">
             {formData.name} has been enrolled into the Maharashtra Health Grid with ABHA ID{' '}
             <strong className="font-mono text-gov-800">{formData.abhaId}</strong>. Record saved offline and queued for server sync.
           </p>
@@ -134,22 +134,22 @@ export const AshaRegisterPatientPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden">
           {/* Stepper Header */}
-          <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200 text-[11px] sm:text-xs font-semibold text-center divide-x divide-slate-200">
-            <div className={`p-2 sm:p-3.5 ${step === 1 ? 'bg-gov-700 text-white font-bold' : step > 1 ? 'text-gov-800' : 'text-slate-400'}`}>
+          <div className="grid grid-cols-4 bg-sand-50 border-b border-line text-[11px] sm:text-xs font-semibold text-center divide-x divide-line">
+            <div className={`p-2 sm:p-3.5 ${step === 1 ? 'bg-gov-700 text-white font-bold' : step > 1 ? 'text-gov-800' : 'text-ink-soft'}`}>
               <span className="sm:hidden">1. Details</span>
               <span className="hidden sm:inline">1. Demographics &amp; ABHA</span>
             </div>
-            <div className={`p-2 sm:p-3.5 ${step === 2 ? 'bg-gov-700 text-white font-bold' : step > 2 ? 'text-gov-800' : 'text-slate-400'}`}>
+            <div className={`p-2 sm:p-3.5 ${step === 2 ? 'bg-gov-700 text-white font-bold' : step > 2 ? 'text-gov-800' : 'text-ink-soft'}`}>
               <span className="sm:hidden">2. Address</span>
               <span className="hidden sm:inline">2. Address &amp; Village</span>
             </div>
-            <div className={`p-2 sm:p-3.5 ${step === 3 ? 'bg-gov-700 text-white font-bold' : step > 3 ? 'text-gov-800' : 'text-slate-400'}`}>
+            <div className={`p-2 sm:p-3.5 ${step === 3 ? 'bg-gov-700 text-white font-bold' : step > 3 ? 'text-gov-800' : 'text-ink-soft'}`}>
               <span className="sm:hidden">3. Vitals</span>
               <span className="hidden sm:inline">3. Baseline Vitals</span>
             </div>
-            <div className={`p-2 sm:p-3.5 ${step === 4 ? 'bg-gov-700 text-white font-bold' : 'text-slate-400'}`}>
+            <div className={`p-2 sm:p-3.5 ${step === 4 ? 'bg-gov-700 text-white font-bold' : 'text-ink-soft'}`}>
               <span className="sm:hidden">4. Consent</span>
               <span className="hidden sm:inline">4. Emergency &amp; Consent</span>
             </div>
@@ -159,7 +159,7 @@ export const AshaRegisterPatientPage: React.FC = () => {
             {/* STEP 1 */}
             {step === 1 && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
                   <Input
                     label="Patient Full Name (English)"
                     required
@@ -184,11 +184,11 @@ export const AshaRegisterPatientPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || 0 })}
                   />
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Gender</label>
+                    <label className="block text-xs font-semibold text-sand-700 mb-1.5">Gender</label>
                     <select
                       value={formData.gender}
                       onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-                      className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:outline-none focus:border-gov-600"
+                      className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink focus:outline-none focus:border-gov-600"
                     >
                       <option value="female">Female (स्त्री)</option>
                       <option value="male">Male (पुरुष)</option>
@@ -206,9 +206,9 @@ export const AshaRegisterPatientPage: React.FC = () => {
                 </div>
 
                 {/* ABHA Generation */}
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                <div className="bg-sand-50 p-4 rounded-xl border border-line space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Ayushman Bharat Health Account (ABHA ID)</span>
+                    <span className="text-xs font-bold text-ink">Ayushman Bharat Health Account (ABHA ID)</span>
                     <button
                       type="button"
                       onClick={handleGenerateAbha}
@@ -271,11 +271,11 @@ export const AshaRegisterPatientPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Blood Group</label>
+                    <label className="block text-xs font-semibold text-sand-700 mb-1.5">Blood Group</label>
                     <select
                       value={formData.bloodGroup}
                       onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-                      className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:outline-none focus:border-gov-600"
+                      className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink focus:outline-none focus:border-gov-600"
                     >
                       {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
                         <option key={bg} value={bg}>{bg}</option>
@@ -283,11 +283,11 @@ export const AshaRegisterPatientPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Triage Vulnerability Tier</label>
+                    <label className="block text-xs font-semibold text-sand-700 mb-1.5">Triage Vulnerability Tier</label>
                     <select
                       value={formData.riskCategory}
                       onChange={(e) => setFormData({ ...formData, riskCategory: e.target.value as any })}
-                      className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 font-semibold focus:outline-none focus:border-gov-600"
+                      className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
                     >
                       <option value="normal">Normal / Low Risk</option>
                       <option value="moderate">Moderate Monitoring</option>
@@ -302,8 +302,8 @@ export const AshaRegisterPatientPage: React.FC = () => {
             {/* STEP 4 */}
             {step === 4 && (
               <div className="space-y-4">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Emergency Contact Person</h4>
+                <div className="bg-sand-50 p-4 rounded-xl border border-line space-y-3">
+                  <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Emergency Contact Person</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <Input
                       label="Contact Name"
@@ -351,7 +351,7 @@ export const AshaRegisterPatientPage: React.FC = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-4 border-t border-line flex items-center justify-between">
               {step > 1 ? (
                 <Button
                   type="button"

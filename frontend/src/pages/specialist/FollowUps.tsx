@@ -157,8 +157,8 @@ export const SpecialistFollowUps: React.FC = () => {
             <CalendarCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Tertiary Specialist Follow-Up Tracker</h1>
-            <p className="text-sm text-slate-500">Cross-tier tracking of high-risk discharged patients with ASHA & PHC integration</p>
+            <h1 className="text-xl font-bold text-ink">Tertiary Specialist Follow-Up Tracker</h1>
+            <p className="text-sm text-ink-soft">Cross-tier tracking of high-risk discharged patients with ASHA & PHC integration</p>
           </div>
         </div>
 
@@ -168,7 +168,7 @@ export const SpecialistFollowUps: React.FC = () => {
               key={st}
               onClick={() => setFilter(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                filter === st ? 'bg-amber-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                filter === st ? 'bg-amber-600 text-white shadow-sm' : 'bg-surface border border-line text-ink-muted hover:bg-sand-50'
               }`}
             >
               {st}
@@ -183,7 +183,7 @@ export const SpecialistFollowUps: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-slate-900 text-base">{fu.patientName}</h3>
+                  <h3 className="font-bold text-ink text-base">{fu.patientName}</h3>
                   <Badge variant={fu.priority === 'critical' ? 'danger' : fu.priority === 'high' ? 'warning' : 'default'}>
                     {(fu.priority ?? '').toUpperCase()}
                   </Badge>
@@ -191,24 +191,24 @@ export const SpecialistFollowUps: React.FC = () => {
                     {fu.status.replace('_', ' ')}
                   </Badge>
                 </div>
-                <p className="text-xs font-semibold text-slate-700">{fu.condition}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs font-semibold text-sand-700">{fu.condition}</p>
+                <p className="text-xs text-ink-soft">
                   Assigned Facility: <strong>{fu.assignedPhc}</strong> • ASHA Worker: <strong>{fu.ashaWorker}</strong>
                 </p>
               </div>
 
               <div className="text-right">
-                <span className="text-xs text-slate-400">Review Due Date</span>
-                <p className={`text-sm font-bold ${fu.status === 'overdue' ? 'text-rose-600' : 'text-slate-800'}`}>
+                <span className="text-xs text-ink-soft">Review Due Date</span>
+                <p className={`text-sm font-bold ${fu.status === 'overdue' ? 'text-rose-600' : 'text-ink'}`}>
                   {fu.dueDate}
                 </p>
               </div>
             </div>
 
             {fu.latestTelemetry && (
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 flex items-center justify-between gap-2 flex-wrap">
+              <div className="p-3 bg-sand-50 rounded-xl border border-line text-xs text-sand-700 flex items-center justify-between gap-2 flex-wrap">
                 <div>
-                  <span className="font-bold text-slate-900">Latest Field Telemetry: </span>
+                  <span className="font-bold text-ink">Latest Field Telemetry: </span>
                   {fu.latestTelemetry}
                 </div>
                 <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
@@ -217,7 +217,7 @@ export const SpecialistFollowUps: React.FC = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-line">
               <button
                 onClick={() => handleSendAlert(fu)}
                 disabled={sendingAlertFor === fu.id}

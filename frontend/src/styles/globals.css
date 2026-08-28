@@ -3,54 +3,155 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Warm & human palette.
+   *
+   * Everything downstream -- Tailwind's canvas/surface/ink/line colours and
+   * every component built on them -- resolves through these variables, so the
+   * whole product can be retuned from this block alone.
+   */
   :root {
-    --primary: 15 118 110;
+    --canvas: 245 241 234;      /* #f5f1ea  warm page background      */
+    --surface: 255 253 249;     /* #fffdf9  cards, panels             */
+    --raised: 250 248 245;      /* #faf8f5  inset / secondary blocks  */
+    --line: 233 226 214;        /* #e9e2d6  hairlines                 */
+    --line-strong: 216 204 186; /* #d8ccba  emphasised borders        */
+
+    --ink: 45 36 24;            /* #2d2418  headings                  */
+    --ink-muted: 107 93 77;     /* #6b5d4d  body copy                 */
+    --ink-soft: 155 136 116;    /* #9b8874  captions, placeholders    */
+
+    --primary: 15 118 110;      /* teal   -- trust, clinical actions  */
     --primary-foreground: 255 255 255;
+    --accent: 232 135 30;       /* saffron -- warmth, highlights      */
   }
-  
+
   html {
     scroll-behavior: smooth;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-text-size-adjust: 100%;
   }
 
-  /* Accessible Focus Rings */
+  body {
+    background-color: rgb(var(--canvas));
+    color: rgb(var(--ink-muted));
+  }
+
+  /* Headings carry the darkest ink and the display face. */
+  h1, h2, h3, h4, h5, h6 {
+    color: rgb(var(--ink));
+    font-family: Manrope, Inter, system-ui, sans-serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* Accessible focus rings, warm-toned to match the surface. */
   *:focus-visible {
-    outline: 2px solid #0f766e;
+    outline: 2px solid rgb(var(--primary));
     outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /*
+   * Touch targets. ASHA workers use this one-handed, outdoors, often on a
+   * cracked screen -- anything smaller than 44px is a missed tap.
+   */
+  @media (pointer: coarse) {
+    button, a[role="button"], [role="tab"] {
+      min-height: 44px;
+    }
+  }
+
+  /*
+   * Motion is decorative here, never load-bearing: no animation conveys
+   * information that is not also in the markup, so switching it all off
+   * loses nothing.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* Trust accent divider — teal to amber, used sparingly under headers/hero panels */
+@layer components {
+  /* Staggered list/grid entrance. Capped at 8 -- past that the last card
+     waits long enough that the page feels slow rather than considered. */
+  .stagger > * {
+    animation: fade-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .stagger > *:nth-child(6) { animation-delay: 200ms; }
+  .stagger > *:nth-child(7) { animation-delay: 240ms; }
+  .stagger > *:nth-child(n+8) { animation-delay: 280ms; }
+
+  /* Interactive lift shared by cards and tiles. */
+  .lift {
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 180ms ease;
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Loading shimmer for skeletons. */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 253, 249, 0) 0,
+      rgba(255, 253, 249, 0.6) 50%,
+      rgba(255, 253, 249, 0) 100%
+    );
+    animation: shimmer 1.6s infinite;
+  }
+}
+
+/* Trust accent divider -- teal through to saffron, used sparingly. */
 .trust-divider {
   height: 3px;
-  background-image: linear-gradient(90deg, #0f766e 0%, #2dd4bf 45%, #d97706 100%);
+  background-image: linear-gradient(90deg, #0f766e 0%, #2dd4bf 40%, #e8871e 100%);
 }
 
-/* Soft dotted-grid backdrop for hero/feature sections, faded via mask at the edges */
+/* Soft dotted-grid backdrop for hero/feature sections, faded at the edges. */
 .bg-grid-fade {
-  background-image: radial-gradient(circle, rgba(15, 118, 110, 0.16) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(232, 135, 30, 0.18) 1px, transparent 1px);
   background-size: 22px 22px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
 }
 
-/* Custom Scrollbar for Clinical Data Tables & Lists */
+/* Custom scrollbar, warm-toned to match the surfaces. */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f5f1ea;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d8ccba;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #b9a892;
 }
 
 /* The printable document is rendered off-screen until printing. */

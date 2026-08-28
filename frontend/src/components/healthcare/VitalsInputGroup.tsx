@@ -45,9 +45,9 @@ export const VitalsInputGroup: React.FC<VitalsInputGroupProps> = ({
   const bpStatus = getBpStatus();
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-4">
+    <div className="rounded-xl border border-line bg-sand-50/50 p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+        <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider flex items-center gap-1.5">
           <Activity className="w-4 h-4 text-gov-700" />
           Vital Signs & Clinical Measurements
         </h4>

@@ -21,17 +21,17 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
       defaultLabel: 'Online',
     },
     offline: {
-      color: 'bg-slate-500',
-      ping: 'bg-slate-400',
-      text: 'text-slate-700',
-      bg: 'bg-slate-100 border-slate-300',
+      color: 'bg-sand-500',
+      ping: 'bg-sand-400',
+      text: 'text-ink-muted',
+      bg: 'bg-sand-100 border-line-strong',
       defaultLabel: 'Offline Storage Active',
     },
     syncing: {
-      color: 'bg-amber-500',
-      ping: 'bg-amber-400',
-      text: 'text-amber-700',
-      bg: 'bg-amber-50 border-amber-200',
+      color: 'bg-saffron-500',
+      ping: 'bg-saffron-400',
+      text: 'text-saffron-800',
+      bg: 'bg-saffron-50 border-saffron-200',
       defaultLabel: 'Syncing Queue...',
     },
     error: {
@@ -48,7 +48,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   return (
     <div
       className={clsx(
-        'inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border shadow-2xs',
+        'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-subtle transition-colors',
         current.bg,
         current.text,
         className

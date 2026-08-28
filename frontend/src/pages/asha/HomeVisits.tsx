@@ -128,11 +128,11 @@ export const AshaHomeVisitsPage: React.FC = () => {
       />
 
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <Home className="w-6 h-6 text-gov-700" />
           Grassroots Home Visit & Health Observation Station
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Record longitudinal vital signs, maternal danger signs, and generate 1-click tele-referrals offline
         </p>
       </div>
@@ -171,12 +171,12 @@ export const AshaHomeVisitsPage: React.FC = () => {
               </p>
 
               {/* The token is the worker's reference for this visit. */}
-              <div className="bg-white/80 border border-slate-200 rounded-lg p-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="bg-white/80 border border-line rounded-lg p-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                  <div className="text-[10px] uppercase tracking-wider text-ink-soft font-bold">
                     Visit Token
                   </div>
-                  <div className="font-mono text-lg font-bold text-slate-900 tracking-wider">
+                  <div className="font-mono text-lg font-bold text-ink tracking-wider">
                     {receipt.token}
                   </div>
                 </div>
@@ -194,14 +194,14 @@ export const AshaHomeVisitsPage: React.FC = () => {
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-ink-soft">
                 Note this token in the household register. It identifies this visit in the visit log.
               </p>
             </div>
 
             <button
               onClick={() => setSaveSuccess(false)}
-              className="text-slate-400 hover:text-slate-700 shrink-0"
+              className="text-ink-soft hover:text-sand-700 shrink-0"
               aria-label="Dismiss"
             >
               <X className="w-4 h-4" />
@@ -211,14 +211,14 @@ export const AshaHomeVisitsPage: React.FC = () => {
       )}
 
       {/* Select Patient Dropdown */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
-        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0">
+      <div className="bg-surface p-4 rounded-xl border border-line shadow-xs flex items-center gap-3">
+        <label className="text-xs font-bold text-sand-700 uppercase tracking-wider shrink-0">
           Select Patient:
         </label>
         <select
           value={selectedPatientId}
           onChange={(e) => setSelectedPatientId(e.target.value)}
-          className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-900 font-semibold focus:outline-none focus:border-gov-600"
+          className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
         >
           {patients.map((p) => (
             <option key={p.id} value={p.id}>
@@ -232,10 +232,10 @@ export const AshaHomeVisitsPage: React.FC = () => {
       {selectedPatient && <PatientSummaryCard patient={selectedPatient} />}
 
       {/* Visit Recording Form */}
-      <form onSubmit={handleRecordVisit} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
+      <form onSubmit={handleRecordVisit} className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6">
         {/* Vitals Recording */}
         <div>
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider mb-3">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider mb-3">
             1. Record Measured Vital Signs
           </h3>
           <VitalsInputGroup vitals={vitals} onChange={setVitals} />
@@ -243,7 +243,7 @@ export const AshaHomeVisitsPage: React.FC = () => {
 
         {/* Danger Signs Checklist */}
         <div>
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider mb-2 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             2. Red-Flag Danger Signs Checklist (National Health Mission)
           </h3>
@@ -256,7 +256,7 @@ export const AshaHomeVisitsPage: React.FC = () => {
                   className={`p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-colors flex items-center gap-2.5 ${
                     isChecked
                       ? 'bg-red-50 text-red-900 border-red-300 shadow-2xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      : 'bg-sand-50 text-sand-700 border-line hover:bg-sand-100'
                   }`}
                 >
                   <input
@@ -274,7 +274,7 @@ export const AshaHomeVisitsPage: React.FC = () => {
 
         {/* Clinical Observations & Counselling Notes */}
         <div>
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider mb-2">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider mb-2">
             3. ASHA Field Observations & Nutrition Guidance
           </h3>
           <textarea
@@ -282,12 +282,12 @@ export const AshaHomeVisitsPage: React.FC = () => {
             value={observations}
             onChange={(e) => setObservations(e.target.value)}
             placeholder="e.g. Counseled on taking 2 IFA tablets daily with lemon water. Verified 108 ambulance transport arrangements."
-            className="w-full text-xs border border-slate-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
+            className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
           />
         </div>
 
         {/* Referral Option & Follow-up */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-line">
           <label className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 cursor-pointer text-xs">
             <input
               type="checkbox"
@@ -302,18 +302,18 @@ export const AshaHomeVisitsPage: React.FC = () => {
           </label>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Scheduled Next Follow-up Visit</label>
+            <label className="block text-xs font-semibold text-sand-700 mb-1.5">Scheduled Next Follow-up Visit</label>
             <input
               type="date"
               value={nextVisitDate}
               onChange={(e) => setNextVisitDate(e.target.value)}
-              className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-gov-600"
+              className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface focus:outline-none focus:border-gov-600"
             />
           </div>
         </div>
 
         {/* Submit */}
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
+        <div className="pt-4 border-t border-line flex justify-end">
           <Button
             type="submit"
             variant="primary"

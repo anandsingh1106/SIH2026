@@ -114,14 +114,14 @@ export const PatientTimeline: React.FC = () => {
       <div className="flex items-center gap-3">
         <Clock className="w-6 h-6 text-gov-600" />
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Longitudinal Health Timeline</h1>
-          <p className="text-sm text-slate-500">Your complete medical history in chronological order</p>
+          <h1 className="text-xl font-bold text-ink">Longitudinal Health Timeline</h1>
+          <p className="text-sm text-ink-soft">Your complete medical history in chronological order</p>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-slate-400 mt-2.5 shrink-0" />
+        <Filter className="w-4 h-4 text-ink-soft mt-2.5 shrink-0" />
         {filterButtons.map(btn => (
           <button
             key={btn.value}
@@ -129,7 +129,7 @@ export const PatientTimeline: React.FC = () => {
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
               filter === btn.value
                 ? 'bg-gov-600 text-white'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-sand-100 text-ink-muted hover:bg-sand-200'
             }`}
           >
             {btn.label}
@@ -140,7 +140,7 @@ export const PatientTimeline: React.FC = () => {
       {/* Timeline */}
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-slate-200 z-0" />
+        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-sand-200 z-0" />
 
         <div className="space-y-0">
           {filtered.map((event, idx) => {
@@ -150,9 +150,9 @@ export const PatientTimeline: React.FC = () => {
                 {isNewDate && (
                   <div className="relative flex items-center gap-3 mb-3 mt-4 first:mt-0">
                     <div className="z-10 w-10 h-6 flex items-center justify-center shrink-0">
-                      <div className="w-2 h-2 rounded-full bg-slate-400" />
+                      <div className="w-2 h-2 rounded-full bg-sand-400" />
                     </div>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2">
+                    <span className="text-xs font-bold text-ink-soft uppercase tracking-widest bg-sand-50 px-2">
                       {event.date}
                     </span>
                   </div>
@@ -168,9 +168,9 @@ export const PatientTimeline: React.FC = () => {
                   <Card className="flex-1 p-4 hover:shadow-card transition-shadow">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-800 text-sm">{event.title}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{event.subtitle}</p>
-                        <p className="text-xs text-slate-600 mt-2 leading-relaxed">{event.detail}</p>
+                        <p className="font-semibold text-ink text-sm">{event.title}</p>
+                        <p className="text-xs text-ink-soft mt-0.5">{event.subtitle}</p>
+                        <p className="text-xs text-ink-muted mt-2 leading-relaxed">{event.detail}</p>
                       </div>
                       {event.badge && (
                         <Badge variant={event.badgeVariant ?? 'default'} className="text-xs shrink-0">
@@ -187,7 +187,7 @@ export const PatientTimeline: React.FC = () => {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-ink-soft">
           <Clock className="w-8 h-8 mx-auto mb-3 opacity-40" />
           <p className="font-medium">No events found for this filter</p>
         </div>

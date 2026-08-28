@@ -22,7 +22,7 @@ export const PublicNavbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-line shadow-2xs">
       {/* Top Government Ribbon */}
       <div className="bg-gradient-to-r from-gov-900 via-gov-800 to-gov-900 text-white text-[11px] px-4 py-1.5 flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -52,10 +52,10 @@ export const PublicNavbar: React.FC = () => {
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-extrabold text-slate-900 text-base leading-tight tracking-tight">
+            <h1 className="font-display font-extrabold text-ink text-base leading-tight tracking-tight">
               {t.common.appName.includes('महा') ? t.common.appName : <>MahaAarogya <span className="text-gov-700">Sangam</span></>}
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium">{t.common.appTagline}</p>
+            <p className="text-[10px] text-ink-soft font-medium">{t.common.appTagline}</p>
           </div>
         </Link>
 
@@ -82,7 +82,7 @@ export const PublicNavbar: React.FC = () => {
                 className={`relative px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? 'text-gov-800 bg-gov-50 font-bold after:absolute after:left-3 after:right-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-gov-600'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    : 'text-ink-muted hover:text-ink hover:bg-sand-50'
                 }`}
               >
                 {item.label}
@@ -109,7 +109,7 @@ export const PublicNavbar: React.FC = () => {
         <div className="xl:hidden flex items-center gap-2">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+            className="p-2 rounded-lg text-ink-muted hover:bg-sand-100"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -119,7 +119,7 @@ export const PublicNavbar: React.FC = () => {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-slate-200 bg-white p-4 space-y-2 shadow-lg animate-in slide-in-from-top duration-150">
+        <div className="xl:hidden border-t border-line bg-surface p-4 space-y-2 shadow-lg animate-in slide-in-from-top duration-150">
           {links.map((item) => (
             <Link
               key={item.href}
@@ -130,13 +130,13 @@ export const PublicNavbar: React.FC = () => {
                   ? 'bg-red-50 text-red-700 font-bold border border-red-200'
                   : location.pathname === item.href
                   ? 'bg-gov-50 text-gov-800 font-bold'
-                  : 'text-slate-700 hover:bg-slate-50'
+                  : 'text-sand-700 hover:bg-sand-50'
               }`}
             >
               {item.label}
             </Link>
           ))}
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+          <div className="pt-3 border-t border-line flex flex-col gap-2">
             <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="outline" size="sm" className="w-full">
                 {t.common.login} / ABHA Login

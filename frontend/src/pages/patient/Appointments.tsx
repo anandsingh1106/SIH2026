@@ -126,8 +126,8 @@ export const PatientAppointments: React.FC = () => {
         <div className="flex items-center gap-3">
           <Calendar className="w-6 h-6 text-gov-600" />
           <div>
-            <h1 className="text-xl font-bold text-slate-900">My Appointments</h1>
-            <p className="text-sm text-slate-500">Upcoming and past consultations</p>
+            <h1 className="text-xl font-bold text-ink">My Appointments</h1>
+            <p className="text-sm text-ink-soft">Upcoming and past consultations</p>
           </div>
         </div>
 
@@ -137,13 +137,13 @@ export const PatientAppointments: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border border-slate-200 rounded-xl overflow-hidden w-fit">
+      <div className="flex border border-line rounded-xl overflow-hidden w-fit">
         {(['upcoming', 'past'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-5 py-2 text-sm font-semibold transition-colors capitalize ${
-              tab === t ? 'bg-gov-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'
+              tab === t ? 'bg-gov-600 text-white' : 'bg-surface text-ink-muted hover:bg-sand-50'
             }`}
           >
             {t} ({t === 'upcoming' ? upcoming.length : past.length})
@@ -153,7 +153,7 @@ export const PatientAppointments: React.FC = () => {
 
       <div className="space-y-4">
         {isLoading ? (
-          <div className="text-center py-12 text-slate-400">Loading appointments…</div>
+          <div className="text-center py-12 text-ink-soft">Loading appointments…</div>
         ) : (
           <>
             {displayed.map((apt) => (
@@ -166,23 +166,23 @@ export const PatientAppointments: React.FC = () => {
                       ) : (
                         <MapPin className="w-4 h-4 text-gov-600" />
                       )}
-                      <p className="font-bold text-slate-800">{apt.reason || `${apt.specialty} Consultation`}</p>
+                      <p className="font-bold text-ink">{apt.reason || `${apt.specialty} Consultation`}</p>
                     </div>
-                    <p className="text-sm text-slate-600 mt-1">{apt.doctor} · {apt.specialty}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{apt.facility}</p>
+                    <p className="text-sm text-ink-muted mt-1">{apt.doctor} · {apt.specialty}</p>
+                    <p className="text-xs text-ink-soft mt-0.5">{apt.facility}</p>
 
                     <div className="flex items-center gap-4 mt-3">
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-700">{apt.date}</span>
+                        <Calendar className="w-3.5 h-3.5 text-ink-soft" />
+                        <span className="text-xs font-semibold text-sand-700">{apt.date}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-700">{apt.time}</span>
+                        <Clock className="w-3.5 h-3.5 text-ink-soft" />
+                        <span className="text-xs font-semibold text-sand-700">{apt.time}</span>
                       </div>
                       {apt.tokenNumber && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-400">Token:</span>
+                          <span className="text-xs text-ink-soft">Token:</span>
                           <span className="text-xs font-bold text-gov-700">#{apt.tokenNumber}</span>
                         </div>
                       )}
@@ -205,7 +205,7 @@ export const PatientAppointments: React.FC = () => {
                 </div>
 
                 {apt.status === 'upcoming' && (
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-line">
                     {apt.type === 'telemedicine' && (
                       <button className="flex items-center gap-2 px-4 py-2 bg-gov-600 text-white text-xs font-semibold rounded-lg hover:bg-gov-700 transition-colors">
                         <Video className="w-4 h-4" />
@@ -214,7 +214,7 @@ export const PatientAppointments: React.FC = () => {
                     )}
                     <button
                       onClick={() => openReschedule(apt.id)}
-                      className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 border border-line text-sand-700 text-xs font-semibold rounded-lg hover:bg-sand-50 transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Reschedule
@@ -230,8 +230,8 @@ export const PatientAppointments: React.FC = () => {
                 )}
 
                 {apt.status === 'completed' && (
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-line">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-sand-50 text-sand-700 text-xs font-semibold rounded-lg border border-line hover:bg-sand-100 transition-colors">
                       <ChevronRight className="w-3.5 h-3.5" />
                       View Consultation Summary
                     </button>
@@ -241,7 +241,7 @@ export const PatientAppointments: React.FC = () => {
             ))}
 
             {displayed.length === 0 && (
-              <div className="text-center py-12 text-slate-400">
+              <div className="text-center py-12 text-ink-soft">
                 <Calendar className="w-8 h-8 mx-auto mb-3 opacity-40" />
                 <p className="font-medium">No {tab} appointments</p>
                 {tab === 'upcoming' && (
@@ -337,7 +337,7 @@ export const PatientAppointments: React.FC = () => {
         title="Cancel Appointment"
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-muted">
             Are you sure you want to cancel this appointment?
             Please inform your healthcare provider if you are unable to attend.
           </p>
@@ -351,7 +351,7 @@ export const PatientAppointments: React.FC = () => {
             </button>
             <button
               onClick={() => setCancelModal(null)}
-              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+              className="flex-1 px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50 transition-colors"
             >
               Keep Appointment
             </button>

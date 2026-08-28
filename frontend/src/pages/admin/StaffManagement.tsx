@@ -48,8 +48,8 @@ export const AdminStaffManagement: React.FC = () => {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Healthcare Workforce Roster & Deployment</h1>
-            <p className="text-sm text-slate-500">Medical Officers, Tertiary Specialists, Staff Nurses, and frontline ASHA cadres</p>
+            <h1 className="text-xl font-bold text-ink">Healthcare Workforce Roster & Deployment</h1>
+            <p className="text-sm text-ink-soft">Medical Officers, Tertiary Specialists, Staff Nurses, and frontline ASHA cadres</p>
           </div>
         </div>
 
@@ -85,13 +85,13 @@ export const AdminStaffManagement: React.FC = () => {
       {/* Filter and Search */}
       <Card className="p-4 flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by staff name or posted facility..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs"
+            className="w-full pl-9 pr-3 py-2 border border-line rounded-lg text-xs"
           />
         </div>
 
@@ -103,7 +103,7 @@ export const AdminStaffManagement: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all shrink-0 ${
                 roleFilter === rf
                   ? 'bg-purple-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
               }`}
             >
               {rf}
@@ -113,13 +113,13 @@ export const AdminStaffManagement: React.FC = () => {
       </Card>
 
       {/* Staff Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
         {filtered.map(st => (
           <Card key={st.id} className="p-5 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-slate-900 text-base">{st.name}</h3>
+                  <h3 className="font-bold text-ink text-base">{st.name}</h3>
                   <Badge variant={st.role === 'specialist' ? 'warning' : st.role === 'doctor' ? 'info' : 'success'} className="uppercase text-[10px]">
                     {st.role}
                   </Badge>
@@ -127,25 +127,25 @@ export const AdminStaffManagement: React.FC = () => {
                     {st.activeStatus.replace('_', ' ')}
                   </Badge>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Posting: <strong className="text-slate-700">{st.facility}</strong> ({st.district} District)
+                <p className="text-xs text-ink-soft mt-1">
+                  Posting: <strong className="text-sand-700">{st.facility}</strong> ({st.district} District)
                 </p>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+            <div className="p-3 bg-sand-50 rounded-xl border border-line flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-purple-600" />
-                <span className="text-slate-600">NCD & Tele-triage Training:</span>
+                <span className="text-ink-muted">NCD & Tele-triage Training:</span>
               </div>
               <span className={`font-bold ${st.trainedInNcd ? 'text-emerald-700' : 'text-amber-700'}`}>
                 {st.trainedInNcd ? `Certified (${st.trainingCompletedDate})` : 'Pending Module'}
               </span>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft">
               <span className="flex items-center gap-1">
-                <Phone className="w-3 h-3 text-slate-400" /> {st.phone}
+                <Phone className="w-3 h-3 text-ink-soft" /> {st.phone}
               </span>
               <button className="text-purple-600 font-bold hover:underline">View Service Record →</button>
             </div>
@@ -161,22 +161,22 @@ export const AdminStaffManagement: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
-            <input type="text" placeholder="e.g. Dr. Shruti Ranade" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            <label className="block text-xs font-bold text-sand-700 mb-1">Full Name</label>
+            <input type="text" placeholder="e.g. Dr. Shruti Ranade" className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Cadre / Role</label>
-              <select className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+              <label className="block text-xs font-bold text-sand-700 mb-1">Cadre / Role</label>
+              <select className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface">
                 <option value="doctor">Medical Officer (PHC)</option>
                 <option value="specialist">Tertiary Specialist</option>
                 <option value="asha">ASHA Worker</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Assigned Facility</label>
-              <input type="text" placeholder="e.g. PHC Paud" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+              <label className="block text-xs font-bold text-sand-700 mb-1">Assigned Facility</label>
+              <input type="text" placeholder="e.g. PHC Paud" className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
             </div>
           </div>
 
@@ -189,7 +189,7 @@ export const AdminStaffManagement: React.FC = () => {
             </button>
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

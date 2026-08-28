@@ -125,12 +125,12 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-200 lg:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-sand-900 to-sand-950 text-sand-300 flex flex-col border-r border-sand-800 transition-transform duration-200 lg:translate-x-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       {/* User Header Profile in Sidebar */}
-      <div className="p-4 border-b border-slate-800 flex items-center gap-3">
+      <div className="p-4 border-b border-sand-800 flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-soft ring-1 ring-gov-500/40">
           {currentUser?.name.charAt(0) || 'U'}
         </div>
@@ -139,7 +139,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
           <p className="text-[11px] text-gov-400 font-semibold uppercase tracking-wider">
             {roleLabel}
           </p>
-          <p className="text-[10px] text-slate-400 truncate mt-0.5">
+          <p className="text-[10px] text-ink-soft truncate mt-0.5">
             {currentUser?.facilityName || currentUser?.district}
           </p>
         </div>
@@ -147,7 +147,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
 
       {/* Nav List */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-2">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-ink-soft px-3 pb-2">
           {roleLabel}
         </div>
         {navItems.map((item) => (
@@ -156,27 +156,30 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             to={item.to}
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center justify-between pl-2.5 pr-3 py-2.5 rounded-xl text-xs font-medium transition-all border-l-4 ${
+              `group relative flex items-center justify-between pl-3.5 pr-3 py-2.5 rounded-xl text-sm font-medium 
+               transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] 
+               before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:rounded-full 
+               before:bg-saffron-400 before:transition-all before:duration-200 ${
                 isActive
-                  ? 'bg-gov-700/90 text-white font-bold shadow-soft border-l-gov-300'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border-l-transparent'
+                  ? 'bg-gov-700/90 text-white font-bold shadow-soft before:h-6'
+                  : 'text-sand-300 hover:text-white hover:bg-sand-800/70 hover:translate-x-0.5 before:h-0'
               }`
             }
           >
             <div className="flex items-center gap-2.5 truncate">
-              {item.icon}
+              <span className="shrink-0 transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
               <span className="truncate">{item.label}</span>
             </div>
             {item.count !== undefined && (
-              <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-slate-800 text-gov-300 border border-slate-700">
+              <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-saffron-500 text-white tabular-nums">
                 {item.count}
               </span>
             )}
           </NavLink>
         ))}
 
-        <div className="pt-4 mt-4 border-t border-slate-800">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-2">
+        <div className="pt-4 mt-4 border-t border-sand-800">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-ink-soft px-3 pb-2">
             {t.nav.settings}
           </div>
           <NavLink
@@ -184,7 +187,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
               }`
             }
           >
@@ -196,7 +199,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
               }`
             }
           >
@@ -208,7 +211,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
               }`
             }
           >
@@ -219,12 +222,12 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       </nav>
 
       {/* Emergency Hotline in Sidebar */}
-      <div className="p-3 bg-slate-950/60 border-t border-slate-800 text-[11px] flex items-center justify-between">
+      <div className="p-3 bg-sand-950/60 border-t border-sand-800 text-[11px] flex items-center justify-between">
         <a href="tel:108" className="flex items-center gap-1.5 text-red-400 hover:underline font-bold">
           <PhoneCall className="w-3.5 h-3.5" />
           <span>{t.common.emergency}</span>
         </a>
-        <span className="text-slate-400">v1.0 {t.common.appName}</span>
+        <span className="text-ink-soft">v1.0 {t.common.appName}</span>
       </div>
     </aside>
   );

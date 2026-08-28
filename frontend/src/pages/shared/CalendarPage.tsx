@@ -45,24 +45,24 @@ export const CalendarPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Calendar className="w-6 h-6 text-gov-700" />
             Clinical Schedules, Home Visits & OPD Sessions
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Coordinate field tasks, immunization drives, and tele-consultation clinics
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {/* View Switcher */}
-          <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <div className="flex bg-sand-100 p-1 rounded-xl text-xs font-semibold">
             {(['day', 'week', 'month', 'agenda'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
-                  view === v ? 'bg-white text-gov-800 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+                  view === v ? 'bg-surface text-gov-800 shadow-xs font-bold' : 'text-ink-muted hover:text-ink'
                 }`}
               >
                 {v}
@@ -82,30 +82,30 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* Calendar Controls */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between text-xs">
+      <div className="bg-surface p-4 rounded-xl border border-line shadow-xs flex items-center justify-between text-xs">
         <div className="flex items-center gap-3">
-          <h3 className="font-bold text-slate-900 text-base">August 2026</h3>
+          <h3 className="font-bold text-ink text-base">August 2026</h3>
           <span className="text-gov-700 font-semibold bg-gov-50 px-2 py-0.5 rounded border border-gov-200">
             Today: 23 Aug 2026
           </span>
         </div>
 
         <div className="flex items-center gap-1">
-          <button className="p-1.5 rounded-lg border hover:bg-slate-50 text-slate-600">
+          <button className="p-1.5 rounded-lg border hover:bg-sand-50 text-ink-muted">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button className="p-1.5 rounded-lg border hover:bg-slate-50 text-slate-600">
+          <button className="p-1.5 rounded-lg border hover:bg-sand-50 text-ink-muted">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Events Grid / Agenda View */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
         {events.map((evt) => (
           <div
             key={evt.id}
-            className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
+            className="bg-surface rounded-2xl border border-line p-5 shadow-xs flex flex-col justify-between hover:shadow-card transition-all"
           >
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-2">
@@ -121,27 +121,27 @@ export const CalendarPage: React.FC = () => {
                 >
                   {evt.priority.toUpperCase()}
                 </Badge>
-                <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-[11px] text-ink-soft font-semibold flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-ink-soft" />
                   {evt.date}
                 </span>
               </div>
 
-              <h4 className="font-bold text-slate-900 text-sm leading-snug">{evt.title}</h4>
+              <h4 className="font-bold text-ink text-sm leading-snug">{evt.title}</h4>
 
-              <div className="space-y-1.5 text-xs text-slate-600">
-                <div className="flex items-center gap-1.5 text-slate-500">
-                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <div className="space-y-1.5 text-xs text-ink-muted">
+                <div className="flex items-center gap-1.5 text-ink-soft">
+                  <Clock className="w-3.5 h-3.5 text-ink-soft shrink-0" />
                   <span>{evt.time}</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-slate-500">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <div className="flex items-center gap-1.5 text-ink-soft">
+                  <MapPin className="w-3.5 h-3.5 text-ink-soft shrink-0" />
                   <span>{evt.location}</span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-xs">
               <span className="text-[11px] text-gov-700 font-semibold">Scheduled Care Event</span>
               <Button
                 variant="outline"

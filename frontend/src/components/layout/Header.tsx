@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
 import { useI18n } from '../../hooks/useI18n';
@@ -50,6 +50,36 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
     return () => source.close();
   }, [fetchNotifs]);
 
+  // Dropdowns previously stayed open until their trigger was pressed again,
+  // which on a phone means tapping elsewhere leaves the panel covering content.
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showNotifMenu && !showProfileMenu) return;
+
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (notifRef.current && !notifRef.current.contains(target)) setShowNotifMenu(false);
+      if (profileRef.current && !profileRef.current.contains(target)) setShowProfileMenu(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowNotifMenu(false);
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('touchstart', onPointerDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('touchstart', onPointerDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [showNotifMenu, showProfileMenu]);
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleMarkAllRead = async () => {
@@ -68,27 +98,27 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   const roleLabel = t.roles[currentRole as keyof typeof t.roles] || currentRole;
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-2xs">
+    <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-line shadow-subtle">
       <div className="px-4 sm:px-6 lg:pr-8 lg:pl-64 h-16 flex items-center justify-between gap-4">
         {/* Left Side: Hamburger & Branding */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"
+            className="p-2.5 rounded-xl text-ink-muted hover:bg-sand-100 hover:text-ink transition-colors lg:hidden"
             aria-label="Toggle Sidebar"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-sm shadow-soft group-hover:shadow-glow transition-shadow">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-sm shadow-soft transition-all duration-200 group-hover:shadow-glow group-hover:scale-105">
               <Shield className="w-5 h-5" />
             </div>
             <div className="hidden sm:block">
-              <span className="font-display font-extrabold text-slate-900 text-sm tracking-tight">
+              <span className="font-display font-extrabold text-ink text-sm tracking-tight">
                 {t.common.appName.includes('महा') ? t.common.appName : <>MahaAarogya <span className="text-gov-700">Sangam</span></>}
               </span>
-              <div className="text-[10px] text-slate-500 font-medium leading-none">
+              <div className="text-[10px] text-ink-soft font-medium leading-none">
                 {t.common.appTagline}
               </div>
             </div>
@@ -98,7 +128,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
         {/* Global Search Bar (Center) */}
         <div className="hidden md:flex flex-1 max-w-md mx-4">
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-ink-soft absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder={`${t.common.search}`}
@@ -107,7 +137,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
                   navigate(`/facilities?search=${encodeURIComponent((e.target as HTMLInputElement).value)}`);
                 }
               }}
-              className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-gov-600 focus:bg-white focus:ring-2 focus:ring-gov-100"
+              className="w-full text-sm bg-raised border border-line rounded-xl pl-10 pr-4 py-2.5 text-ink placeholder:text-ink-soft/70 transition-all duration-200 focus:outline-none focus:border-gov-600 focus:bg-surface focus:ring-4 focus:ring-gov-600/12"
             />
           </div>
         </div>
@@ -125,31 +155,31 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           {/* Care Messages */}
           <Link
             to="/messages"
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg relative transition-colors"
+            className="p-2.5 text-ink-soft hover:text-ink hover:bg-sand-100 rounded-xl relative transition-colors"
             title={t.nav.messages}
           >
             <MessageSquare className="w-5 h-5" />
           </Link>
 
           {/* Notifications Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() => setShowNotifMenu(!showNotifMenu)}
-              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg relative transition-colors"
+              className="p-2.5 text-ink-soft hover:text-ink hover:bg-sand-100 rounded-xl relative transition-colors"
               title={t.nav.notifications}
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface tabular-nums">
                   {unreadCount}
                 </span>
               )}
             </button>
 
             {showNotifMenu && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in duration-150">
-                <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
-                  <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-surface rounded-2xl shadow-premium border border-line py-2 z-50 origin-top-right animate-scale-in">
+                <div className="px-4 py-2.5 border-b border-line flex items-center justify-between">
+                  <h4 className="font-bold text-xs text-ink uppercase tracking-wider">
                     {t.nav.notifications} ({unreadCount})
                   </h4>
                   {unreadCount > 0 && (
@@ -162,9 +192,9 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
                   )}
                 </div>
 
-                <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                <div className="max-h-72 overflow-y-auto divide-y divide-line">
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-slate-500">{t.common.noData}</div>
+                    <div className="p-6 text-center text-sm text-ink-soft">{t.common.noData}</div>
                   ) : (
                     notifications.slice(0, 5).map((n) => (
                       <div
@@ -173,21 +203,21 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
                           setShowNotifMenu(false);
                           if (n.link) navigate(n.link);
                         }}
-                        className={`p-3 text-xs hover:bg-slate-50 cursor-pointer transition-colors ${
-                          !n.isRead ? 'bg-gov-50/40' : ''
+                        className={`p-3.5 text-xs cursor-pointer transition-colors hover:bg-raised ${
+                          !n.isRead ? 'bg-saffron-50/60' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-800">{n.title}</span>
-                          <span className="text-[10px] text-slate-400">{n.timestamp}</span>
+                          <span className="font-bold text-ink text-sm">{n.title}</span>
+                          <span className="text-[10px] text-ink-soft shrink-0 ml-2">{n.timestamp}</span>
                         </div>
-                        <p className="text-slate-600 mt-1 leading-relaxed text-[11px]">{n.message}</p>
+                        <p className="text-ink-muted mt-1 leading-relaxed text-xs">{n.message}</p>
                       </div>
                     ))
                   )}
                 </div>
 
-                <div className="px-4 py-2 border-t border-slate-100 text-center">
+                <div className="px-4 py-2.5 border-t border-line text-center">
                   <Link
                     to="/notifications"
                     onClick={() => setShowNotifMenu(false)}
@@ -201,73 +231,73 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-2 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-2 p-1 rounded-xl hover:bg-sand-100 transition-colors"
             >
               {currentUser?.avatar ? (
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.name}
-                  className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                  className="w-9 h-9 rounded-full object-cover ring-2 ring-line"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gov-700 text-white flex items-center justify-center font-bold text-xs">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-xs shadow-subtle">
                   {currentUser?.name.charAt(0) || 'U'}
                 </div>
               )}
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in duration-150">
-                <div className="px-4 py-2.5 border-b border-slate-100">
-                  <p className="font-bold text-xs text-slate-900 truncate">{currentUser?.name}</p>
-                  <p className="text-[11px] text-slate-500 truncate">{currentUser?.facilityName || currentUser?.district}</p>
+              <div className="absolute right-0 mt-2 w-56 bg-surface rounded-2xl shadow-premium border border-line py-2 z-50 origin-top-right animate-scale-in">
+                <div className="px-4 py-3 border-b border-line">
+                  <p className="font-bold text-sm text-ink truncate">{currentUser?.name}</p>
+                  <p className="text-xs text-ink-soft truncate">{currentUser?.facilityName || currentUser?.district}</p>
                   <div className="text-[10px] font-mono text-gov-700 font-semibold mt-0.5">
                     ABHA: {currentUser?.abhaId || 'Linked'}
                   </div>
                 </div>
 
-                <div className="py-1 text-xs text-slate-700">
+                <div className="py-1 text-sm text-ink-muted">
                   <Link
                     to="/profile"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-raised transition-colors"
                   >
-                    <User className="w-4 h-4 text-slate-400" /> {t.nav.profile}
+                    <User className="w-4 h-4 text-ink-soft" /> {t.nav.profile}
                   </Link>
                   <Link
                     to="/calendar"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-raised transition-colors"
                   >
-                    <Calendar className="w-4 h-4 text-slate-400" /> {t.nav.calendar}
+                    <Calendar className="w-4 h-4 text-ink-soft" /> {t.nav.calendar}
                   </Link>
                   <Link
                     to="/settings"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-raised transition-colors"
                   >
-                    <Settings className="w-4 h-4 text-slate-400" /> {t.nav.settings}
+                    <Settings className="w-4 h-4 text-ink-soft" /> {t.nav.settings}
                   </Link>
                   <Link
                     to="/help"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"
+                    className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-raised transition-colors"
                   >
-                    <HelpCircle className="w-4 h-4 text-slate-400" /> {t.nav.contact}
+                    <HelpCircle className="w-4 h-4 text-ink-soft" /> {t.nav.contact}
                   </Link>
                 </div>
 
-                <div className="pt-1 border-t border-slate-100">
+                <div className="pt-1 border-t border-line">
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
                       logout();
                       navigate('/');
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 text-left font-semibold"
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 text-left font-semibold transition-colors"
                   >
                     <LogOut className="w-4 h-4" /> {t.common.logout}
                   </button>

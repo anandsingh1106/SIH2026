@@ -72,11 +72,11 @@ export const SpecialistReferralQueuePage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <ArrowRightLeft className="w-6 h-6 text-gov-700" />
           Tertiary Inward Referral Stream & Bed Dispatch Console
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Review patient transfers from PHCs, assign department beds, and coordinate ambulance handovers
         </p>
       </div>
@@ -84,7 +84,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Inward Stream List (Left 5 Cols) */}
         <div className="lg:col-span-5 space-y-3">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <h3 className="text-xs font-bold text-sand-700 uppercase tracking-wider">
             Inward Transfers ({referrals.length})
           </h3>
 
@@ -98,22 +98,22 @@ export const SpecialistReferralQueuePage: React.FC = () => {
                   className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-gov-50/60 border-gov-600 shadow-sm ring-2 ring-gov-100'
-                      : 'bg-white border-slate-200 hover:bg-slate-50'
+                      : 'bg-surface border-line hover:bg-sand-50'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] font-bold text-gov-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    <span className="font-mono text-[11px] font-bold text-gov-800 bg-surface px-2 py-0.5 rounded border border-line">
                       {r.referralCode}
                     </span>
                     <TriageBadge priority={r.priority} size="sm" />
                   </div>
 
-                  <h4 className="font-bold text-slate-900 text-sm mt-2">{r.patientName}</h4>
-                  <p className="text-xs text-slate-500 line-clamp-1">{r.provisionalDiagnosis}</p>
+                  <h4 className="font-bold text-ink text-sm mt-2">{r.patientName}</h4>
+                  <p className="text-xs text-ink-soft line-clamp-1">{r.provisionalDiagnosis}</p>
 
-                  <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
+                  <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between text-xs text-ink-muted">
                     <span className="font-semibold text-gov-800">From: {(r.referringFacilityName ?? '').split(' ')[0]}</span>
-                    <span className="capitalize font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="capitalize font-bold text-sand-700 bg-sand-100 px-2 py-0.5 rounded">
                       {r.status.replace('_', ' ')}
                     </span>
                   </div>
@@ -132,30 +132,30 @@ export const SpecialistReferralQueuePage: React.FC = () => {
                 history={selectedReferral.history}
               />
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5 text-xs">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5 text-xs">
+                <div className="flex items-center justify-between border-b border-line pb-3">
                   <div>
-                    <h3 className="font-bold text-slate-900 text-lg">{selectedReferral.patientName}</h3>
-                    <p className="text-slate-500">{selectedReferral.patientAge} Yrs • {selectedReferral.patientGender} • Referring: {selectedReferral.referringFacilityName}</p>
+                    <h3 className="font-bold text-ink text-lg">{selectedReferral.patientName}</h3>
+                    <p className="text-ink-soft">{selectedReferral.patientAge} Yrs • {selectedReferral.patientGender} • Referring: {selectedReferral.referringFacilityName}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">AI Triage Severity</span>
+                    <span className="text-[10px] text-ink-soft font-bold uppercase">AI Triage Severity</span>
                     <div className="text-2xl font-extrabold text-red-600">{selectedReferral.aiPriorityScore} / 100</div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                  <div className="font-bold text-slate-900 text-sm">
+                <div className="bg-sand-50 p-4 rounded-xl border border-line space-y-2">
+                  <div className="font-bold text-ink text-sm">
                     Diagnosis: {selectedReferral.provisionalDiagnosis}
                   </div>
-                  <p className="text-slate-700 leading-relaxed">
+                  <p className="text-sand-700 leading-relaxed">
                     {selectedReferral.clinicalSummary}
                   </p>
                 </div>
 
                 {/* Status Advancement Actions */}
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <h5 className="font-bold text-slate-800 uppercase tracking-wider">
+                <div className="space-y-2 pt-2 border-t border-line">
+                  <h5 className="font-bold text-ink uppercase tracking-wider">
                     Specialist Transfer Operations:
                   </h5>
 
@@ -241,7 +241,7 @@ export const SpecialistReferralQueuePage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-500">
+            <div className="p-12 bg-surface rounded-2xl border border-line text-center text-xs text-ink-soft">
               Select a referral from the list to inspect case details.
             </div>
           )}
@@ -259,14 +259,14 @@ export const SpecialistReferralQueuePage: React.FC = () => {
         >
           <form onSubmit={handleAllocateBed} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              <label className="block text-xs font-semibold text-sand-700 mb-1.5">
                 Select Department Bed ({availableBeds.length} Available)
               </label>
               <select
                 required
                 value={selectedBedId}
                 onChange={(e) => setSelectedBedId(e.target.value)}
-                className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-900 font-semibold focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
               >
                 <option value="">-- Choose Bed --</option>
                 {availableBeds.map((b) => (

@@ -35,11 +35,11 @@ export const DoctorAnalyticsPage: React.FC = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-gov-700" />
           Clinical Practice Analytics & Morbidity Trends
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-ink-soft mt-0.5">
           Longitudinal epidemiology, antibiotic stewardship ratios, and teleconsultation efficacy indicators
         </p>
       </div>
@@ -77,7 +77,7 @@ export const DoctorAnalyticsPage: React.FC = () => {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger">
         {/* Footfall Bar Chart */}
         <ChartCard
           title="Weekly Patient Volume (OPD vs Telemedicine)"
@@ -104,11 +104,11 @@ export const DoctorAnalyticsPage: React.FC = () => {
           <div className="space-y-3 pt-2">
             {morbidityData.map((item, idx) => (
               <div key={idx} className="space-y-1 text-xs">
-                <div className="flex justify-between font-semibold text-slate-800">
+                <div className="flex justify-between font-semibold text-ink">
                   <span>{item.name}</span>
                   <span className="font-bold">{item.value}%</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-sand-100 rounded-full h-2 overflow-hidden">
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${item.value}%`, backgroundColor: item.color }}

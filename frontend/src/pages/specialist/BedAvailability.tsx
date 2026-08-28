@@ -66,8 +66,8 @@ export const SpecialistBedAvailability: React.FC = () => {
             <Bed className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Hospital Bed & ICU Live Matrix</h1>
-            <p className="text-sm text-slate-500">Real-time bed availability, ventilator telemetry, and emergency admission reservations</p>
+            <h1 className="text-xl font-bold text-ink">Hospital Bed & ICU Live Matrix</h1>
+            <p className="text-sm text-ink-soft">Real-time bed availability, ventilator telemetry, and emergency admission reservations</p>
           </div>
         </div>
 
@@ -107,7 +107,7 @@ export const SpecialistBedAvailability: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
               wardFilter === wf
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                : 'bg-surface text-ink-muted border border-line hover:bg-sand-50'
             }`}
           >
             {wf === 'all' ? 'All Wards' : wf}
@@ -127,15 +127,15 @@ export const SpecialistBedAvailability: React.FC = () => {
               key={bed.id}
               className={`p-4 border transition-all ${
                 isAvailable ? 'border-emerald-300 bg-emerald-50/20' :
-                isOccupied ? 'border-slate-200 bg-white' :
+                isOccupied ? 'border-line bg-surface' :
                 isReserved ? 'border-amber-300 bg-amber-50/30' :
-                'border-slate-200 bg-slate-50 opacity-70'
+                'border-line bg-sand-50 opacity-70'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="font-mono font-bold text-base text-slate-900">{bed.bedNumber}</span>
-                  <p className="text-xs font-medium text-slate-500">{bed.wardType}</p>
+                  <span className="font-mono font-bold text-base text-ink">{bed.bedNumber}</span>
+                  <p className="text-xs font-medium text-ink-soft">{bed.wardType}</p>
                 </div>
                 <Badge
                   variant={
@@ -159,9 +159,9 @@ export const SpecialistBedAvailability: React.FC = () => {
               </div>
 
               {isOccupied && (
-                <div className="mt-3 pt-2 border-t border-slate-100 text-xs">
-                  <p className="font-semibold text-slate-800 truncate">{bed.occupiedByPatientName}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Doctor: {bed.assignedDoctor}</p>
+                <div className="mt-3 pt-2 border-t border-line text-xs">
+                  <p className="font-semibold text-ink truncate">{bed.occupiedByPatientName}</p>
+                  <p className="text-[11px] text-ink-soft mt-0.5">Doctor: {bed.assignedDoctor}</p>
                 </div>
               )}
 
@@ -194,16 +194,16 @@ export const SpecialistBedAvailability: React.FC = () => {
         title={`Reserve Bed ${reserveModal?.bedNumber} (${reserveModal?.wardType})`}
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-muted">
             Link an incoming critical referral to hold this bed and notify the transit ambulance team.
           </p>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Select Incoming Referral</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Select Incoming Referral</label>
             <select
               value={selectedReferral}
               onChange={e => setSelectedReferral(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
             >
               <option value="">Direct Emergency Admission (No Referral ID)</option>
               {INITIAL_REFERRALS.map(ref => (
@@ -223,7 +223,7 @@ export const SpecialistBedAvailability: React.FC = () => {
             </button>
             <button
               onClick={() => setReserveModal(null)}
-              className="px-4 py-2.5 border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50"
+              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel
             </button>

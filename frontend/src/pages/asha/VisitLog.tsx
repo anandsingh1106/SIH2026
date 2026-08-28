@@ -167,11 +167,11 @@ export const AshaVisitLogPage: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-gov-700" />
             Home Visit Log
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             {isLoading
               ? 'Loading visits…'
               : `${entries.length} visit${entries.length === 1 ? '' : 's'} recorded` +
@@ -217,7 +217,7 @@ export const AshaVisitLogPage: React.FC = () => {
           <SearchInput placeholder="Search by token, patient or date…" onChange={setQuery} />
         </div>
 
-        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 text-xs">
+        <div className="flex items-center gap-1.5 bg-surface p-1 rounded-xl border border-line text-xs">
           {([
             ['all', 'All'],
             ['pending', 'Not synced'],
@@ -227,7 +227,7 @@ export const AshaVisitLogPage: React.FC = () => {
               key={key}
               onClick={() => setFilter(key)}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
-                filter === key ? 'bg-gov-700 text-white' : 'text-slate-600 hover:bg-slate-100'
+                filter === key ? 'bg-gov-700 text-white' : 'text-ink-muted hover:bg-sand-100'
               }`}
             >
               {label}
@@ -242,11 +242,11 @@ export const AshaVisitLogPage: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="p-12 text-center text-xs text-slate-500">Loading visit log…</div>
+        <div className="p-12 text-center text-xs text-ink-soft">Loading visit log…</div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 bg-white rounded-xl border border-dashed border-slate-300 text-center space-y-3">
-          <ClipboardList className="w-8 h-8 mx-auto text-slate-300" />
-          <p className="text-xs text-slate-500">
+        <div className="p-12 bg-surface rounded-xl border border-dashed border-sand-300 text-center space-y-3">
+          <ClipboardList className="w-8 h-8 mx-auto text-sand-300" />
+          <p className="text-xs text-ink-soft">
             {entries.length === 0 ? 'No home visits recorded yet.' : 'No visits match this view.'}
           </p>
           {entries.length === 0 && (
@@ -262,8 +262,8 @@ export const AshaVisitLogPage: React.FC = () => {
             return (
               <div
                 key={`${e.token}-${i}`}
-                className={`bg-white rounded-2xl border p-5 shadow-xs ${
-                  !e.synced ? 'border-amber-300 border-l-4 border-l-amber-500' : 'border-slate-200'
+                className={`bg-surface rounded-2xl border p-5 shadow-xs ${
+                  !e.synced ? 'border-amber-300 border-l-4 border-l-amber-500' : 'border-line'
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -278,17 +278,17 @@ export const AshaVisitLogPage: React.FC = () => {
                       )}
                     </div>
 
-                    <p className="text-sm font-semibold text-slate-900">{e.patientName}</p>
+                    <p className="text-sm font-semibold text-ink">{e.patientName}</p>
 
                     {e.observations && (
-                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-ink-muted leading-relaxed line-clamp-2">
                         {e.observations}
                       </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 pt-0.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft pt-0.5">
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <MapPin className="w-3.5 h-3.5 text-ink-soft" />
                         Visited {e.date}
                       </span>
                       {e.queuedAt && (
@@ -346,7 +346,7 @@ export const AshaVisitLogPage: React.FC = () => {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <p className="text-xs text-slate-400 text-center">
+        <p className="text-xs text-ink-soft text-center">
           Showing {filtered.length} of {entries.length} visits
         </p>
       )}

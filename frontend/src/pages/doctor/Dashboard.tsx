@@ -59,7 +59,7 @@ export const DoctorDashboard: React.FC = () => {
       />
 
       {/* Doctor Clinic Header */}
-      <div className="bg-gradient-to-r from-gov-800 to-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-gov-800 to-sand-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/15 rounded-full text-xs font-bold text-gov-100 mb-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" /> PHC Paud OPD Clinic • Mulshi Block
@@ -77,7 +77,7 @@ export const DoctorDashboard: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              className="bg-white text-gov-900 hover:bg-gov-50 font-bold"
+              className="bg-surface text-gov-900 hover:bg-gov-50 font-bold"
               leftIcon={<Stethoscope className="w-4 h-4 text-gov-700" />}
             >
               Start Next Consultation
@@ -152,9 +152,9 @@ export const DoctorDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Live OPD Queue (Left 8 Cols) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
                 <Users className="w-4 h-4 text-gov-700" />
                 Live OPD Waiting Room & Token Queue
               </h3>
@@ -167,7 +167,7 @@ export const DoctorDashboard: React.FC = () => {
               {liveQueue.map((item) => (
                 <div
                   key={item.token}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-slate-100/80 transition-colors"
+                  className="p-4 bg-sand-50 border border-line rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:bg-sand-100/80 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gov-700 text-white font-bold text-sm flex items-center justify-center shrink-0">
@@ -175,12 +175,12 @@ export const DoctorDashboard: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 text-sm">{item.patientName}</span>
-                        <span className="text-slate-500 font-medium">({item.age} Yrs / {item.gender})</span>
+                        <span className="font-bold text-ink text-sm">{item.patientName}</span>
+                        <span className="text-ink-soft font-medium">({item.age} Yrs / {item.gender})</span>
                         <TriageBadge priority={item.priority} size="sm" />
                       </div>
-                      <p className="text-slate-600 font-medium">Reason: {item.reason}</p>
-                      <div className="text-[11px] text-slate-400">
+                      <p className="text-ink-muted font-medium">Reason: {item.reason}</p>
+                      <div className="text-[11px] text-ink-soft">
                         Waiting: {item.waitMin} • Status: <span className="font-semibold text-gov-800">{item.status}</span>
                       </div>
                     </div>
@@ -209,7 +209,7 @@ export const DoctorDashboard: React.FC = () => {
                 Clinical AI Diagnostic Assistant
               </h4>
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed">
+            <p className="text-xs text-sand-700 leading-relaxed">
               "Patient <strong>Kavita Gaikwad (24y)</strong> presents with severe gestational anemia (Hb 7.8) and BP 138/88 at 28 weeks. Immediate tertiary parenteral iron therapy and Level-3 fetal surveillance indicated under PMSMA protocol."
             </p>
             <Link to="/doctor/ai-triage">
@@ -220,30 +220,30 @@ export const DoctorDashboard: React.FC = () => {
           </div>
 
           {/* Quick Doctor Modules */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-3">
+            <h4 className="font-bold text-ink text-xs uppercase tracking-wider">
               Clinical Stations
             </h4>
             <div className="space-y-2 text-xs font-semibold">
-              <Link to="/doctor/patients" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+              <Link to="/doctor/patients" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
                 <span>Longitudinal EHR Records</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
               </Link>
-              <Link to="/doctor/prescriptions" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+              <Link to="/doctor/prescriptions" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
                 <span>E-Prescription Creator</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
               </Link>
-              <Link to="/doctor/lab-orders" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+              <Link to="/doctor/lab-orders" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
                 <span>Diagnostic Lab Orders</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
               </Link>
-              <Link to="/doctor/referrals" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+              <Link to="/doctor/referrals" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
                 <span>Specialist Referral Center</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
               </Link>
-              <Link to="/doctor/analytics" className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 transition-colors">
+              <Link to="/doctor/analytics" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
                 <span>Practice Analytics & Trends</span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
               </Link>
             </div>
           </div>

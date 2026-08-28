@@ -49,11 +49,11 @@ export const DoctorLabOrdersPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <FlaskConical className="w-6 h-6 text-gov-700" />
             Diagnostic Lab Investigations & Pathology Requisitions
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Order blood panels, urine chemistry, and imaging with critical value alerts
           </p>
         </div>
@@ -69,10 +69,10 @@ export const DoctorLabOrdersPage: React.FC = () => {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
                 <th className="p-3.5">Requisition ID</th>
                 <th className="p-3.5">Patient Name</th>
@@ -83,16 +83,16 @@ export const DoctorLabOrdersPage: React.FC = () => {
                 <th className="p-3.5">Flag</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-line text-ink">
               {labOrders.map((ord) => (
-                <tr key={ord.id} className="hover:bg-slate-50">
-                  <td className="p-3.5 font-mono font-bold text-slate-900">{ord.id}</td>
+                <tr key={ord.id} className="hover:bg-sand-50">
+                  <td className="p-3.5 font-mono font-bold text-ink">{ord.id}</td>
                   <td className="p-3.5 font-semibold">{ord.patientName}</td>
                   <td className="p-3.5">
                     <div className="font-bold text-gov-800">{ord.testName}</div>
-                    <div className="text-[10px] text-slate-400">{ord.category}</div>
+                    <div className="text-[10px] text-ink-soft">{ord.category}</div>
                   </td>
-                  <td className="p-3.5 text-slate-500">{ord.dateOrdered}</td>
+                  <td className="p-3.5 text-ink-soft">{ord.dateOrdered}</td>
                   <td className="p-3.5">
                     <Badge variant={ord.status === 'completed' ? 'success' : 'warning'} size="sm">
                       {(ord.status ?? '').toUpperCase()}
@@ -101,13 +101,13 @@ export const DoctorLabOrdersPage: React.FC = () => {
                   <td className="p-3.5">
                     {ord.result ? (
                       <div>
-                        <div className="font-bold text-slate-900">
+                        <div className="font-bold text-ink">
                           {ord.result} {ord.unit}
                         </div>
-                        <div className="text-[10px] text-slate-400">Ref: {ord.referenceRange}</div>
+                        <div className="text-[10px] text-ink-soft">Ref: {ord.referenceRange}</div>
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic">Sample in processing</span>
+                      <span className="text-ink-soft italic">Sample in processing</span>
                     )}
                   </td>
                   <td className="p-3.5">
@@ -146,11 +146,11 @@ export const DoctorLabOrdersPage: React.FC = () => {
             />
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Diagnostic Panel / Test</label>
+              <label className="block text-xs font-semibold text-sand-700 mb-1.5">Diagnostic Panel / Test</label>
               <select
                 value={newTest.testName}
                 onChange={(e) => setNewTest({ ...newTest, testName: e.target.value })}
-                className="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 font-semibold focus:outline-none focus:border-gov-600"
+                className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
               >
                 <option value="Complete Blood Count (CBC) with Smear">Complete Blood Count (CBC) with Smear</option>
                 <option value="HbA1c (Glycated Hemoglobin)">HbA1c (Glycated Hemoglobin)</option>
@@ -164,11 +164,11 @@ export const DoctorLabOrdersPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Department</label>
+                <label className="block text-xs font-semibold text-sand-700 mb-1.5">Department</label>
                 <select
                   value={newTest.category}
                   onChange={(e) => setNewTest({ ...newTest, category: e.target.value as any })}
-                  className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white"
+                  className="w-full text-xs border border-sand-300 rounded-lg p-2 bg-surface"
                 >
                   <option value="Pathology">Pathology</option>
                   <option value="Biochemistry">Biochemistry</option>
@@ -177,11 +177,11 @@ export const DoctorLabOrdersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Priority</label>
+                <label className="block text-xs font-semibold text-sand-700 mb-1.5">Priority</label>
                 <select
                   value={newTest.priority}
                   onChange={(e) => setNewTest({ ...newTest, priority: e.target.value as any })}
-                  className="w-full text-xs border border-slate-300 rounded-lg p-2 bg-white"
+                  className="w-full text-xs border border-sand-300 rounded-lg p-2 bg-surface"
                 >
                   <option value="low">Routine</option>
                   <option value="moderate">Moderate</option>

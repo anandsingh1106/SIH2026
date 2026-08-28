@@ -46,8 +46,8 @@ export const AdminReports: React.FC = () => {
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Statutory Health Reports & Export Engine</h1>
-            <p className="text-sm text-slate-500">Government of Maharashtra & Ministry of Health and Family Welfare (MoHFW) returns</p>
+            <h1 className="text-xl font-bold text-ink">Statutory Health Reports & Export Engine</h1>
+            <p className="text-sm text-ink-soft">Government of Maharashtra & Ministry of Health and Family Welfare (MoHFW) returns</p>
           </div>
         </div>
 
@@ -59,7 +59,7 @@ export const AdminReports: React.FC = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 selectedCategory === cat
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-surface border border-line text-ink-muted hover:bg-sand-50'
               }`}
             >
               {cat}
@@ -81,11 +81,11 @@ export const AdminReports: React.FC = () => {
           <Card key={report.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-blue-300 transition-all">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-slate-900 text-base">{report.title}</h3>
+                <h3 className="font-bold text-ink text-base">{report.title}</h3>
                 <Badge variant="info" className="text-[10px]">{report.category}</Badge>
               </div>
-              <p className="text-xs text-slate-500">
-                Reporting Period: <strong className="text-slate-700">{report.period}</strong> • Generated on: {report.generatedDate} • Size: {report.fileSize}
+              <p className="text-xs text-ink-soft">
+                Reporting Period: <strong className="text-sand-700">{report.period}</strong> • Generated on: {report.generatedDate} • Size: {report.fileSize}
               </p>
             </div>
 

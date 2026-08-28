@@ -62,11 +62,11 @@ export const AshaOfflineSyncPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <CloudOff className="w-6 h-6 text-teal-600" />
             Offline Data Synchronization & Cache Engine
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-ink-soft mt-0.5">
             Local browser-backed IndexedDB persistence engineered for non-connectivity village operations
           </p>
         </div>
@@ -115,46 +115,46 @@ export const AshaOfflineSyncPage: React.FC = () => {
 
       {/* Cached Tables Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Cached Patients</div>
-          <div className="text-2xl font-bold text-slate-900">{dbStats.patients} Records</div>
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-semibold uppercase tracking-wider">Cached Patients</div>
+          <div className="text-2xl font-bold text-ink">{dbStats.patients} Records</div>
           <div className="text-[10px] text-emerald-600 font-bold">✅ Available Offline</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Village Tasks</div>
-          <div className="text-2xl font-bold text-slate-900">{dbStats.tasks} Active</div>
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-semibold uppercase tracking-wider">Village Tasks</div>
+          <div className="text-2xl font-bold text-ink">{dbStats.tasks} Active</div>
           <div className="text-[10px] text-emerald-600 font-bold">✅ Available Offline</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tele-Referrals</div>
-          <div className="text-2xl font-bold text-slate-900">{dbStats.referrals} In Grid</div>
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-semibold uppercase tracking-wider">Tele-Referrals</div>
+          <div className="text-2xl font-bold text-ink">{dbStats.referrals} In Grid</div>
           <div className="text-[10px] text-emerald-600 font-bold">✅ Available Offline</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-          <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Essential Drugs</div>
-          <div className="text-2xl font-bold text-slate-900">{dbStats.medicines} Items</div>
+        <div className="bg-surface p-4 rounded-xl border border-line shadow-xs space-y-1">
+          <div className="text-xs text-ink-soft font-semibold uppercase tracking-wider">Essential Drugs</div>
+          <div className="text-2xl font-bold text-ink">{dbStats.medicines} Items</div>
           <div className="text-[10px] text-emerald-600 font-bold">✅ Available Offline</div>
         </div>
       </div>
 
       {/* Pending Sync Queue Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+      <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
+          <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
             <Database className="w-4 h-4 text-gov-700" />
             Pending Mutation Queue ({queue.length})
           </h3>
           {queue.length > 0 && (
-            <span className="text-xs text-slate-500 font-medium">Auto-retries on reconnection</span>
+            <span className="text-xs text-ink-soft font-medium">Auto-retries on reconnection</span>
           )}
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-line">
           <table className="w-full text-xs text-left">
-            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
                 <th className="p-3">Entity Type</th>
                 <th className="p-3">Record ID</th>
@@ -163,20 +163,20 @@ export const AshaOfflineSyncPage: React.FC = () => {
                 <th className="p-3">Sync Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-line text-ink">
               {queue.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-6 text-center text-slate-500">
+                  <td colSpan={5} className="p-6 text-center text-ink-soft">
                     All local changes are fully synchronized with the state servers.
                   </td>
                 </tr>
               ) : (
                 queue.map((op) => (
-                  <tr key={op.id} className="hover:bg-slate-50">
+                  <tr key={op.id} className="hover:bg-sand-50">
                     <td className="p-3 font-bold uppercase text-gov-800">{op.entity}</td>
-                    <td className="p-3 font-mono text-slate-600">{op.entityId}</td>
+                    <td className="p-3 font-mono text-ink-muted">{op.entityId}</td>
                     <td className="p-3 capitalize font-semibold">{op.action}</td>
-                    <td className="p-3 text-slate-500">{new Date(op.timestamp).toLocaleTimeString()}</td>
+                    <td className="p-3 text-ink-soft">{new Date(op.timestamp).toLocaleTimeString()}</td>
                     <td className="p-3">
                       <Badge variant={op.status === 'synced' ? 'success' : 'warning'} size="sm">
                         {(op.status ?? '').toUpperCase()}
