@@ -35,6 +35,10 @@ export const RegisterPage: React.FC = () => {
     taluka: 'Mulshi',
     village: 'Paud',
     abhaNumber: '',
+    // Only sent for a staff claim; recorded on the request for a reviewer to
+    // check. It never grants anything on its own.
+    registrationNumber: '',
+    facilityName: '',
   });
 
   const [isGeneratedAbha, setIsGeneratedAbha] = useState(false);
@@ -74,12 +78,18 @@ export const RegisterPage: React.FC = () => {
         taluka: formData.taluka,
         village: formData.village,
         abhaId: formData.abhaNumber || undefined,
+        registrationNumber: formData.registrationNumber || undefined,
+        facilityName: formData.facilityName || undefined,
       });
 
       if (needsEmailConfirmation) {
         setConfirmationSent(true);
+      } else if (formData.role !== 'patient') {
+        // The account exists as a citizen account; the staff claim is pending.
+        // Sending them to a clinical dashboard would only produce a 403.
+        navigate('/access-pending');
       } else {
-        navigate(ROLE_HOME[formData.role] ?? '/patient/dashboard');
+        navigate('/patient/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to create your account.');
@@ -151,7 +161,41 @@ export const RegisterPage: React.FC = () => {
                 <option value="specialist">Specialist Clinician</option>
                 <option value="admin">Health Administrator</option>
               </select>
+
+              {formData.role !== 'patient' && (
+                <div className="mt-2 p-3 bg-sand-100 border border-sand-300 rounded-lg text-[11px] text-ink-soft space-y-1.5">
+                  <p className="font-semibold text-ink">Staff access needs approval</p>
+                  <p>
+                    Your account is created straight away as a citizen account. A district
+                    administrator reviews the details below before clinical access is granted,
+                    because these roles can open other people&rsquo;s health records.
+                  </p>
+                </div>
+              )}
             </div>
+
+            {formData.role !== 'patient' && (
+              <>
+                <Input
+                  label={
+                    formData.role === 'asha'
+                      ? 'ASHA / employee ID'
+                      : formData.role === 'admin'
+                        ? 'Government employee ID'
+                        : 'HPR ID or medical council registration number'
+                  }
+                  placeholder="Used to verify you against the official register"
+                  value={formData.registrationNumber}
+                  onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+                />
+                <Input
+                  label="Facility / posting"
+                  placeholder="e.g. PHC Paud"
+                  value={formData.facilityName}
+                  onChange={(e) => setFormData({ ...formData, facilityName: e.target.value })}
+                />
+              </>
+            )}
 
             <Input
               label="Full Name"

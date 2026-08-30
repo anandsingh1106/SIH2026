@@ -21,6 +21,7 @@ Each layer assumes the one above it may fail.
 | Brute force | Per-IP rate limits plus a 5-failure lockout | `config/rateLimits.js`, `services/loginAttemptService.js` |
 | Input | Zod schemas replace raw body/query/params | `middleware/validate.js` |
 | Authentication | Role re-read from the database each request | `middleware/auth.js` |
+| Role assignment | Public signup is patient-only; staff need admin approval | `services/staffAccessService.js` |
 | Authorization | One shared patient-access policy | `services/accessControlService.js` |
 | Database | 50 RLS policies, `force row level security` | `supabase/migrations/002_rls_policies.sql` |
 | Forensics | Audit log with sensitive-field scrubbing | `services/auditService.js` |
@@ -56,6 +57,16 @@ data. Patients are exempt by default — a patient account reaches only its own
 record, and rural users may share a handset or have no realistic recovery path —
 but a patient who opts in is then held to it.
 
+**Signing up never grants a staff role.** The registration form lets someone
+say they are a doctor, but the API always provisions a PATIENT and files the
+claim as a request for an administrator to review. This matters because the role
+arrives from a client-controlled form field: honouring it would let anyone on the
+internet register as ADMIN and read every patient record in the state. Roles are
+granted in exactly two places — an admin approving a request (audited, naming
+both parties, and requiring the admin's own session to have passed 2FA), or the
+`grant-role` CLI, which needs shell access to the deployment. An admin cannot
+approve their own request or change their own role.
+
 **Recovery codes are stored only as SHA-256 hashes.** They are bearer
 credentials equivalent to a second factor, so a database leak must not yield
 usable ones. Ten are issued at enrolment, shown exactly once, single-use, and
@@ -86,6 +97,13 @@ back-forward cache can resurrect a patient record after logout for whoever sits 
       Verify: `grep -r "service_role" frontend/dist/` returns nothing.
 - [ ] **RLS migrations are applied** to the production database: `npm run supabase:migrate`,
       then confirm with `npm run supabase:rls-test`.
+- [ ] **The first admin was created with `npm run grant-role`, not by signup.**
+      Verify with `npm run grant-role -- --list-admins` that only accounts you
+      recognise hold ADMIN, and that each has 2FA enrolled.
+- [ ] **A staff verification process exists.** Approving a request grants access
+      to real patient records. Decide who checks HPR/employee IDs against the
+      official register, and how, before the queue goes live — the review UI
+      surfaces the claimed credential, but a human has to actually check it.
 - [ ] **Every ADMIN account has enrolled in 2FA.** An admin session reaches every
       patient record in the system, and can reset other users' 2FA.
 - [ ] **Demo accounts are removed.** `DEMO_ACCOUNTS.md` is gitignored and its credentials are

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationSchema } from './common.js';
 
 // The frontend sends lowercase roles; the database stores them uppercase.
 export const apiRoleSchema = z.enum(['patient', 'asha', 'doctor', 'specialist', 'admin']);
@@ -29,4 +30,33 @@ export const mfaRecoverySchema = z.object({
 
 export const userIdParamSchema = z.object({
   userId: z.string().trim().min(1),
+});
+
+// ─── Staff access requests ──────────────────────────────────────────────────
+
+/** Roles a user may request. PATIENT is the default and is never requested. */
+export const requestableRoleSchema = z.enum(['ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN']);
+
+export const staffRequestSchema = z.object({
+  requestedRole: requestableRoleSchema,
+  // Recorded for the reviewer to check against the official register. Not
+  // mandatory: a reviewer may know the applicant, and forcing the field would
+  // only teach people to type nonsense into it.
+  registrationNumber: z.string().trim().max(60).optional(),
+  facilityName: z.string().trim().max(150).optional(),
+  designation: z.string().trim().max(100).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+
+export const reviewRequestSchema = z.object({
+  reviewNote: z.string().trim().max(500).optional(),
+  facilityId: z.string().trim().max(60).optional(),
+});
+
+export const listRequestsSchema = paginationSchema.extend({
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN', 'ALL']).default('PENDING'),
+});
+
+export const setRoleSchema = z.object({
+  role: z.enum(['PATIENT', 'ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN']),
 });

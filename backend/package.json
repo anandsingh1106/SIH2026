@@ -21,7 +21,8 @@
     "demo:full": "npm run demo:accounts && npm run demo:data && npm run demo:scale && npm run demo:link",
     "demo:history": "node scripts/seed-history.js",
     "demo:scale": "node scripts/seed-scale.js",
-    "demo:link": "node scripts/link-demo-data.js"
+    "demo:link": "node scripts/link-demo-data.js",
+    "grant-role": "node scripts/grant-role.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

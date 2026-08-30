@@ -15,3 +15,9 @@ supabase/.temp/
 # Generated demo credentials — never commit working logins.
 # Recreate with: cd backend && npm run demo:accounts
 DEMO_ACCOUNTS.md
+
+# Demo roster: passwords and TOTP secrets for ~100 accounts. Committing this
+# would hand over a working second factor for every one of them.
+# Recreate with: cd backend && npm run demo:roster
+DEMO_ROSTER.md
+backend/.demo-roster.json

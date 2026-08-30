@@ -25,6 +25,7 @@ import {
   analyticsRouter, queueRouter, aiRouter, auditRouter,
 } from './routes/phase5Routes.js';
 import publicRoutes from './routes/publicRoutes.js';
+import staffAccessRoutes from './routes/staffAccessRoutes.js';
 import streamRoutes from './routes/streamRoutes.js';
 
 export function createApp() {
@@ -98,6 +99,7 @@ export function createApp() {
   app.use('/api/queue', queueRouter);
   app.use('/api/ai', aiRouter);
   app.use('/api/audit-logs', auditRouter);
+  app.use('/api/staff-access', staffAccessRoutes);
   app.use('/api/public', publicRoutes);
   app.use('/api/stream', streamRoutes);
 

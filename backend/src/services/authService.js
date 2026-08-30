@@ -4,6 +4,7 @@ import { verifySupabaseToken } from './supabaseAuthService.js';
 import { recordAudit } from './auditService.js';
 import { AppError } from '../utils/errors.js';
 import { isMfaRequiredForRole, syncEnrolmentState } from './mfaService.js';
+import { createRequestForNewUser } from './staffAccessService.js';
 import { roleFromApi } from '../utils/mappers.js';
 
 /**
@@ -56,16 +57,30 @@ export async function supabaseLogin({ accessToken, profile, requestMeta }) {
   // metadata captured at signup.
   const hints = verified.profileHints;
   const name = profile?.name || hints.name;
-  const role = profile?.role || hints.role;
+  const requestedRole = profile?.role || hints.role;
   const phone = profile?.phone || hints.phone;
 
-  if (!name || !role) {
+  if (!name || !requestedRole) {
     throw new AppError('This account has no profile yet. Please complete registration.', {
       status: 400,
       code: 'NEW_USER',
       details: { email: verified.email },
     });
   }
+
+  /**
+   * SECURITY: self-registration always creates a PATIENT.
+   *
+   * The role on this request is client-controlled — it comes from a form field
+   * or from signup metadata the user set themselves — so honouring it would let
+   * anyone register as ADMIN and read every patient record in the state.
+   *
+   * A claimed staff role becomes a request for an administrator to review; the
+   * account is provisioned as a patient in the meantime. Roles are only ever
+   * granted by staffAccessService.approveRequest or the bootstrap CLI.
+   */
+  const claimedRole = roleFromApi(requestedRole);
+  const isStaffClaim = claimedRole !== 'PATIENT';
 
   return transaction((db) => {
     const user = userRepository.create(
@@ -76,7 +91,7 @@ export async function supabaseLogin({ accessToken, profile, requestMeta }) {
         // account was created with email only.
         phone: phone || `email:${verified.email}`,
         email: verified.email,
-        role: roleFromApi(role),
+        role: 'PATIENT',
         district: profile?.district || hints.district,
         taluka: profile?.taluka || hints.taluka,
         village: profile?.village || hints.village,
@@ -94,9 +109,39 @@ export async function supabaseLogin({ accessToken, profile, requestMeta }) {
       db
     );
 
+    // File the staff claim for review. The applicant is told their request is
+    // pending rather than being silently downgraded to a patient with no
+    // explanation.
+    let pendingStaffRequest = null;
+    if (isStaffClaim) {
+      pendingStaffRequest = createRequestForNewUser(
+        {
+          userId: user.id,
+          requestedRole: claimedRole,
+          registrationNumber: profile?.registrationNumber,
+          facilityName: profile?.facilityName,
+          designation: profile?.designation,
+        },
+        db
+      );
+
+      recordAudit(
+        {
+          actorId: user.id, action: 'STAFF_ACCESS_REQUESTED', entityType: 'user',
+          entityId: user.id, newValues: { requestedRole: claimedRole },
+          ...requestMeta,
+        },
+        db
+      );
+    }
+
     const created = userRepository.findById(user.id, db);
-    // A brand-new account has no factor yet, so a staff role lands on 'enrol'.
-    return { user: created, created: true, mfa: mfaState(created, created, verified) };
+    return {
+      user: created,
+      created: true,
+      mfa: mfaState(created, created, verified),
+      pendingStaffRequest,
+    };
   });
 }
 

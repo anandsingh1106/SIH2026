@@ -71,6 +71,28 @@ export function requireMfa(req, _res, next) {
   next();
 }
 
+/**
+ * Requires that this session actually presented a second factor.
+ *
+ * mfaGate already blocks an enrolled user's password-only session, but this is
+ * applied explicitly to the few endpoints where the consequence of being wrong
+ * is severe — granting a role, or resetting someone's 2FA. Defence in depth: if
+ * the gate's exemption list ever grows carelessly, these stay protected.
+ */
+export function requireVerifiedMfa(req, _res, next) {
+  if (!req.user) return next(new AuthenticationError());
+
+  if (req.sessionAal !== 'aal2') {
+    return next(
+      new AppError('Verify with your authenticator before performing this action.', {
+        status: 403,
+        code: 'MFA_REQUIRED',
+      })
+    );
+  }
+  next();
+}
+
 /** Requires exactly one of the given roles. Must run after requireAuth. */
 export function requireRole(...roles) {
   const allowed = roles.flat();

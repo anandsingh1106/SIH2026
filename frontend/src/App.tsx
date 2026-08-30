@@ -33,6 +33,7 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPassword';
 import { SelectRolePage } from './pages/auth/SelectRole';
 import { SetupTwoFactorPage } from './pages/auth/SetupTwoFactor';
 import { VerifyTwoFactorPage } from './pages/auth/VerifyTwoFactor';
+import { AccessPendingPage } from './pages/auth/AccessPending';
 
 // --- Shared Workspace (lazy) ---
 const NotificationsPage = lazy(() => import('./pages/shared/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
@@ -89,6 +90,7 @@ const AdminFacilityManagement = lazy(() => import('./pages/admin/FacilityManagem
 const AdminInventoryManagement = lazy(() => import('./pages/admin/InventoryManagement').then(m => ({ default: m.AdminInventoryManagement })));
 const AdminStaffManagement = lazy(() => import('./pages/admin/StaffManagement').then(m => ({ default: m.AdminStaffManagement })));
 const AdminHeatmaps = lazy(() => import('./pages/admin/Heatmaps').then(m => ({ default: m.AdminHeatmaps })));
+const AdminStaffRequests = lazy(() => import('./pages/admin/StaffRequests').then(m => ({ default: m.StaffRequestsPage })));
 const AdminAuditLogs = lazy(() => import('./pages/admin/AuditLogs').then(m => ({ default: m.AdminAuditLogs })));
 const AdminReports = lazy(() => import('./pages/admin/Reports').then(m => ({ default: m.AdminReports })));
 const AdminAIInsights = lazy(() => import('./pages/admin/AIInsights').then(m => ({ default: m.AdminAIInsights })));
@@ -224,6 +226,7 @@ const router = createBrowserRouter([
       // ProtectedRoute would bounce them to /login.
       { path: '/setup-2fa', element: <TwoFactorRoute step="enrol"><SetupTwoFactorPage /></TwoFactorRoute> },
       { path: '/verify-2fa', element: <TwoFactorRoute step="verify"><VerifyTwoFactorPage /></TwoFactorRoute> },
+      { path: '/access-pending', element: <AccessPendingPage /> },
     ],
   },
 
@@ -317,6 +320,7 @@ const router = createBrowserRouter([
               { path: '/admin/facilities', element: <Suspense fallback={<PageLoader />}><AdminFacilityManagement /></Suspense> },
               { path: '/admin/inventory', element: <Suspense fallback={<PageLoader />}><AdminInventoryManagement /></Suspense> },
               { path: '/admin/staff', element: <Suspense fallback={<PageLoader />}><AdminStaffManagement /></Suspense> },
+              { path: '/admin/staff-requests', element: <Suspense fallback={<PageLoader />}><AdminStaffRequests /></Suspense> },
               { path: '/admin/heatmaps', element: <Suspense fallback={<PageLoader />}><AdminHeatmaps /></Suspense> },
               { path: '/admin/audit-logs', element: <Suspense fallback={<PageLoader />}><AdminAuditLogs /></Suspense> },
               { path: '/admin/reports', element: <Suspense fallback={<PageLoader />}><AdminReports /></Suspense> },
