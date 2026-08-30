@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import request from 'supertest';
 import crypto from 'crypto';
 import { createApp } from '../src/app.js';
-import { resetTestDb, createUser, createPatient, createFacility, authCookie } from './helpers.js';
+import { resetTestDb, createUser, createPatient, createFacility, authCookie, request } from './helpers.js';
 import { getDb } from '../src/db/connection.js';
 import { adjustStock } from '../src/services/inventoryService.js';
 import { checkInteractions } from '../src/services/ai/drugInteractionService.js';

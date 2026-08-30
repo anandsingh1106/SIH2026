@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import request from 'supertest';
 import { createApp } from '../src/app.js';
 import {
   resetTestDb, createUser, createPatient, createFacility,
-  createAppointment, authCookie,
-} from './helpers.js';
+  createAppointment, authCookie, request } from './helpers.js';
 import { getDb } from '../src/db/connection.js';
 
 const app = createApp();

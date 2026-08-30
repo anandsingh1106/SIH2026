@@ -21,8 +21,19 @@ function makeLimiter({ windowMs, limit, message }) {
 
 export const authLimiter = makeLimiter({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: 10,
   message: 'Too many authentication attempts. Please try again in a few minutes.',
+});
+
+/**
+ * Guards endpoints that are unauthenticated *and* expensive — anything doing
+ * aggregate queries or reaching a third party. These are the cheapest targets
+ * for someone trying to exhaust the database rather than steal from it.
+ */
+export const expensivePublicLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  message: 'Too many requests. Please try again later.',
 });
 
 export const apiLimiter = makeLimiter({

@@ -1,26 +1,48 @@
 import jwt from 'jsonwebtoken';
 import { env, isProduction } from '../config/env.js';
 
-const JWT_EXPIRES_IN = '7d';
-export const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const TTL_DAYS = Number.isFinite(env.SESSION_TTL_DAYS) && env.SESSION_TTL_DAYS > 0
+  ? env.SESSION_TTL_DAYS
+  : 7;
+
+const JWT_EXPIRES_IN = `${TTL_DAYS}d`;
+export const COOKIE_MAX_AGE_MS = TTL_DAYS * 24 * 60 * 60 * 1000;
 export const COOKIE_NAME = 'token';
+
+// Binding the token to this API stops a token minted for another service that
+// happens to share the secret from being replayed here.
+const ISSUER = 'arogyasetu-api';
+const AUDIENCE = 'arogyasetu-app';
 
 /**
  * The payload carries only the user id. Role is deliberately excluded so that
  * a role change takes effect immediately rather than persisting in old tokens.
  */
 export function signToken(user) {
-  return jwt.sign({ sub: user.id }, env.JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign({ sub: user.id }, env.JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+    issuer: ISSUER,
+    audience: AUDIENCE,
+  });
 }
 
 export function verifyToken(token) {
-  return jwt.verify(token, env.JWT_SECRET);
+  return jwt.verify(token, env.JWT_SECRET, {
+    // Pinning the algorithm is what closes the `alg: none` / algorithm-confusion
+    // class of attack, where a forged header talks the library out of verifying.
+    algorithms: ['HS256'],
+    issuer: ISSUER,
+    audience: AUDIENCE,
+  });
 }
 
 export function setSessionCookie(res, user) {
   res.cookie(COOKIE_NAME, signToken(user), {
     httpOnly: true,
     secure: isProduction,
+    // 'strict' would drop the cookie when a user arrives from an external link
+    // (an SMS appointment reminder, for example) and silently log them out.
+    // 'lax' keeps that working; CSRF is covered separately by csrfProtection.
     sameSite: 'lax',
     maxAge: COOKIE_MAX_AGE_MS,
     path: '/',
@@ -28,5 +50,12 @@ export function setSessionCookie(res, user) {
 }
 
 export function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
+  // The attributes must match those used when setting it, or the browser keeps
+  // the original cookie and the user is never actually logged out.
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/',
+  });
 }

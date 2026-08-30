@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getDb } from '../db/connection.js';
+import { isProduction } from '../config/env.js';
 
 const router = Router();
 const VERSION = '1.0.0';
@@ -19,7 +20,9 @@ router.get('/health', (_req, res) => {
     status: database === 'connected' ? 'ok' : 'degraded',
     database,
     timestamp: new Date().toISOString(),
-    version: VERSION,
+    // The version tells an attacker which published advisories to try. Useful
+    // in development, withheld from an unauthenticated production caller.
+    ...(isProduction ? {} : { version: VERSION }),
   });
 });
 

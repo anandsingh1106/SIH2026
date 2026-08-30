@@ -3,7 +3,12 @@ import crypto from 'crypto';
 import { env } from '../src/config/env.js';
 import { getDb, closeDb } from '../src/db/connection.js';
 import { runMigrations } from '../src/db/migrator.js';
+import supertest from 'supertest';
 import { signToken } from '../src/services/tokenService.js';
+import { CSRF_COOKIE, CSRF_HEADER } from '../src/middleware/csrf.js';
+
+// Fixed value so tests can set a matching header without parsing cookies.
+export const CSRF_TEST_TOKEN = 'test-csrf-token';
 
 /** Drops and rebuilds the test database from migrations. */
 export async function resetTestDb() {
@@ -104,7 +109,58 @@ export function createAppointment(overrides = {}) {
   return db.prepare('SELECT * FROM appointments WHERE id = ?').get(id);
 }
 
-/** Cookie header string that authenticates as the given user. */
+/**
+ * Cookie header that authenticates as the given user.
+ *
+ * Includes a CSRF cookie matching CSRF_TEST_TOKEN, mirroring what a real
+ * browser holds after signing in. Pair it with `csrfHeaders()` on writes.
+ */
 export function authCookie(user) {
-  return `token=${signToken(user)}`;
+  return `token=${signToken(user)}; ${CSRF_COOKIE}=${CSRF_TEST_TOKEN}`;
+}
+
+/** The CSRF header a write must carry to match `authCookie`. */
+export function csrfHeaders() {
+  return { [CSRF_HEADER]: CSRF_TEST_TOKEN };
+}
+
+/**
+ * supertest wrapper that mirrors browser CSRF behaviour.
+ *
+ * A real browser automatically holds both the session and CSRF cookies and the
+ * frontend echoes the token back on writes. Reproducing that by hand at every
+ * call site would add noise to 160-odd assertions, so the header is attached
+ * here whenever a request carries our CSRF cookie.
+ *
+ * The middleware itself is still tested directly, with no wrapper involved, in
+ * security.test.js — so this convenience cannot mask a regression in it.
+ */
+export function request(app) {
+  const agent = supertest(app);
+
+  return new Proxy(agent, {
+    get(target, method) {
+      const original = target[method];
+      if (typeof original !== 'function') return original;
+
+      return (...args) => {
+        const test = original.apply(target, args);
+        const originalSet = test.set.bind(test);
+
+        test.set = (field, value) => {
+          const result = originalSet(field, value);
+          if (
+            typeof field === 'string' &&
+            field.toLowerCase() === 'cookie' &&
+            String(value).includes(`${CSRF_COOKIE}=${CSRF_TEST_TOKEN}`)
+          ) {
+            originalSet(CSRF_HEADER, CSRF_TEST_TOKEN);
+          }
+          return result;
+        };
+
+        return test;
+      };
+    },
+  });
 }

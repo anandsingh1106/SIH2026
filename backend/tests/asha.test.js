@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { resetTestDb, createUser, createPatient, createFacility, authCookie } from './helpers.js';
+import { resetTestDb, createUser, createPatient, createFacility, authCookie, request } from './helpers.js';
 import { getDb } from '../src/db/connection.js';
 import { calculateCbac, CBAC_THRESHOLD } from '../src/services/cbacService.js';
 

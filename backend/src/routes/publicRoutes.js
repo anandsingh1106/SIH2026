@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/connection.js';
 import { validate } from '../middleware/validate.js';
-import { publicLimiter } from '../config/rateLimits.js';
+import { publicLimiter, expensivePublicLimiter } from '../config/rateLimits.js';
 import { searchSchema } from '../validators/common.js';
 import { sendSuccess, sendPaginated } from '../utils/response.js';
 import { toPublicFacility } from '../utils/mappers.js';
@@ -69,7 +69,7 @@ router.get('/medicines', validate({ query: searchSchema }), (req, res, next) => 
 /**
  * Aggregate bed availability by facility — a count, never a patient reference.
  */
-router.get('/bed-availability', (req, res, next) => {
+router.get('/bed-availability', expensivePublicLimiter, (req, res, next) => {
   try {
     const db = getDb();
     const rows = db
@@ -114,7 +114,7 @@ router.get('/emergency', (_req, res) => {
  * Counts only — no patient-identifiable data, so this is safe to serve
  * unauthenticated (§40).
  */
-router.get('/stats', (_req, res, next) => {
+router.get('/stats', expensivePublicLimiter, (_req, res, next) => {
   try {
     const db = getDb();
     const count = (sql) => db.prepare(sql).get().c;
@@ -143,7 +143,7 @@ router.get('/stats', (_req, res, next) => {
  * no activity are returned as zero rather than omitted, so the line does not
  * skip gaps.
  */
-router.get('/trends', (_req, res, next) => {
+router.get('/trends', expensivePublicLimiter, (_req, res, next) => {
   try {
     const db = getDb();
 

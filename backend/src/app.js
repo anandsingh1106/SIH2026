@@ -1,14 +1,16 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import { openApiSpec } from './docs/openapi.js';
 
-import { env } from './config/env.js';
+import { env, isProduction } from './config/env.js';
 import { apiLimiter } from './config/rateLimits.js';
 import { requestId, requestLogger } from './middleware/requestContext.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { csrfProtection } from './middleware/csrf.js';
+import { securityHeaders, docsSecurityHeaders, noStoreOnApi } from './middleware/securityHeaders.js';
+import { corsOptions } from './config/cors.js';
 
 import healthRoutes from './routes/healthRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -30,14 +32,15 @@ export function createApp() {
   // Rate limiters key on req.ip, which behind a proxy is the proxy without this.
   app.set('trust proxy', 1);
 
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: env.FRONTEND_URL,
-      credentials: true,
-    })
-  );
+  // Never advertise the server stack; it only helps someone fingerprint us.
+  app.disable('x-powered-by');
+
+  app.use(securityHeaders());
+  app.use(cors(corsOptions));
   app.use(express.json({ limit: '1mb' }));
+  // Form posts are not used by the SPA, but the parser is present for webhooks;
+  // cap it the same way so it cannot be used as a memory-exhaustion vector.
+  app.use(express.urlencoded({ extended: false, limit: '100kb' }));
   app.use(cookieParser());
 
   app.use(requestId);
@@ -45,16 +48,25 @@ export function createApp() {
 
   app.use('/', healthRoutes);
 
-  // Swagger UI loads inline styles/scripts that helmet's default CSP blocks.
-  app.use(
-    '/api/docs',
-    helmet({ contentSecurityPolicy: false }),
-    swaggerUi.serve,
-    swaggerUi.setup(openApiSpec, { customSiteTitle: 'ArogyaSetu API' })
-  );
-  app.get('/api/openapi.json', (_req, res) => res.json(openApiSpec));
+  // The API reference is a complete map of every endpoint and payload shape.
+  // That is useful in development and to an attacker in production, so it is
+  // opt-in via ENABLE_API_DOCS rather than public by default.
+  if (env.ENABLE_API_DOCS) {
+    app.use(
+      '/api/docs',
+      docsSecurityHeaders(),
+      swaggerUi.serve,
+      swaggerUi.setup(openApiSpec, { customSiteTitle: 'ArogyaSetu API' })
+    );
+    app.get('/api/openapi.json', (_req, res) => res.json(openApiSpec));
+  }
 
   app.use('/api', apiLimiter);
+  // Patient data must not linger in shared caches or browser history.
+  app.use('/api', noStoreOnApi);
+  // Applies to every /api route below, including auth. Safe methods and
+  // requests without a session cookie pass straight through.
+  app.use('/api', csrfProtection);
   app.use('/api/auth', authRoutes);
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/patients', patientRoutes);

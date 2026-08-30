@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { resetTestDb, createUser, createFacility, authCookie } from './helpers.js';
+import { resetTestDb, createUser, createFacility, authCookie, request } from './helpers.js';
 import { signToken } from '../src/services/tokenService.js';
 import { getDb } from '../src/db/connection.js';
 
