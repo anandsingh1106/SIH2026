@@ -6,6 +6,7 @@ import { runMigrations } from '../src/db/migrator.js';
 import supertest from 'supertest';
 import { signToken } from '../src/services/tokenService.js';
 import { CSRF_COOKIE, CSRF_HEADER } from '../src/middleware/csrf.js';
+import { MFA_REQUIRED_ROLES } from '../src/services/mfaService.js';
 
 // Fixed value so tests can set a matching header without parsing cookies.
 export const CSRF_TEST_TOKEN = 'test-csrf-token';
@@ -41,22 +42,30 @@ export function createUser(overrides = {}) {
   const id = overrides.id || `usr-${crypto.randomUUID()}`;
   const phone = overrides.phone || `+9199000${String(phoneCounter++).padStart(5, '0')}`;
 
+  const role = overrides.role || 'PATIENT';
+
+  // Staff roles cannot operate without 2FA in production, so the default here
+  // mirrors that: an enrolled staff account is the normal case these suites
+  // exercise. Pass `mfaEnrolled: false` to test the enrolment gate itself.
+  const mfaEnrolled = overrides.mfaEnrolled ?? MFA_REQUIRED_ROLES.includes(role);
+
   db.prepare(`
     INSERT INTO users (id, name, phone, email, role, status, district, taluka, village,
-                       abha_id, facility_id, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       abha_id, facility_id, mfa_enrolled_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id,
     overrides.name || 'Test User',
     phone,
     overrides.email ?? null,
-    overrides.role || 'PATIENT',
+    role,
     overrides.status || 'ACTIVE',
     overrides.district ?? 'Pune',
     overrides.taluka ?? null,
     overrides.village ?? null,
     overrides.abhaId ?? null,
     overrides.facilityId ?? null,
+    mfaEnrolled ? now() : null,
     now(),
     now()
   );
@@ -115,8 +124,17 @@ export function createAppointment(overrides = {}) {
  * Includes a CSRF cookie matching CSRF_TEST_TOKEN, mirroring what a real
  * browser holds after signing in. Pair it with `csrfHeaders()` on writes.
  */
-export function authCookie(user) {
-  return `token=${signToken(user)}; ${CSRF_COOKIE}=${CSRF_TEST_TOKEN}`;
+export function authCookie(user, { mfaSatisfied = true } = {}) {
+  return `token=${signToken(user, { mfaSatisfied })}; ${CSRF_COOKIE}=${CSRF_TEST_TOKEN}`;
+}
+
+/**
+ * A password-only session, for asserting that the two-factor gate blocks it.
+ * The default above is aal2 so the other suites can test business logic
+ * without every request having to re-establish a second factor.
+ */
+export function passwordOnlyCookie(user) {
+  return authCookie(user, { mfaSatisfied: false });
 }
 
 /** The CSRF header a write must carry to match `authCookie`. */

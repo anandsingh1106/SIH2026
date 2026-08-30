@@ -42,6 +42,8 @@ export function toPublicUser(row) {
     facilityId: row.facility_id || undefined,
     facilityName: row.facility_name || undefined,
     isVerified: true,
+    // Enrolment state only — never the factor itself or any recovery code.
+    mfaEnrolled: Boolean(row.mfa_enrolled_at),
   };
 }
 

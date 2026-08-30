@@ -8,6 +8,30 @@ import { AppError, AuthenticationError } from '../utils/errors.js';
  * expired token cannot pass. Identity always comes from this call, never from
  * anything the client claims about itself.
  */
+/**
+ * Reads the assurance level out of an access token.
+ *
+ * SECURITY: the claims are read *only* after getUser() has authenticated the
+ * token against Supabase. Decoding a JWT proves nothing on its own — anyone can
+ * craft one claiming `aal2` — so this must never be called on an unverified
+ * token. `aal2` means Supabase itself accepted a second factor for this session.
+ */
+function readAssuranceClaims(accessToken) {
+  try {
+    const [, payload] = accessToken.split('.');
+    if (!payload) return { aal: null, amr: [] };
+
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    return {
+      aal: claims.aal ?? null,
+      amr: Array.isArray(claims.amr) ? claims.amr.map((entry) => entry.method) : [],
+    };
+  } catch {
+    // A token that verified but will not decode is not something to guess at.
+    return { aal: null, amr: [] };
+  }
+}
+
 export async function verifySupabaseToken(accessToken) {
   if (!isSupabaseConfigured()) {
     throw new AppError(
@@ -24,11 +48,17 @@ export async function verifySupabaseToken(accessToken) {
 
   const user = data.user;
   const metadata = user.user_metadata || {};
+  const { aal, amr } = readAssuranceClaims(accessToken);
 
   return {
     authUserId: user.id,
     email: user.email,
     emailConfirmed: Boolean(user.email_confirmed_at),
+    // aal2 = a second factor was presented for this session. Trustworthy here
+    // because the token was authenticated above before the claims were read.
+    assuranceLevel: aal,
+    mfaSatisfied: aal === 'aal2',
+    authMethods: amr,
     // Profile hints captured at signup. Treated as untrusted input: the role
     // stored in our own users table is authoritative.
     profileHints: {

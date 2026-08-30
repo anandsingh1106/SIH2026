@@ -9,6 +9,7 @@ import { apiLimiter } from './config/rateLimits.js';
 import { requestId, requestLogger } from './middleware/requestContext.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { csrfProtection } from './middleware/csrf.js';
+import { mfaGate } from './middleware/mfaGate.js';
 import { securityHeaders, docsSecurityHeaders, noStoreOnApi } from './middleware/securityHeaders.js';
 import { corsOptions } from './config/cors.js';
 
@@ -67,6 +68,13 @@ export function createApp() {
   // Applies to every /api route below, including auth. Safe methods and
   // requests without a session cookie pass straight through.
   app.use('/api', csrfProtection);
+
+  // Enforced centrally rather than per-router: a router added later is covered
+  // by default, and the only way to skip the check is to appear in the explicit
+  // exemption list inside mfaGate. Forgetting to opt in is safe; opting out is
+  // deliberate and visible.
+  app.use('/api', mfaGate);
+
   app.use('/api/auth', authRoutes);
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/patients', patientRoutes);

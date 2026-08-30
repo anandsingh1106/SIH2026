@@ -1,6 +1,7 @@
 import { userRepository } from '../repositories/userRepository.js';
 import { verifyToken } from '../services/tokenService.js';
-import { AuthenticationError, AuthorizationError } from '../utils/errors.js';
+import { isMfaRequiredForRole } from '../services/mfaService.js';
+import { AuthenticationError, AuthorizationError, AppError } from '../utils/errors.js';
 
 export const ROLES = ['PATIENT', 'ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN'];
 
@@ -27,6 +28,46 @@ export function requireAuth(req, _res, next) {
   }
 
   req.user = user;
+  // Recorded at sign-in; see requireMfa for what is done with it.
+  req.sessionAal = payload.aal === 'aal2' ? 'aal2' : 'aal1';
+  next();
+}
+
+/**
+ * Blocks a session that has not satisfied this account's 2FA requirement.
+ *
+ * Two distinct failures, kept distinct so the client can route correctly:
+ *   MFA_ENROLMENT_REQUIRED — a staff account with no factor at all
+ *   MFA_REQUIRED           — a factor exists but was not used for this session
+ *
+ * Both return 403 with a machine-readable code. This runs *after* requireAuth,
+ * and is the control that makes 2FA real: without it the policy would be
+ * advisory, enforced only by a frontend that an attacker does not have to use.
+ */
+export function requireMfa(req, _res, next) {
+  if (!req.user) return next(new AuthenticationError());
+
+  const enrolled = Boolean(req.user.mfa_enrolled_at);
+  const satisfied = req.sessionAal === 'aal2';
+
+  if (enrolled && !satisfied) {
+    return next(
+      new AppError('This session needs two-factor verification.', {
+        status: 403,
+        code: 'MFA_REQUIRED',
+      })
+    );
+  }
+
+  if (isMfaRequiredForRole(req.user.role) && !enrolled) {
+    return next(
+      new AppError('Two-factor authentication must be set up before continuing.', {
+        status: 403,
+        code: 'MFA_ENROLMENT_REQUIRED',
+      })
+    );
+  }
+
   next();
 }
 

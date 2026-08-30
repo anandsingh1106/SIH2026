@@ -4,6 +4,7 @@ import { issueCsrfToken, clearCsrfToken } from '../middleware/csrf.js';
 import { recordAudit } from '../services/auditService.js';
 import { checkLockout, recordFailure, recordSuccess } from '../services/loginAttemptService.js';
 import { AppError } from '../utils/errors.js';
+import { isMfaRequiredForRole } from '../services/mfaService.js';
 import { toPublicUser } from '../utils/mappers.js';
 import { sendSuccess } from '../utils/response.js';
 
@@ -55,13 +56,20 @@ export async function postSupabaseLogin(req, res, next) {
       throw err;
     }
 
-    const { user, created } = result;
+    const { user, created, mfa } = result;
     recordSuccess(attemptKey);
 
-    setSessionCookie(res, user);
+    // The cookie records what actually happened at sign-in. A password-only
+    // session is aal1 and stays blocked by mfaGate until the factor is met.
+    setSessionCookie(res, user, { mfaSatisfied: mfa.satisfied });
     // Paired with the session: the frontend echoes this back on writes.
     const csrfToken = issueCsrfToken(res);
-    return sendSuccess(res, { user: toPublicUser(user), csrfToken }, created ? 201 : 200);
+
+    return sendSuccess(
+      res,
+      { user: toPublicUser(user), csrfToken, mfa },
+      created ? 201 : 200
+    );
   } catch (err) {
     next(err);
   }
@@ -72,7 +80,24 @@ export function getMe(req, res) {
   // the CSRF cookie may be absent (cleared, or issued before this was added).
   // Without this a returning user holds a valid session that cannot write.
   const csrfToken = issueCsrfToken(res);
-  return sendSuccess(res, { user: toPublicUser(req.user), csrfToken });
+
+  const enrolled = Boolean(req.user.mfa_enrolled_at);
+  const satisfied = req.sessionAal === 'aal2';
+
+  // Lets the app restore straight into the right step after a reload, rather
+  // than discovering the outstanding requirement via a 403 on the first call.
+  const mfa = {
+    required: isMfaRequiredForRole(req.user.role),
+    enrolled,
+    satisfied,
+    action: enrolled && !satisfied
+      ? 'verify'
+      : isMfaRequiredForRole(req.user.role) && !enrolled
+        ? 'enrol'
+        : 'none',
+  };
+
+  return sendSuccess(res, { user: toPublicUser(req.user), csrfToken, mfa });
 }
 
 export function postLogout(req, res) {

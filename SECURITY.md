@@ -16,6 +16,7 @@ Each layer assumes the one above it may fail.
 | Transport | HSTS, 2-year max-age, subdomains, preload | `middleware/securityHeaders.js` |
 | Origin | Explicit CORS allowlist, never a reflected origin | `config/cors.js` |
 | Session | httpOnly cookie, HS256 pinned, issuer/audience bound | `services/tokenService.js` |
+| Second factor | TOTP required for staff, enforced server-side | `middleware/mfaGate.js`, `services/mfaService.js` |
 | Request forgery | Double-submit CSRF token on every state change | `middleware/csrf.js` |
 | Brute force | Per-IP rate limits plus a 5-failure lockout | `config/rateLimits.js`, `services/loginAttemptService.js` |
 | Input | Zod schemas replace raw body/query/params | `middleware/validate.js` |
@@ -45,6 +46,22 @@ honour it. The double-submit token is an independent check that does not depend 
 behaviour. It is not bypassed in tests; the test helper supplies a matching token pair the way a
 real browser would.
 
+**Two-factor is enforced at the API, not the UI.** `mfaGate` runs once for all
+of `/api` rather than per-router, so a route added later is protected by default
+and the only way past is an explicit entry in its exemption list. A stolen staff
+password alone reaches nothing: the session cookie records the assurance level
+it was issued at, and that claim is signed, so it cannot be edited by the client.
+Staff (ADMIN, DOCTOR, SPECIALIST, ASHA) must enrol before reaching any patient
+data. Patients are exempt by default — a patient account reaches only its own
+record, and rural users may share a handset or have no realistic recovery path —
+but a patient who opts in is then held to it.
+
+**Recovery codes are stored only as SHA-256 hashes.** They are bearer
+credentials equivalent to a second factor, so a database leak must not yield
+usable ones. Ten are issued at enrolment, shown exactly once, single-use, and
+regenerating invalidates the previous set. Regeneration itself requires an
+already-verified session, so a stolen password cannot mint fresh bypass codes.
+
 **API responses are `no-store`.** Facility terminals are shared. Without this, the browser's
 back-forward cache can resurrect a patient record after logout for whoever sits down next.
 
@@ -69,6 +86,8 @@ back-forward cache can resurrect a patient record after logout for whoever sits 
       Verify: `grep -r "service_role" frontend/dist/` returns nothing.
 - [ ] **RLS migrations are applied** to the production database: `npm run supabase:migrate`,
       then confirm with `npm run supabase:rls-test`.
+- [ ] **Every ADMIN account has enrolled in 2FA.** An admin session reaches every
+      patient record in the system, and can reset other users' 2FA.
 - [ ] **Demo accounts are removed.** `DEMO_ACCOUNTS.md` is gitignored and its credentials are
       generated per-run, but any accounts already created must be deleted or suspended.
 - [ ] **`trust proxy` matches your actual topology.** It is set to `1`, meaning exactly one proxy.
@@ -103,9 +122,21 @@ to swap.
 distributed credential stuffing, where each IP stays under the threshold. Supabase's own auth
 throttling is the backstop; consider per-account lockout if you see this pattern.
 
-**Authentication ultimately depends on Supabase.** Password policy, MFA, and email verification are
-configured in the Supabase dashboard, not in this repository. Enable MFA for every ADMIN account —
-an admin session reaches every patient record in the system.
+**Authentication ultimately depends on Supabase.** Password policy and email verification are
+configured in the Supabase dashboard, not in this repository. Supabase also owns the TOTP factor
+itself — the shared secret and code verification — while this repository owns the policy: who must
+enrol, and what happens when someone loses their phone.
+
+**2FA recovery has a human step.** A user who loses both their authenticator and their recovery
+codes needs an ADMIN to reset them (`POST /api/auth/mfa/reset/:userId`). That endpoint requires the
+acting admin's own session to be aal2 and is always audited, but the identity check itself happens
+out of band — decide what that process is before launch, or the reset endpoint becomes the weakest
+link in the whole scheme.
+
+**Enrolment state is mirrored, not authoritative.** `users.mfa_enrolled_at` is a local mirror of
+Supabase's factor list, reconciled on sign-in and on the status endpoint. When Supabase cannot be
+reached the lookup fails closed with `MFA_LOOKUP_FAILED` rather than reporting "not enrolled" —
+guessing there would wave a staff account through re-enrolment.
 
 **`react-router` 6.x carries a moderate open-redirect advisory** (CVE-2025-68470 bypass). No
 user-controlled redirect target exists in the app today, and `frontend/src/utils/safeRedirect.ts`

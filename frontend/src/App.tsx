@@ -31,6 +31,8 @@ import { LoginPage } from './pages/auth/Login';
 import { RegisterPage } from './pages/auth/Register';
 import { ForgotPasswordPage } from './pages/auth/ForgotPassword';
 import { SelectRolePage } from './pages/auth/SelectRole';
+import { SetupTwoFactorPage } from './pages/auth/SetupTwoFactor';
+import { VerifyTwoFactorPage } from './pages/auth/VerifyTwoFactor';
 
 // --- Shared Workspace (lazy) ---
 const NotificationsPage = lazy(() => import('./pages/shared/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
@@ -151,10 +153,38 @@ const RoleRedirect: React.FC = () => {
   return <Navigate to={roleDefaults[currentRole] ?? '/patient/dashboard'} replace />;
 };
 
+/**
+ * Guard for the two-factor screens.
+ *
+ * These sit between "signed in" and "authenticated": ProtectedRoute would send
+ * the user to /login, while leaving them open would let anyone load an
+ * enrolment screen. So they require a user object with this exact step pending.
+ */
+const TwoFactorRoute: React.FC<{ step: 'enrol' | 'verify'; children: React.ReactNode }> = ({
+  step,
+  children,
+}) => {
+  const { currentUser, isLoading, mfaAction } = useAuth();
+  if (isLoading) return <PageLoader />;
+  // No session at all — nothing to add a second factor to.
+  if (!currentUser) return <Navigate to="/login" replace />;
+  // Nothing pending, or the other step is: send them where they belong.
+  if (mfaAction !== step) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
 // ─── Protected Route Guard ───────────────────────────────────────────────────
 const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles }) => {
-  const { isAuthenticated, isLoading, currentRole } = useAuth();
+  const { isAuthenticated, isLoading, currentRole, currentUser, mfaAction } = useAuth();
   if (isLoading) return <PageLoader />;
+
+  // A signed-in user with an outstanding second factor is not authenticated,
+  // but sending them to /login would loop — they already have a session. Route
+  // them to the step they still owe instead.
+  if (currentUser && mfaAction !== 'none') {
+    return <Navigate to={mfaAction === 'enrol' ? '/setup-2fa' : '/verify-2fa'} replace />;
+  }
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (allowedRoles && !allowedRoles.includes(currentRole)) {
     return <Navigate to="/" replace />;
@@ -188,6 +218,12 @@ const router = createBrowserRouter([
       { path: '/register', element: <RegisterPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/select-role', element: <SelectRolePage /> },
+
+      // Reachable only mid-authentication: the user has a session but has not
+      // yet satisfied the second factor, so isAuthenticated is still false and
+      // ProtectedRoute would bounce them to /login.
+      { path: '/setup-2fa', element: <TwoFactorRoute step="enrol"><SetupTwoFactorPage /></TwoFactorRoute> },
+      { path: '/verify-2fa', element: <TwoFactorRoute step="verify"><VerifyTwoFactorPage /></TwoFactorRoute> },
     ],
   },
 

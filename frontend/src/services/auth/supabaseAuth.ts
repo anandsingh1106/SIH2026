@@ -123,3 +123,75 @@ export async function getAccessToken(): Promise<string | null> {
   const session = await getSession();
   return session?.access_token ?? null;
 }
+
+// ─── Two-factor (TOTP) ──────────────────────────────────────────────────────
+// Supabase owns the factor: the shared secret, the QR payload, and code
+// verification. The backend independently confirms the resulting token really
+// is aal2 before trusting any of it.
+
+export interface TotpEnrolment {
+  factorId: string;
+  /** otpauth:// URI, rendered as a QR code. */
+  qrCodeUri: string;
+  /** Shown so a user can type the key when they cannot scan. */
+  secret: string;
+}
+
+/**
+ * Starts TOTP enrolment. The factor stays unverified until a valid code is
+ * submitted, so an abandoned setup leaves nothing usable behind.
+ */
+export async function enrolTotp(friendlyName = 'ArogyaSetu'): Promise<TotpEnrolment> {
+  const { data, error } = await getSupabase().auth.mfa.enroll({
+    factorType: 'totp',
+    friendlyName: `${friendlyName} ${new Date().toISOString().slice(0, 10)}`,
+  });
+
+  if (error) throw new SupabaseAuthError(error.message);
+
+  return {
+    factorId: data.id,
+    qrCodeUri: data.totp.uri,
+    secret: data.totp.secret,
+  };
+}
+
+/**
+ * Verifies a code against a factor, completing enrolment or stepping a session
+ * up to aal2. Returns the new access token, which the backend re-verifies.
+ */
+export async function verifyTotp(factorId: string, code: string): Promise<string> {
+  const { data, error } = await getSupabase().auth.mfa.challengeAndVerify({
+    factorId,
+    code: code.replace(/\s/g, ''),
+  });
+
+  if (error) throw new SupabaseAuthError(error.message);
+  if (!data.access_token) throw new SupabaseAuthError('Verification did not return a session.');
+
+  return data.access_token;
+}
+
+/** Removes a factor. Used to clean up an enrolment the user abandoned. */
+export async function unenrolTotp(factorId: string) {
+  const { error } = await getSupabase().auth.mfa.unenroll({ factorId });
+  if (error) throw new SupabaseAuthError(error.message);
+}
+
+/** Verified TOTP factors on the current account. */
+export async function listTotpFactors() {
+  const { data, error } = await getSupabase().auth.mfa.listFactors();
+  if (error) throw new SupabaseAuthError(error.message);
+  return data.totp ?? [];
+}
+
+/**
+ * The factor to challenge at sign-in.
+ *
+ * A user may hold more than one (an old phone plus a new one); any verified
+ * factor satisfies the requirement, so the first is used.
+ */
+export async function getPrimaryTotpFactorId(): Promise<string | null> {
+  const factors = await listTotpFactors();
+  return factors[0]?.id ?? null;
+}

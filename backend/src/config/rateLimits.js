@@ -36,6 +36,20 @@ export const expensivePublicLimiter = makeLimiter({
   message: 'Too many requests. Please try again later.',
 });
 
+/**
+ * Second-factor attempts: TOTP codes and recovery codes.
+ *
+ * A 6-digit TOTP is only a million possibilities and a recovery code is a
+ * bearer credential, so this is deliberately tighter than the general auth
+ * limit. Keyed per-account once a session exists, which is what matters here —
+ * the attacker already holds the password.
+ */
+export const mfaLimiter = makeLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  message: 'Too many verification attempts. Please wait before trying again.',
+});
+
 export const apiLimiter = makeLimiter({
   windowMs: 15 * 60 * 1000,
   limit: 600,

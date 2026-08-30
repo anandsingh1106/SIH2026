@@ -15,15 +15,19 @@ const ISSUER = 'arogyasetu-api';
 const AUDIENCE = 'arogyasetu-app';
 
 /**
- * The payload carries only the user id. Role is deliberately excluded so that
- * a role change takes effect immediately rather than persisting in old tokens.
+ * The payload carries the user id and the assurance level of this session.
+ *
+ * Role is deliberately excluded so that a role change takes effect immediately
+ * rather than persisting in old tokens. `aal` is the exception: it records what
+ * actually happened at sign-in, which is a property of the session rather than
+ * of the account, so it cannot be re-derived from the database later.
  */
-export function signToken(user) {
-  return jwt.sign({ sub: user.id }, env.JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-    issuer: ISSUER,
-    audience: AUDIENCE,
-  });
+export function signToken(user, { mfaSatisfied = false } = {}) {
+  return jwt.sign(
+    { sub: user.id, aal: mfaSatisfied ? 'aal2' : 'aal1' },
+    env.JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN, issuer: ISSUER, audience: AUDIENCE }
+  );
 }
 
 export function verifyToken(token) {
@@ -36,8 +40,8 @@ export function verifyToken(token) {
   });
 }
 
-export function setSessionCookie(res, user) {
-  res.cookie(COOKIE_NAME, signToken(user), {
+export function setSessionCookie(res, user, options = {}) {
+  res.cookie(COOKIE_NAME, signToken(user, options), {
     httpOnly: true,
     secure: isProduction,
     // 'strict' would drop the cookie when a user arrives from an external link

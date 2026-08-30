@@ -30,7 +30,20 @@ export const LoginPage: React.FC = () => {
     setError('');
     setIsLoading(true);
     try {
-      const user = await signIn(email, password);
+      const { user, mfa } = await signIn(email, password);
+
+      // Sign-in is not finished until the second factor is settled. The backend
+      // blocks these sessions regardless; routing here just avoids sending the
+      // user to a dashboard that would immediately fail to load.
+      if (mfa.action === 'verify') {
+        navigate('/verify-2fa');
+        return;
+      }
+      if (mfa.action === 'enrol') {
+        navigate('/setup-2fa');
+        return;
+      }
+
       navigate(ROLE_HOME[user.role] ?? '/patient/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to sign in.');
