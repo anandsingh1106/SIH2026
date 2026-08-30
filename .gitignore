@@ -8,6 +8,8 @@ backend/*.sqlite
 backend/*.sqlite-*
 backend/.env
 frontend/.env
+# Demo TOTP secrets for dev-only code auto-fill; a working second factor.
+frontend/.env.local
 *.log
 backend/tests/.tmp/
 supabase/.temp/

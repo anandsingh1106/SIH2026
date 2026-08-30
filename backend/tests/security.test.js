@@ -19,11 +19,12 @@ beforeEach(async () => {
 });
 
 /** Drives csrfProtection directly, since supertest has no browser cookie jar. */
-function runCsrf({ method = 'POST', cookies = {}, header }) {
+function runCsrf({ method = 'POST', cookies = {}, header, path = '/api/patients' }) {
   return new Promise((resolve) => {
     const req = {
       method,
       cookies,
+      originalUrl: path,
       get: (name) => (name.toLowerCase() === CSRF_HEADER ? header : undefined),
     };
     csrfProtection(req, {}, (err) => resolve(err));
@@ -154,6 +155,35 @@ describe('CSRF protection', () => {
       header: 'secret123',
     });
     expect(err).toBeUndefined();
+  });
+
+  it('lets sign-in through when a stale session cookie has no CSRF cookie', async () => {
+    // A browser holding a session cookie from before CSRF existed would
+    // otherwise be locked out of the one endpoint that issues a token.
+    const err = await runCsrf({
+      cookies: { token: 'stale-from-an-earlier-deployment' },
+      path: '/api/auth/session',
+    });
+    expect(err).toBeUndefined();
+  });
+
+  it('lets sign-out through on a stale session', async () => {
+    const err = await runCsrf({ cookies: { token: 'stale' }, path: '/api/auth/logout' });
+    expect(err).toBeUndefined();
+  });
+
+  it('still guards every other write on that same stale session', async () => {
+    // The exemption must be limited to the session endpoints themselves.
+    const err = await runCsrf({ cookies: { token: 'stale' }, path: '/api/appointments' });
+    expect(err?.status).toBe(403);
+  });
+
+  it('does not exempt a path that merely looks like the session endpoint', async () => {
+    const err = await runCsrf({
+      cookies: { token: 'stale' },
+      path: '/api/auth/session/evil',
+    });
+    expect(err?.status).toBe(403);
   });
 
   it('returns a CSRF token to the client on session restore', async () => {

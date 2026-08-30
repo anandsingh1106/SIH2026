@@ -9,6 +9,18 @@ export const CSRF_HEADER = 'x-csrf-token';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 /**
+ * Endpoints that establish or end a session, and so cannot require a token
+ * that only exists once a session is established.
+ *
+ * These are not a CSRF risk. Both are authorised by something the attacker's
+ * site cannot supply — sign-in by a Supabase access token in the request body,
+ * sign-out by having nothing worth forging. Cross-site login forgery would at
+ * worst sign the victim into the attacker's own account, which the pending
+ * session cookie cannot escalate.
+ */
+const SESSION_ENDPOINTS = new Set(['/api/auth/session', '/api/auth/logout']);
+
+/**
  * Double-submit cookie CSRF protection.
  *
  * The session cookie is httpOnly and `sameSite: lax`, which stops cross-site
@@ -47,6 +59,16 @@ function timingSafeEqual(a, b) {
 
 export function csrfProtection(req, _res, next) {
   if (SAFE_METHODS.has(req.method)) return next();
+
+  // Signing in must work from a cold browser, and from one still holding a
+  // stale session cookie left over from a previous deployment. Requiring a
+  // CSRF token here locks such a user out of the very endpoint that would
+  // issue them one.
+  // originalUrl is used rather than req.path because this runs mounted under
+  // /api, where req.path is relative. Defaulted so a caller that does not set
+  // it cannot crash the check.
+  const requestPath = (req.originalUrl || req.url || '').split('?')[0];
+  if (SESSION_ENDPOINTS.has(requestPath)) return next();
 
   // Requests authenticated by a bearer token are not cookie-driven and so are
   // not forgeable this way.

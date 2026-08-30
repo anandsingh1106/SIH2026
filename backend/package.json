@@ -22,7 +22,8 @@
     "demo:history": "node scripts/seed-history.js",
     "demo:scale": "node scripts/seed-scale.js",
     "demo:link": "node scripts/link-demo-data.js",
-    "grant-role": "node scripts/grant-role.js"
+    "grant-role": "node scripts/grant-role.js",
+    "demo:code": "node scripts/demo-code.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

@@ -3,8 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 import { getDb } from '../src/db/connection.js';
 import { userRepository } from '../src/repositories/userRepository.js';
+import { generateTotp } from '../src/utils/totp.js';
 
 /**
  * Creates one pre-confirmed demo account per role, for prototype walkthroughs.
@@ -21,6 +23,14 @@ import { userRepository } from '../src/repositories/userRepository.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ANON = process.env.SUPABASE_ANON_KEY;
+
+// Staff roles cannot reach patient data without a second factor, so a demo
+// account is useless until one exists. Enrolling a real factor here — and
+// keeping its secret — leaves the control fully enforced while staying
+// demonstrable. Enrolment is user-scoped, so it needs the anon key.
+const MFA_ROLES = ['ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN'];
+const WITH_MFA = Boolean(ANON);
 
 if (!SUPABASE_URL || !SERVICE) {
   console.error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in backend/.env');
@@ -114,6 +124,106 @@ async function upsertAuthUser(account) {
   if (!res.ok) throw new Error(`create failed: ${await res.text()}`);
   const body = await res.json();
   return { id: body.id, created: true };
+}
+
+/**
+ * Enrols a TOTP factor and returns its secret.
+ *
+ * Signs in as the account, because enrolling a factor is something only the
+ * user themselves can do — the service-role key cannot. Supabase generates the
+ * secret; we capture it so `npm run demo:code` can produce a valid code.
+ */
+/**
+ * Reads a previously issued secret from DEMO_ACCOUNTS.md, if one is recorded.
+ *
+ * Parsed line-by-line rather than with one large regex: the table rows are a
+ * fixed shape, and splitting on the pipe is far easier to read than an
+ * expression escaping backticks and the email itself.
+ */
+function knownSecret(email) {
+  const docPath = path.resolve(__dirname, '../../DEMO_ACCOUNTS.md');
+  if (!fs.existsSync(docPath)) return null;
+
+  const target = email.trim().toLowerCase();
+
+  for (const line of fs.readFileSync(docPath, 'utf8').split('\n')) {
+    if (!line.startsWith('|')) continue;
+
+    // | ROLE | `email` | `SECRET` |
+    const cells = line.split('|').map((c) => c.trim().replace(/`/g, ''));
+    if (cells.length < 5) continue;
+
+    const [, , rowEmail, secret] = cells;
+    if (rowEmail.toLowerCase() === target && /^[A-Z2-7]{16,}$/.test(secret)) {
+      return secret;
+    }
+  }
+
+  return null;
+}
+
+async function preEnrolTotp(account, authUserId) {
+  const user = createClient(SUPABASE_URL, ANON, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { error: signInError } = await user.auth.signInWithPassword({
+    email: account.email,
+    password: PASSWORD,
+  });
+  if (signInError) throw new Error(`sign-in: ${signInError.message}`);
+
+  // Reuse the factor from a previous run when its secret is still on record:
+  // re-enrolling would invalidate any authenticator app already holding it.
+  const { data: existing } = await user.auth.mfa.listFactors();
+  const currentFactor = existing?.totp?.[0];
+
+  if (currentFactor) {
+    const known = knownSecret(account.email);
+
+    if (known) {
+      // Prove the secret still matches before keeping it, rather than assuming
+      // the file and Supabase are in step.
+      const { error } = await user.auth.mfa.challengeAndVerify({
+        factorId: currentFactor.id,
+        code: generateTotp(known),
+      });
+      if (!error) {
+        await user.auth.signOut();
+        return known;
+      }
+    }
+
+    // No usable secret on record, so the factor is orphaned and must go.
+    // A user-scoped unenrol needs an aal2 session, which is unreachable without
+    // a working code — but the admin API can remove it outright.
+    const admin = createClient(SUPABASE_URL, SERVICE, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const { error: deleteError } = await admin.auth.admin.mfa.deleteFactor({
+      id: currentFactor.id,
+      userId: authUserId,
+    });
+    if (deleteError) throw new Error(`could not remove stale factor: ${deleteError.message}`);
+  }
+
+  const { data: enrolment, error: enrolError } = await user.auth.mfa.enroll({
+    factorType: 'totp',
+    friendlyName: `Demo ${Date.now()}`,
+  });
+  if (enrolError) throw new Error(`enrol: ${enrolError.message}`);
+
+  const secret = enrolment.totp.secret;
+
+  const { error: verifyError } = await user.auth.mfa.challengeAndVerify({
+    factorId: enrolment.id,
+    code: generateTotp(secret),
+  });
+  if (verifyError) throw new Error(`verify: ${verifyError.message}`);
+
+  await user.auth.signOut();
+  return secret;
 }
 
 /** Links the Supabase auth user to a row in the application users table. */
@@ -241,8 +351,23 @@ for (const account of ACCOUNTS) {
   try {
     const auth = await upsertAuthUser(account);
     const app = upsertAppUser(account, auth.id);
-    console.log(auth.created ? 'created' : 'updated');
-    results.push({ ...account, authUserId: auth.id, appUserId: app.id });
+
+    let totpSecret = null;
+    if (WITH_MFA && MFA_ROLES.includes(account.role)) {
+      try {
+        totpSecret = await preEnrolTotp(account, auth.id);
+        getDb()
+          .prepare('UPDATE users SET mfa_enrolled_at = ?, updated_at = ? WHERE id = ?')
+          .run(new Date().toISOString(), new Date().toISOString(), app.id);
+      } catch (err) {
+        // Not fatal: the account still works, the user just completes the
+        // normal 2FA setup screen at first sign-in.
+        process.stdout.write(`(2FA failed: ${err.message}) `);
+      }
+    }
+
+    console.log(`${auth.created ? 'created' : 'updated'}${totpSecret ? ' +2FA' : ''}`);
+    results.push({ ...account, authUserId: auth.id, appUserId: app.id, totpSecret });
   } catch (err) {
     console.log(`FAILED — ${err.message}`);
     process.exitCode = 1;
@@ -274,9 +399,26 @@ cd backend && npm run demo:accounts
 
 ## Accounts
 
-| Role | Email | Password | Lands on |
-| --- | --- | --- | --- |
-${results.map((r) => `| **${r.role}** | \`${r.email}\` | \`${PASSWORD}\` | \`/${r.apiRole}/dashboard\` |`).join('\n')}
+| Role | Email | Password | 2FA | Lands on |
+| --- | --- | --- | --- | --- |
+${results.map((r) => `| **${r.role}** | \`${r.email}\` | \`${PASSWORD}\` | ${r.totpSecret ? 'required' : 'not needed'} | \`/${r.apiRole}/dashboard\` |`).join('\n')}
+
+## Two-factor codes
+
+Staff roles (ASHA, DOCTOR, SPECIALIST, ADMIN) cannot reach patient data without
+a second factor — the API enforces it, so a demo behaves exactly as production
+would. Each staff account already has a real TOTP factor enrolled; get a valid
+code with:
+
+\`\`\`bash
+cd backend && npm run demo:code -- demo.doctor@arogyasetu.test
+\`\`\`
+
+Or add the secret below to any authenticator app using "enter a setup key".
+
+| Role | Email | TOTP secret |
+| --- | --- | --- |
+${results.filter((r) => r.totpSecret).map((r) => `| ${r.role} | \`${r.email}\` | \`${r.totpSecret}\` |`).join('\n') || '| — | _none enrolled_ | — |'}
 
 ## What each role can see
 
@@ -313,10 +455,32 @@ cannot escalate their own role — checked directly against PostgreSQL.
 - Re-running the script resets the passwords rather than creating duplicates.
 - Demo emails use the \`.test\` TLD, which is reserved and cannot receive mail —
   deliberate, so these can never be mistaken for real accounts.
+- The PATIENT account needs no second factor: a patient reaches only their own
+  record, so 2FA is optional for that role.
+- Re-running the script re-enrols the TOTP factors, which invalidates the
+  secrets listed above and writes fresh ones.
 `;
 
 const outPath = path.resolve(__dirname, '../../DEMO_ACCOUNTS.md');
 fs.writeFileSync(outPath, md);
 
+// Hand the secrets to the dev server so the sign-in screen can pre-fill the
+// code during a walkthrough. .env.local is gitignored, and the frontend reads
+// it only under import.meta.env.DEV, so it cannot reach a production build.
+const withSecrets = results.filter((r) => r.totpSecret);
+
+if (withSecrets.length) {
+  const line = `VITE_DEMO_TOTP_SECRETS=${withSecrets.map((r) => `${r.email}:${r.totpSecret}`).join(',')}`;
+  const envLocal = path.resolve(__dirname, '../../frontend/.env.local');
+
+  const existing = fs.existsSync(envLocal) ? fs.readFileSync(envLocal, 'utf8') : '';
+  const kept = existing
+    .split('\n')
+    .filter((l) => l.trim() && !l.startsWith('VITE_DEMO_TOTP_SECRETS='));
+
+  fs.writeFileSync(envLocal, [...kept, line, ''].join('\n'));
+  console.log('\nDemo 2FA codes will auto-fill on the sign-in screen (dev only).');
+  console.log('  Restart the dev server to pick them up.');
+}
 console.log(`\nCredentials written to DEMO_ACCOUNTS.md`);
 console.log(`Password for every account: ${PASSWORD}`);

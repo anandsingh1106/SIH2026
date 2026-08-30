@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
@@ -6,6 +6,7 @@ import { authApi } from '../../services/auth/authApi';
 import * as supabaseAuth from '../../services/auth/supabaseAuth';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { demoTotpCode, secondsUntilRollover } from '../../utils/demoTotp';
 
 const ROLE_HOME: Record<string, string> = {
   asha: '/asha/dashboard',
@@ -22,7 +23,7 @@ const ROLE_HOME: Record<string, string> = {
  * worker in the field who has lost their phone still needs a way in.
  */
 export const VerifyTwoFactorPage: React.FC = () => {
-  const { currentRole, completeMfa, logout } = useAuth();
+  const { currentUser, currentRole, completeMfa, logout } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState<'totp' | 'recovery'>('totp');
@@ -30,6 +31,39 @@ export const VerifyTwoFactorPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
+  // Development convenience only — see utils/demoTotp, which compiles to
+  // nothing in a production build.
+  const [isDemoFilled, setIsDemoFilled] = useState(false);
+
+  /**
+   * Pre-fills the code for a demo account during development.
+   *
+   * The code is real and still verified by Supabase and the API; this only
+   * saves reading it off a terminal mid-presentation. It refreshes itself when
+   * the 30-second window rolls over, so the field never holds a stale code.
+   */
+  useEffect(() => {
+    if (mode !== 'totp' || !currentUser?.email) return;
+
+    let cancelled = false;
+    let timer: number;
+
+    const fill = async () => {
+      const demoCode = await demoTotpCode(currentUser.email!);
+      if (cancelled || !demoCode) return;
+
+      setCode(demoCode);
+      setIsDemoFilled(true);
+      // Re-fill just after the current code expires.
+      timer = window.setTimeout(fill, (secondsUntilRollover() + 1) * 1000);
+    };
+
+    void fill();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [mode, currentUser?.email]);
 
   const goHome = () => {
     completeMfa();
@@ -137,8 +171,17 @@ export const VerifyTwoFactorPage: React.FC = () => {
                 required
                 autoFocus
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/\D/g, ''));
+                  setIsDemoFilled(false);
+                }}
               />
+
+              {isDemoFilled && (
+                <p className="text-[11px] text-ink-soft -mt-2">
+                  Demo code filled in automatically (development only).
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={isSubmitting || code.length !== 6}>
                 {isSubmitting ? 'Verifying…' : 'Verify'}
               </Button>
