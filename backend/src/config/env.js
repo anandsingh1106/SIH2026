@@ -102,6 +102,20 @@ function assertProductionConfig() {
     problems.push('SUPABASE_SERVICE_ROLE_KEY is required when SUPABASE_URL is set.');
   }
 
+  // An AI_PROVIDER naming a provider whose key is absent is always a mistake:
+  // it is indistinguishable at runtime from deliberately running without AI,
+  // so it would silently serve knowledge base answers forever.
+  const aiProvider = (env.AI_PROVIDER || '').toLowerCase();
+  if (aiProvider && !['gemini', 'openai', 'none'].includes(aiProvider)) {
+    problems.push(`AI_PROVIDER "${env.AI_PROVIDER}" is not a supported provider (gemini, openai, none).`);
+  }
+  if (aiProvider === 'gemini' && !env.GEMINI_API_KEY) {
+    problems.push('AI_PROVIDER is "gemini" but GEMINI_API_KEY is not set. Set the key, or set AI_PROVIDER=none to answer from the built-in knowledge base.');
+  }
+  if (aiProvider === 'openai' && !env.OPENAI_API_KEY) {
+    problems.push('AI_PROVIDER is "openai" but OPENAI_API_KEY is not set. Set the key, or set AI_PROVIDER=none to answer from the built-in knowledge base.');
+  }
+
   if (problems.length) {
     console.error('FATAL: insecure production configuration:');
     for (const p of problems) console.error(`  - ${p}`);

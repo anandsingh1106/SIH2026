@@ -98,6 +98,17 @@ export function getAIProvider() {
   else if (name === 'gemini' && env.GEMINI_API_KEY) provider = new GeminiProvider(env.GEMINI_API_KEY);
   else provider = new UnconfiguredProvider();
 
+  // Which mode the assistant is running in is otherwise invisible until someone
+  // asks a question and gets a knowledge base answer they expected to be live.
+  if (provider.isConfigured()) {
+    logger.info('AI provider ready', { provider: name, model: provider.model });
+  } else {
+    logger.warn(
+      'No AI provider configured — the assistant will answer from the built-in knowledge base only.',
+      { aiProvider: name || '(unset)' }
+    );
+  }
+
   return provider;
 }
 
