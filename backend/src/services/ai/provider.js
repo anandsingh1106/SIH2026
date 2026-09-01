@@ -21,6 +21,13 @@ class GeminiProvider {
   isConfigured() { return Boolean(this.apiKey); }
 
   async complete({ system, prompt, maxTokens = 800 }) {
+    // Gemini 3.x reasons before answering and bills that reasoning against
+    // maxOutputTokens, typically 500-700 tokens before a word is emitted. Sent
+    // the caller's budget verbatim, the reply is cut off mid-sentence with
+    // finishReason MAX_TOKENS — which still looks like a successful answer.
+    // The headroom keeps the caller's budget meaningful for the visible reply.
+    const THINKING_HEADROOM = 1500;
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`,
       {
@@ -29,7 +36,10 @@ class GeminiProvider {
         body: JSON.stringify({
           systemInstruction: system ? { parts: [{ text: system }] } : undefined,
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.2 },
+          generationConfig: {
+            maxOutputTokens: maxTokens + THINKING_HEADROOM,
+            temperature: 0.2,
+          },
         }),
       }
     );
@@ -49,7 +59,27 @@ class GeminiProvider {
     }
 
     const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const candidate = data?.candidates?.[0];
+
+    // A reply can arrive split across parts, and reading only the first would
+    // silently drop the rest. Thought parts carry no text, so they fall away.
+    const text = (candidate?.content?.parts ?? [])
+      .map((part) => part.text || '')
+      .join('')
+      .trim();
+
+    // MAX_TOKENS means the answer stops mid-sentence. Returning it would hand a
+    // health worker a truncated clinical instruction that reads as complete, so
+    // the caller falls back to the knowledge base instead.
+    if (candidate?.finishReason === 'MAX_TOKENS') {
+      logger.warn('Gemini reply truncated — raise maxTokens or lower the prompt size', {
+        model: this.model,
+        thoughtsTokens: data?.usageMetadata?.thoughtsTokenCount,
+      });
+      throw new ExternalServiceError('gemini', 'The AI service returned an incomplete answer.');
+    }
+
+    return text;
   }
 }
 
