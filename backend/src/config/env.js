@@ -56,6 +56,9 @@ export const env = {
   SUPABASE_DB_URL: optional('SUPABASE_DB_URL'),
 
   AI_PROVIDER: optional('AI_PROVIDER', 'gemini'),
+  // Overrides the provider's default model, so a retired model id can be
+  // corrected by redeploying rather than by patching the code.
+  AI_MODEL: optional('AI_MODEL'),
   GEMINI_API_KEY: optional('GEMINI_API_KEY'),
   OPENAI_API_KEY: optional('OPENAI_API_KEY'),
 

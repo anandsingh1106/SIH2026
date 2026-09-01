@@ -11,9 +11,11 @@ import { ExternalServiceError } from '../../utils/errors.js';
  */
 
 class GeminiProvider {
-  constructor(apiKey) {
+  constructor(apiKey, model) {
     this.apiKey = apiKey;
-    this.model = 'gemini-2.0-flash';
+    // Google retires model ids on their own schedule; a retired one returns 404
+    // rather than degrading, so this is overridable without a code change.
+    this.model = model || 'gemini-3.6-flash';
   }
 
   isConfigured() { return Boolean(this.apiKey); }
@@ -34,7 +36,15 @@ class GeminiProvider {
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      logger.error('Gemini request failed', { status: res.status, body: body.slice(0, 300) });
+      // 404 means the model id is retired or misspelled — a configuration fault
+      // that no amount of retrying fixes, so it is named as such in the log.
+      if (res.status === 404) {
+        logger.error('Gemini model unavailable — set AI_MODEL to a current model id', {
+          model: this.model, body: body.slice(0, 300),
+        });
+      } else {
+        logger.error('Gemini request failed', { status: res.status, body: body.slice(0, 300) });
+      }
       throw new ExternalServiceError('gemini', 'The AI service is currently unavailable.');
     }
 
@@ -44,9 +54,9 @@ class GeminiProvider {
 }
 
 class OpenAIProvider {
-  constructor(apiKey) {
+  constructor(apiKey, model) {
     this.apiKey = apiKey;
-    this.model = 'gpt-4o-mini';
+    this.model = model || 'gpt-4o-mini';
   }
 
   isConfigured() { return Boolean(this.apiKey); }
@@ -94,8 +104,8 @@ export function getAIProvider() {
   if (provider) return provider;
 
   const name = (env.AI_PROVIDER || 'gemini').toLowerCase();
-  if (name === 'openai' && env.OPENAI_API_KEY) provider = new OpenAIProvider(env.OPENAI_API_KEY);
-  else if (name === 'gemini' && env.GEMINI_API_KEY) provider = new GeminiProvider(env.GEMINI_API_KEY);
+  if (name === 'openai' && env.OPENAI_API_KEY) provider = new OpenAIProvider(env.OPENAI_API_KEY, env.AI_MODEL);
+  else if (name === 'gemini' && env.GEMINI_API_KEY) provider = new GeminiProvider(env.GEMINI_API_KEY, env.AI_MODEL);
   else provider = new UnconfiguredProvider();
 
   // Which mode the assistant is running in is otherwise invisible until someone
