@@ -10,7 +10,9 @@ import { ExternalServiceError } from '../../utils/errors.js';
  * API keys stay on the server and are never returned to the client (§31).
  */
 
-class GeminiProvider {
+// Exported so the response handling can be tested without the env-based
+// singleton, which resolves its key once at import.
+export class GeminiProvider {
   constructor(apiKey, model) {
     this.apiKey = apiKey;
     // Google retires model ids on their own schedule; a retired one returns 404
