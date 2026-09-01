@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Sparkles, MessageSquare, Volume2, Mic, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
 import { getAIContextualResponse, AIMessage } from '../../services/ai/aiAssistantService';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
+import { AIMessageContent } from './AIMessageContent';
 
 export const AIAssistantDrawer: React.FC = () => {
   const { currentRole } = useAuth();
@@ -19,9 +20,17 @@ export const AIAssistantDrawer: React.FC = () => {
     },
   ]);
 
+  const feedEndRef = useRef<HTMLDivElement>(null);
+
+  // Keep the newest message in view as the conversation grows.
+  useEffect(() => {
+    feedEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, isLoading]);
+
   const handleSend = async (queryText?: string) => {
-    const textToSend = queryText || input;
-    if (!textToSend.trim()) return;
+    const textToSend = (queryText || input).trim();
+    // A preset tapped while a request is in flight would otherwise interleave.
+    if (!textToSend || isLoading) return;
 
     const userMsg: AIMessage = {
       sender: 'user',
@@ -29,18 +38,17 @@ export const AIAssistantDrawer: React.FC = () => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
+    // Captured before the state update so the request carries the prior turns.
+    const history = messages;
+
     setMessages((prev) => [...prev, userMsg]);
     if (!queryText) setInput('');
     setIsLoading(true);
 
-    try {
-      const response = await getAIContextualResponse(textToSend, currentRole);
-      setMessages((prev) => [...prev, response]);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    // getAIContextualResponse resolves with a failed message rather than throwing.
+    const response = await getAIContextualResponse(textToSend, currentRole, undefined, history);
+    setMessages((prev) => [...prev, response]);
+    setIsLoading(false);
   };
 
   const rolePresets = {
@@ -110,17 +118,25 @@ export const AIAssistantDrawer: React.FC = () => {
                 className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-2xs whitespace-pre-line ${
+                  className={`max-w-[85%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-2xs ${
                     m.sender === 'user'
                       ? 'bg-gov-700 text-white rounded-br-xs'
+                      : m.failed
+                      ? 'bg-rose-50 text-rose-900 border border-rose-200 rounded-bl-xs'
                       : 'bg-surface text-ink border border-line rounded-bl-xs'
                   }`}
                 >
-                  {m.text}
+                  <AIMessageContent text={m.text} />
 
                   {m.sources && (
                     <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft font-semibold">
                       📚 Sources: {m.sources.join(' • ')}
+                    </div>
+                  )}
+
+                  {m.disclaimer && (
+                    <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft italic">
+                      {m.disclaimer}
                     </div>
                   )}
 
@@ -152,6 +168,7 @@ export const AIAssistantDrawer: React.FC = () => {
                 <span>Analyzing clinical database & protocols...</span>
               </div>
             )}
+            <div ref={feedEndRef} />
           </div>
 
           {/* Quick Prompts */}

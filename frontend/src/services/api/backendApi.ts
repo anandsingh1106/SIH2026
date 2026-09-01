@@ -191,9 +191,13 @@ export const backendApi = {
   checkDrugInteractions: (medicines: string[]) =>
     api.post<DrugInteractionResult>('/api/ai/drug-interactions', { medicines }),
   askAssistant: (question: string, context?: string) =>
-    api.post<{ answer: string | null; available: boolean; disclaimer?: string }>(
-      '/api/ai/assistant', { question, context }
-    ),
+    api.post<{
+      answer: string | null;
+      available: boolean;
+      source?: 'ai' | 'knowledge-base';
+      reference?: string;
+      disclaimer?: string;
+    }>('/api/ai/assistant', { question, context }),
 
   // Offline sync
   syncBatch: (operations: {

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { getAIContextualResponse, AIMessage } from '../../services/ai/aiAssistantService';
 import { Bot, Send, Sparkles, User, Mic, Volume2, ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
+import { AIMessageContent } from '../../components/ai/AIMessageContent';
 
 export const AIAssistantPage: React.FC = () => {
   const { currentRole } = useAuth();
@@ -17,9 +18,17 @@ export const AIAssistantPage: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const feedEndRef = useRef<HTMLDivElement>(null);
+
+  // Keep the newest message in view as the conversation grows.
+  useEffect(() => {
+    feedEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, isLoading]);
+
   const handleSend = async (customText?: string) => {
-    const textToSend = customText || input;
-    if (!textToSend.trim()) return;
+    const textToSend = (customText || input).trim();
+    // A preset tapped while a request is in flight would otherwise interleave.
+    if (!textToSend || isLoading) return;
 
     const userMsg: AIMessage = {
       sender: 'user',
@@ -27,18 +36,17 @@ export const AIAssistantPage: React.FC = () => {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
+    // Captured before the state update so the request carries the prior turns.
+    const history = messages;
+
     setMessages((prev) => [...prev, userMsg]);
     if (!customText) setInput('');
     setIsLoading(true);
 
-    try {
-      const res = await getAIContextualResponse(textToSend, currentRole);
-      setMessages((prev) => [...prev, res]);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    // getAIContextualResponse resolves with a failed message rather than throwing.
+    const res = await getAIContextualResponse(textToSend, currentRole, undefined, history);
+    setMessages((prev) => [...prev, res]);
+    setIsLoading(false);
   };
 
   const samplePrompts = {
@@ -118,16 +126,23 @@ export const AIAssistantPage: React.FC = () => {
               className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed shadow-2xs whitespace-pre-line ${
+                className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed shadow-2xs ${
                   m.sender === 'user'
                     ? 'bg-gov-700 text-white rounded-br-xs'
+                    : m.failed
+                    ? 'bg-rose-50 text-rose-900 border border-rose-200 rounded-bl-xs'
                     : 'bg-surface text-ink border border-line rounded-bl-xs'
                 }`}
               >
-                {m.text}
+                <AIMessageContent text={m.text} />
                 {m.sources && (
                   <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft font-semibold">
                     📚 Grounded in: {m.sources.join(' • ')}
+                  </div>
+                )}
+                {m.disclaimer && (
+                  <div className="mt-2 pt-2 border-t border-line text-[10px] text-ink-soft italic">
+                    {m.disclaimer}
                   </div>
                 )}
               </div>
@@ -140,6 +155,7 @@ export const AIAssistantPage: React.FC = () => {
               <span>Analyzing patient EHR & NHM protocol database...</span>
             </div>
           )}
+          <div ref={feedEndRef} />
         </div>
 
         {/* Quick Prompts Bar */}
