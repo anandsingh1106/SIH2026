@@ -156,7 +156,7 @@ export function getPrescriptions(req, res, next) {
   try {
     const { page, limit, ...filters } = req.validatedQuery;
     const { items, total } = clinical.listPrescriptions(req.user, { ...filters, page, limit });
-    return sendPaginated(res, items.map((r) => toPublicPrescription(r)), { page, limit, total });
+    return sendPaginated(res, items.map((r) => toPublicPrescription(r, r.items)), { page, limit, total });
   } catch (err) { next(err); }
 }
 

@@ -3,7 +3,8 @@ import { syncQueueManager } from '../offline/syncQueueManager';
 import {
   Patient, Referral, Prescription, PrescribedMedicine, Task, HomeVisit, Vitals,
   Facility, Medicine, MedicineAvailability, MedicineOrder,
-  Notification, Message, Bed, UserRole, ReferralStatus,
+  Notification, Message, Bed, UserRole, ReferralStatus, QueueToken, QueueSummary,
+  PatientTimelineEvent,
 } from '../../types';
 
 type DataChangeListener = (event: { entity: string; action: string; data: unknown }) => void;
@@ -337,11 +338,34 @@ class DataService {
   }
 
   // --- PATIENTS ---
+  /**
+   * Every patient the caller may see.
+   *
+   * The API caps a page at 100, so a single request silently truncated larger
+   * registries -- the missing patients could not be opened at all, and a lookup
+   * against this list would miss them. Follow the pages instead.
+   */
   public getPatients(): Promise<Patient[]> {
     return this.safeList(async () => {
-      const rows = page(
-        await api.get<Paginated<Record<string, unknown>>>('/api/patients', { query: { limit: 100 } })
-      );
+      const first = await api.get<Paginated<Record<string, unknown>>>('/api/patients', {
+        query: { limit: 100, page: 1 },
+      });
+      const rows = page<Record<string, unknown>>(first);
+
+      const totalPages = first.pagination?.totalPages ?? 1;
+      // Guard against a bad total pinning the browser on an endless fetch.
+      const lastPage = Math.min(totalPages, 20);
+      if (lastPage > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: lastPage - 1 }, (_, i) =>
+            api.get<Paginated<Record<string, unknown>>>('/api/patients', {
+              query: { limit: 100, page: i + 2 },
+            })
+          )
+        );
+        for (const res of rest) rows.push(...page<Record<string, unknown>>(res));
+      }
+
       return rows.map(normalizePatient);
     }, 'patients');
   }
@@ -424,6 +448,36 @@ class DataService {
     }
   }
 
+  // --- OPD QUEUE ---
+  /** Live OPD queue for a facility, ordered by token number. */
+  public async getQueue(facilityId: string): Promise<{ items: QueueToken[]; summary: QueueSummary | null }> {
+    try {
+      const res = await api.get<Record<string, unknown>>(`/api/queue/${facilityId}`);
+      const raw = camelize<Record<string, unknown>>(res);
+      const items = Array.isArray(raw.items) ? (raw.items as QueueToken[]) : [];
+      return { items, summary: (raw.summary as QueueSummary) ?? null };
+    } catch (err) {
+      console.warn('Could not load OPD queue:', err);
+      return { items: [], summary: null };
+    }
+  }
+
+  /**
+   * Moves a token through the queue state machine. The server rejects illegal
+   * transitions, so the caller surfaces the message rather than assuming success.
+   */
+  public async updateQueueToken(
+    tokenId: string,
+    action: 'call' | 'start' | 'complete' | 'skip'
+  ): Promise<QueueToken> {
+    const updated = camelize<QueueToken>(
+      await api.post<Record<string, unknown>>(`/api/queue/${tokenId}/${action}`, {})
+    );
+    // Screens showing the queue refresh off this, so the desk stays in step.
+    this.notify('queue', action, updated);
+    return updated;
+  }
+
   // --- PRESCRIPTIONS ---
   public getPrescriptions(): Promise<Prescription[]> {
     return this.safeList(async () => {
@@ -473,6 +527,85 @@ class DataService {
 
     await api.post(`/api/patients/${patientId}/vitals`, body);
     this.notify('vitals', 'create', { patientId });
+  }
+
+  // --- PATIENT TIMELINE ---
+  /**
+   * Longitudinal history for one patient, newest first.
+   *
+   * Consultations, prescriptions and lab orders each hold one slice of the
+   * story, so the EHR timeline merges all three rather than showing whichever
+   * happens to be loaded.
+   */
+  public async getPatientTimeline(patientId: string): Promise<PatientTimelineEvent[]> {
+    if (!patientId) return [];
+
+    const query = { patientId, limit: 50 };
+    const [consultations, prescriptions, labs] = await Promise.all([
+      this.safeList(
+        async () => page<Record<string, unknown>>(
+          await api.get<Paginated<Record<string, unknown>>>('/api/consultations', { query })
+        ),
+        'patient consultations'
+      ),
+      this.safeList(
+        async () => page<Record<string, unknown>>(
+          await api.get<Paginated<Record<string, unknown>>>('/api/prescriptions', { query })
+        ),
+        'patient prescriptions'
+      ),
+      this.safeList(
+        async () => page<Record<string, unknown>>(
+          await api.get<Paginated<Record<string, unknown>>>('/api/lab-orders', { query })
+        ),
+        'patient lab orders'
+      ),
+    ]);
+
+    const events: PatientTimelineEvent[] = [];
+
+    for (const row of consultations) {
+      const c = camelize<Record<string, unknown>>(row);
+      const symptoms = Array.isArray(c.symptoms) ? (c.symptoms as string[]).join(', ') : '';
+      events.push({
+        id: String(c.id),
+        date: String(c.date ?? c.createdAt ?? ''),
+        title: (c.diagnosis as string) || (c.chiefComplaint as string) || 'Clinical consultation',
+        type: 'consultation',
+        actor: (c.doctorName as string) || 'Attending doctor',
+        notes: [c.chiefComplaint, symptoms, c.examination, c.treatmentPlan]
+          .filter(Boolean).join(' • ') || 'Consultation recorded.',
+      });
+    }
+
+    for (const row of prescriptions) {
+      const rx = mapPrescription(row);
+      const names = rx.medicines.map((m) => m.name).filter(Boolean);
+      events.push({
+        id: rx.id,
+        date: rx.date,
+        title: names.length ? `Prescription: ${names.join(', ')}` : 'Prescription issued',
+        type: 'prescription',
+        actor: rx.doctorName || 'Prescribing doctor',
+        notes: rx.generalAdvice || `${names.length} medicine(s) prescribed.`,
+      });
+    }
+
+    for (const row of labs) {
+      const l = camelize<Record<string, unknown>>(row);
+      events.push({
+        id: String(l.id),
+        date: String(l.orderedAt ?? ''),
+        title: `Lab order: ${(l.testName as string) || 'Diagnostic test'}`,
+        type: 'lab',
+        actor: (l.facilityName as string) || (l.doctorName as string) || 'Laboratory',
+        notes: [l.category, l.status && `Status: ${l.status}`, l.notes]
+          .filter(Boolean).join(' • ') || 'Lab order raised.',
+      });
+    }
+
+    // Undated rows would otherwise sort unpredictably; keep them last.
+    return events.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   }
 
   // --- CONSULTATIONS ---

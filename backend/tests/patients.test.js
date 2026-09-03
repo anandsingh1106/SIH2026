@@ -42,6 +42,27 @@ describe('GET /api/patients', () => {
     expect(ids).not.toContain(strangerPatient.id);
   });
 
+  it('pages through a registry larger than the 100-row cap', async () => {
+    // The registry outgrew one page, which hid the overflow patients entirely.
+    for (let i = 0; i < 105; i++) createPatient({ name: `Bulk ${i}`, district: 'Pune' });
+
+    const cookie = authCookie(admin);
+    const first = await request(app).get('/api/patients')
+      .query({ limit: 100, page: 1 }).set('Cookie', cookie);
+    expect(first.status).toBe(200);
+    expect(first.body.data.items).toHaveLength(100);
+    expect(first.body.data.pagination.totalPages).toBeGreaterThan(1);
+
+    const second = await request(app).get('/api/patients')
+      .query({ limit: 100, page: 2 }).set('Cookie', cookie);
+    expect(second.body.data.items.length).toBeGreaterThan(0);
+
+    // Together the pages must cover the registry without repeating a row.
+    const ids = new Set([...first.body.data.items, ...second.body.data.items].map((p) => p.id));
+    expect(ids.size).toBe(first.body.data.items.length + second.body.data.items.length);
+    expect(ids.size).toBe(first.body.data.pagination.total);
+  });
+
   it('shows an admin every patient', async () => {
     const res = await request(app).get('/api/patients').set('Cookie', authCookie(admin));
     expect(res.body.data.pagination.total).toBe(3);

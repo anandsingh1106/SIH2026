@@ -21,13 +21,18 @@ const RISK_LEVEL: Record<string, Priority> = {
 };
 
 /**
- * The vitals form captures temperature in Fahrenheit; the API works in
- * Celsius. Values above 45 can only be Fahrenheit, since 45 °C is already
- * beyond survivable.
+ * The vitals form captures temperature in Fahrenheit (its input is labelled
+ * °F), and the API works in Celsius.
+ *
+ * This used to convert only above 45, guessing at the unit. That silently
+ * mangled the clinically important range: a real 93.6 °F reading was passed
+ * through as 93.6 and a hypothermic 34.2 °C was read as already-Celsius, so
+ * normal patients were reported with alarming temperatures. The form states
+ * its unit, so convert unconditionally instead of guessing.
  */
-function toCelsius(temperature?: number): number | undefined {
+export function toCelsius(temperature?: number): number | undefined {
   if (temperature == null) return undefined;
-  return temperature > 45 ? Number(((temperature - 32) * 5 / 9).toFixed(1)) : temperature;
+  return Number(((temperature - 32) * 5 / 9).toFixed(1));
 }
 
 /**
@@ -60,7 +65,8 @@ export const analyzeTriage = async (
   return {
     riskLevel: RISK_LEVEL[result.riskCategory] ?? 'low',
     score: result.riskScore,
-    // Confidence reflects how many independent findings agree.
+    // How many independent red flags agree, which is a corroboration count --
+    // not a validated match against any published guideline.
     confidence: Math.min(60 + result.detectedFindings.length * 10, 95),
     primaryConcern: factors[0] || 'No red-flag findings detected',
     contributingFactors: factors,

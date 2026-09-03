@@ -21,11 +21,24 @@ const pick = (arr, i) => arr[i % arr.length];
 const TARGET = 120;
 
 const FIRST_M = ['Ramesh', 'Suresh', 'Ganesh', 'Mahesh', 'Vijay', 'Sanjay', 'Anil', 'Sunil',
-  'Prakash', 'Dinesh', 'Nitin', 'Sachin', 'Amol', 'Rahul', 'Prasad', 'Nilesh'];
+  'Prakash', 'Dinesh', 'Nitin', 'Sachin', 'Amol', 'Rahul', 'Prasad', 'Nilesh',
+  'Bhaskar', 'Dattatray', 'Kishor', 'Madhav', 'Narayan', 'Pandurang', 'Shrikant', 'Tukaram',
+  'Vishal', 'Yogesh', 'Ashok', 'Bharat', 'Chandrakant', 'Deepak', 'Eknath', 'Gopal'];
 const FIRST_F = ['Sunita', 'Kavita', 'Anita', 'Lata', 'Mangala', 'Shobha', 'Vaishali', 'Rekha',
-  'Sujata', 'Manisha', 'Archana', 'Pooja', 'Snehal', 'Nanda', 'Ujwala', 'Vandana'];
+  'Sujata', 'Manisha', 'Archana', 'Pooja', 'Snehal', 'Nanda', 'Ujwala', 'Vandana',
+  'Asha', 'Bharati', 'Chhaya', 'Damayanti', 'Geeta', 'Hemlata', 'Indira', 'Jyoti',
+  'Kalpana', 'Madhuri', 'Nirmala', 'Prabha', 'Rohini', 'Sarika', 'Trupti', 'Yamuna'];
 const SURNAMES = ['Patil', 'Deshmukh', 'Jadhav', 'Shinde', 'Pawar', 'More', 'Gaikwad', 'Kulkarni',
-  'Joshi', 'Bhosale', 'Chavan', 'Kadam', 'Salunkhe', 'Thorat', 'Sawant', 'Mane'];
+  'Joshi', 'Bhosale', 'Chavan', 'Kadam', 'Salunkhe', 'Thorat', 'Sawant', 'Mane',
+  'Bhagat', 'Dhumal', 'Ghorpade', 'Ingale', 'Kale', 'Lokhande', 'Nikam', 'Pingale',
+  'Rane', 'Shelke', 'Tambe', 'Wagh', 'Bagal', 'Dabhade', 'Gadekar', 'Hande'];
+
+/**
+ * Middle names follow the Maharashtrian convention of carrying the father's
+ * name, and give the registry a third axis so look-alike rows stay apart.
+ */
+const MIDDLE = ['Baban', 'Dattatray', 'Ganpat', 'Hari', 'Kisan', 'Laxman', 'Maruti', 'Namdev',
+  'Pandurang', 'Rajaram', 'Shankar', 'Trimbak', 'Vasant', 'Waman', 'Yashwant', 'Bhau'];
 
 const PLACES = [
   { district: 'Pune', taluka: 'Mulshi', villages: ['Paud', 'Kolvan', 'Pirangut', 'Ghotawade'] },
@@ -82,8 +95,21 @@ if (patientsBefore < TARGET) {
 
     for (let i = patientsBefore; i < TARGET; i++) {
       const female = i % 2 === 1;
-      const first = female ? pick(FIRST_F, i) : pick(FIRST_M, i);
-      const surname = pick(SURNAMES, Math.floor(i / 3));
+      // Treat the index as a mixed-radix number over the three name lists, so
+      // each record lands on its own (first, middle, surname) combination.
+      // Multiplying the index by a stride instead made the lists realign every
+      // 32 records and repeat whole names four times each.
+      const nameIndex = Math.floor(i / 2); // each half of the pair alternates sex
+      const first = female
+        ? pick(FIRST_F, nameIndex)
+        : pick(FIRST_M, nameIndex);
+      // Rotate the surname per record as well as per block, so consecutive
+      // rows do not all share one surname while staying a unique combination.
+      const surname = pick(
+        SURNAMES,
+        nameIndex + Math.floor(nameIndex / SURNAMES.length)
+      );
+      const middle = pick(MIDDLE, nameIndex + Math.floor(nameIndex / MIDDLE.length));
       const place = pick(PLACES, i);
       // Ages spread 1-80 so paediatric, adult and elderly cohorts all appear.
       const age = 1 + ((i * 7) % 80);
@@ -95,14 +121,14 @@ if (patientsBefore < TARGET) {
       ins.run(
         uid(),
         `91-${1000 + i}-${2000 + i}-${3000 + i}`,
-        `${first} ${surname}`,
+        `${first} ${middle} ${surname}`,
         dob.toISOString().slice(0, 10),
         female ? 'FEMALE' : 'MALE',
         `+9198${String(76000000 + i * 137).slice(0, 8)}`,
         `House ${100 + i}, ${pick(place.villages, i)}`,
         place.district, place.taluka, pick(place.villages, i),
         pick(BLOOD, i),
-        `${pick(FIRST_F, i + 3)} ${surname}`,
+        `${pick(FIRST_F, i * 5 + 3)} ${surname}`,
         `+9198${String(65000000 + i * 211).slice(0, 8)}`,
         // Only Pune patients fall under the demo ASHA worker's caseload.
         place.district === 'Pune' ? asha?.id ?? null : null,

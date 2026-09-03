@@ -88,13 +88,19 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
     setAudioError('');
     setIsPlaying(true);
 
+    // An English voice reading Devanagari usually produces silence or noise, so
+    // when the chosen Indic voice is missing, narrate the English script instead
+    // of a script the device cannot pronounce.
+    const canSpeakChosen = availableLangs === null || availableLangs.includes(selectedLang);
+    const spokenLang = canSpeakChosen ? selectedLang : 'en';
+
     let fullText = '';
-    if (selectedLang === 'mr') fullText = buildMarathiScript();
-    else if (selectedLang === 'hi') fullText = buildHindiScript();
+    if (spokenLang === 'mr') fullText = buildMarathiScript();
+    else if (spokenLang === 'hi') fullText = buildHindiScript();
     else fullText = buildEnglishScript();
 
     try {
-      await SpeechService.speak(fullText, selectedLang);
+      await SpeechService.speak(fullText, spokenLang);
     } catch (err) {
       setAudioError(err instanceof Error ? err.message : 'Audio playback failed.');
     } finally {
@@ -185,10 +191,17 @@ export const AudioPrescriptionPlayer: React.FC<AudioPrescriptionPlayerProps> = (
         !audioError && (
           <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
             No {selectedLang === 'mr' ? 'Marathi' : selectedLang === 'hi' ? 'Hindi' : 'English'} voice
-            is installed on this device, so playback will fall back to an available voice.
+            is installed on this device, so playback will read the English version aloud instead.
             {availableLangs.length > 0 && (
               <> Voices available here: {availableLangs.join(', ')}.</>
             )}
+            <div className="mt-1.5">
+              To hear {selectedLang === 'mr' ? 'Marathi' : 'Hindi'}, install it on Windows via
+              Settings → Time &amp; language → Language &amp; region → Add a language →
+              {selectedLang === 'mr' ? ' मराठी (Marathi)' : ' हिंदी (Hindi)'}, including the
+              Speech feature, then restart the browser. The printed slip below always shows the
+              {selectedLang === 'mr' ? ' Marathi' : ' Hindi'} text.
+            </div>
           </div>
         )}
     </div>

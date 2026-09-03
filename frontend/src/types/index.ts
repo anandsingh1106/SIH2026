@@ -422,3 +422,33 @@ export interface SyncOperation {
   error?: string;
   retryCount: number;
 }
+
+export type QueueTokenStatus = 'WAITING' | 'CALLED' | 'IN_PROGRESS' | 'COMPLETED' | 'SKIPPED';
+
+export interface QueueToken {
+  id: string;
+  facilityId: string;
+  patientId: string;
+  patientName?: string;
+  doctorName?: string;
+  tokenNumber: number;
+  status: QueueTokenStatus;
+  position?: number;
+  queueDate: string;
+}
+
+export interface QueueSummary {
+  total: number;
+  waiting: number;
+  completed: number;
+  currentToken: number | null;
+}
+
+export interface PatientTimelineEvent {
+  id: string;
+  date: string;
+  title: string;
+  type: 'consultation' | 'prescription' | 'lab' | 'registration';
+  actor: string;
+  notes: string;
+}

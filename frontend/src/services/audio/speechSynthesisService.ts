@@ -59,6 +59,11 @@ export class SpeechService {
       // Fall back to Indian English, which reads Devanagari transliteration
       // far better than a US voice.
       voices.find((v) => v.lang === 'en-IN') ||
+      // Many Windows installs ship only en-US/en-GB. Speaking the script in
+      // one of those is still useful, so prefer any English voice over
+      // returning null and letting the browser pick silence-prone defaults.
+      voices.find((v) => v.lang.toLowerCase().startsWith('en-')) ||
+      voices[0] ||
       null
     );
   }
@@ -93,7 +98,9 @@ export class SpeechService {
 
     return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = LANG_CODES[lang] || 'en-IN';
+      // Tagging Devanagari text as mr-IN while an English voice speaks it makes
+      // some engines emit nothing at all, so follow the voice we actually got.
+      utterance.lang = voice?.lang || LANG_CODES[lang] || 'en-IN';
       // Slightly slower than default for clarity in medical guidance.
       utterance.rate = 0.9;
       utterance.pitch = 1.0;

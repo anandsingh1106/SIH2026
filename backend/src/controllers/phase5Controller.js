@@ -6,6 +6,8 @@ import * as queue from '../services/queueService.js';
 import { assessTriage, assistantReply } from '../services/ai/triageService.js';
 import { checkInteractions } from '../services/ai/drugInteractionService.js';
 import { getDb } from '../db/connection.js';
+import { ensureDemoQueueForToday } from '../db/demoQueue.js';
+import { isProduction } from '../config/env.js';
 import { AuthorizationError } from '../utils/errors.js';
 import { sendSuccess, sendPaginated } from '../utils/response.js';
 
@@ -200,6 +202,15 @@ export function postToken(req, res, next) {
 
 export function getQueue(req, res, next) {
   try {
+    // A long-running dev server crosses midnight into an empty queue, so top
+    // today's demo tokens up on read as well as at boot.
+    if (!isProduction) {
+      try {
+        ensureDemoQueueForToday({ silent: true });
+      } catch {
+        // Never fail a real queue read for a demo convenience.
+      }
+    }
     const result = queue.getQueue(req.params.facilityId, {});
     return sendSuccess(res, { ...result, items: result.items.map(toPublicToken) });
   } catch (err) { next(err); }

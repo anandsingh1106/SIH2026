@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient, Prescription, PrescribedMedicine, Vitals, Referral } from '../../types';
 import { checkPrescriptionSafety, AllergyWarning } from '../../services/ai/drugInteractionChecker';
@@ -17,8 +17,12 @@ import confetti from 'canvas-confetti';
 
 export const DoctorConsultationPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // The OPD queue opens this page for a specific token; completing that token
+  // is what moves the patient out of the waiting list.
+  const queueState = (location.state ?? {}) as { patientId?: string; queueTokenId?: string };
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [selectedPatientId, setSelectedPatientId] = useState('pat-101');
+  const [selectedPatientId, setSelectedPatientId] = useState(queueState.patientId ?? 'pat-101');
   const [symptoms, setSymptoms] = useState('Persistent morning headache, occasional dizziness, elevated blood pressure at home');
   const [examNotes, setExamNotes] = useState('Chest clear bilaterally, S1S2 heard, no murmur. Mild pedal edema noted. Fundus exam normal.');
   const [diagnosis, setDiagnosis] = useState('Essential Hypertension (Stage 2) with Suboptimal Glycemic Control');
@@ -74,7 +78,25 @@ export const DoctorConsultationPage: React.FC = () => {
     dataService.getPatients().then(setPatients);
   }, []);
 
-  const selectedPatient = patients.find((p) => p.id === selectedPatientId) || patients[0];
+  // The registry is larger than one page of the patient list, so a patient
+  // opened from the queue or the EHR may not be in it. Fetch that one directly
+  // rather than silently falling back to somebody else's record.
+  useEffect(() => {
+    if (!selectedPatientId) return;
+    if (patients.some((p) => p.id === selectedPatientId)) return;
+    let cancelled = false;
+    dataService.getPatientById(selectedPatientId).then((found) => {
+      if (cancelled || !found) return;
+      setPatients((prev) => (prev.some((p) => p.id === found.id) ? prev : [found, ...prev]));
+    });
+    return () => { cancelled = true; };
+  }, [selectedPatientId, patients]);
+
+  // Falling back to patients[0] would prescribe against the wrong person, so an
+  // unresolved id shows nothing until the record actually loads.
+  const selectedPatient =
+    patients.find((p) => p.id === selectedPatientId) ??
+    (selectedPatientId ? undefined : patients[0]);
 
   // Allergy check whenever medicines change
   useEffect(() => {
@@ -152,6 +174,16 @@ export const DoctorConsultationPage: React.FC = () => {
       };
 
       const saved = await dataService.savePrescription({ ...rx, diagnosis } as Prescription);
+
+      // The consultation is over, so close the OPD token. Without this the
+      // patient stays "In Consultation" on the queue desk forever.
+      if (queueState.queueTokenId) {
+        await dataService
+          .updateQueueToken(queueState.queueTokenId, 'complete')
+          // A prescription that is already saved must not be reported as failed
+          // just because the token could not be closed.
+          .catch((err) => console.warn('Could not close the OPD token:', err));
+      }
 
       // Keep the issued prescription so "Print Prescription Slip" prints it
       // rather than the surrounding page.

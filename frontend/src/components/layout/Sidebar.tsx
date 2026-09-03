@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
 import { useI18n } from '../../hooks/useI18n';
+import { dataService } from '../../services/api/dataService';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -44,6 +45,37 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
   const { currentRole, currentUser } = useAuth();
   const { t } = useI18n();
 
+  // Badge counts are pending work, so they track live data rather than a fixed
+  // number that contradicts the page it links to.
+  const [queueWaiting, setQueueWaiting] = useState<number | undefined>();
+  const [openReferrals, setOpenReferrals] = useState<number | undefined>();
+  const facilityId = currentUser?.facilityId;
+
+  const loadCounts = useCallback(async () => {
+    if (currentRole === 'doctor') {
+      if (!facilityId) {
+        setQueueWaiting(undefined);
+        return;
+      }
+      const { summary } = await dataService.getQueue(facilityId);
+      setQueueWaiting(summary?.waiting);
+    } else if (currentRole === 'specialist') {
+      const referrals = await dataService.getReferrals();
+      setOpenReferrals(referrals.filter((r) => r.status !== 'closed').length);
+    }
+  }, [currentRole, facilityId]);
+
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+
+  // Calling or completing a token has to move this badge immediately.
+  useEffect(() => {
+    return dataService.subscribe((event) => {
+      if (event.entity === 'queue' || event.entity === 'referrals') loadCounts();
+    });
+  }, [loadCounts]);
+
   const getNavItems = () => {
     switch (currentRole) {
       case 'asha':
@@ -66,7 +98,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       case 'doctor':
         return [
           { label: t.nav.dashboard, to: '/doctor/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.queue, to: '/doctor/queue', icon: <Users className="w-4 h-4" />, count: 12 },
+          { label: t.nav.queue, to: '/doctor/queue', icon: <Users className="w-4 h-4" />, count: queueWaiting },
           { label: t.nav.patients, to: '/doctor/patients', icon: <FileText className="w-4 h-4" /> },
           { label: t.nav.consultation, to: '/doctor/consultation', icon: <Stethoscope className="w-4 h-4" /> },
           { label: t.nav.aiTriage, to: '/doctor/ai-triage', icon: <Sparkles className="w-4 h-4" /> },
@@ -80,7 +112,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       case 'specialist':
         return [
           { label: t.nav.dashboard, to: '/specialist/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/specialist/referrals', icon: <ArrowRightLeft className="w-4 h-4" />, count: 3 },
+          { label: t.nav.referrals, to: '/specialist/referrals', icon: <ArrowRightLeft className="w-4 h-4" />, count: openReferrals },
           { label: t.nav.beds, to: '/specialist/beds', icon: <BedDouble className="w-4 h-4" /> },
           { label: t.nav.consultation, to: '/specialist/consultations', icon: <Stethoscope className="w-4 h-4" /> },
           { label: t.nav.treatmentPlans, to: '/specialist/treatment-plans', icon: <FileCheck className="w-4 h-4" /> },
@@ -170,7 +202,8 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
               <span className="shrink-0 transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
               <span className="truncate">{item.label}</span>
             </div>
-            {item.count !== undefined && (
+            {/* A zero badge is noise, so an empty queue shows no pill at all. */}
+            {item.count !== undefined && item.count > 0 && (
               <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-saffron-500 text-white tabular-nums">
                 {item.count}
               </span>

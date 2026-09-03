@@ -6,6 +6,7 @@ import { getDb } from '../src/db/connection.js';
 import { adjustStock } from '../src/services/inventoryService.js';
 import { checkInteractions } from '../src/services/ai/drugInteractionService.js';
 import { assessTriage } from '../src/services/ai/triageService.js';
+import { ensureDemoQueueForToday } from '../src/db/demoQueue.js';
 
 const app = createApp();
 
@@ -289,6 +290,54 @@ describe('OPD queue', () => {
     expect((await request(app).post(`/api/queue/${id}/start`).set('Cookie', cookie)).status).toBe(200);
     const done = await request(app).post(`/api/queue/${id}/complete`).set('Cookie', cookie);
     expect(done.body.data.status).toBe('COMPLETED');
+  });
+
+  it('drops a completed token out of the waiting list on the queue view', async () => {
+    const cookie = authCookie(doctor);
+    const token = await request(app).post('/api/queue/token').set('Cookie', cookie)
+      .send({ facilityId: facility.id, patientId: patient.id });
+    const id = token.body.data.id;
+
+    const before = await request(app).get(`/api/queue/${facility.id}`).set('Cookie', cookie);
+    const waitingBefore = before.body.data.summary.waiting;
+
+    // The consultation screen closes the token once the prescription is signed.
+    await request(app).post(`/api/queue/${id}/call`).set('Cookie', cookie);
+    await request(app).post(`/api/queue/${id}/start`).set('Cookie', cookie);
+    await request(app).post(`/api/queue/${id}/complete`).set('Cookie', cookie);
+
+    const after = await request(app).get(`/api/queue/${facility.id}`).set('Cookie', cookie);
+    // The desk read stale "In Consultation" rows while nothing closed the token.
+    expect(after.body.data.items.find((t) => t.id === id).status).toBe('COMPLETED');
+    expect(after.body.data.summary.waiting).toBe(waitingBefore - 1);
+    expect(after.body.data.summary.currentToken).toBeNull();
+  });
+
+  it('re-seeds the demo OPD queue for whatever day it is opened on', async () => {
+    const db = getDb();
+    const today = new Date().toISOString().slice(0, 10);
+    // The seeder only ever acts on the seeded demo accounts.
+    createUser({
+      role: 'DOCTOR', name: 'Demo Doctor', facilityId: facility.id,
+      email: 'demo.doctor@arogyasetu.test',
+    });
+
+    const first = ensureDemoQueueForToday({ silent: true });
+    expect(first.seeded).toBeGreaterThan(0);
+
+    // Running again must not stack a second queue on the same day.
+    expect(ensureDemoQueueForToday({ silent: true }).seeded).toBe(0);
+    const sameDay = db.prepare('SELECT COUNT(*) AS c FROM opd_tokens WHERE queue_date = ?').get(today).c;
+    expect(sameDay).toBe(first.seeded);
+
+    // Yesterday's tokens leave today empty, which is what stranded the demo.
+    db.prepare('DELETE FROM opd_tokens WHERE queue_date = ?').run(today);
+    expect(ensureDemoQueueForToday({ silent: true }).seeded).toBe(first.seeded);
+  });
+
+  it('leaves a non-demo deployment queue alone', () => {
+    // No demo.* doctor exists in this suite by default.
+    expect(ensureDemoQueueForToday({ silent: true }).seeded).toBe(0);
   });
 
   it('rejects an illegal queue transition', async () => {

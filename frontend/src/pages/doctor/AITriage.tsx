@@ -9,9 +9,12 @@ import { analyzeTriage, TriageResult } from '../../services/ai/triageEngine';
 import { Vitals } from '../../types';
 
 export const DoctorAITriagePage: React.FC = () => {
-  const [symptomInput, setSymptomInput] = useState('Severe retrosternal chest pain radiating to left jaw, diaphoresis, dyspnea');
-  const [vitals, setVitals] = useState<Vitals>({ bpSystolic: 158, bpDiastolic: 98, pulse: 104, spo2: 93, temperature: 98.4 });
-  const [age, setAge] = useState(62);
+  // Starting on a textbook cardiac emergency made every fresh visit read
+  // CRITICAL before anything was entered. Start neutral and let the clinician
+  // describe the patient in front of them.
+  const [symptomInput, setSymptomInput] = useState('');
+  const [vitals, setVitals] = useState<Vitals>({ bpSystolic: 120, bpDiastolic: 80, pulse: 78, spo2: 98, temperature: 98.6 });
+  const [age, setAge] = useState(35);
   const [isPregnant, setIsPregnant] = useState(false);
   const [result, setResult] = useState<TriageResult | null>(null);
 
@@ -21,6 +24,10 @@ export const DoctorAITriagePage: React.FC = () => {
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     const list = symptomInput.split(',').map((s) => s.trim()).filter(Boolean);
+    if (list.length === 0) {
+      setError('Enter at least one symptom before computing triage weights.');
+      return;
+    }
     // Pregnancy is passed as a symptom so the server's obstetric rules apply.
     const withContext = isPregnant ? [...list, 'pregnant'] : list;
 
@@ -72,6 +79,7 @@ export const DoctorAITriagePage: React.FC = () => {
           <textarea
             rows={2}
             value={symptomInput}
+            placeholder="e.g. chest pain, breathlessness, high fever since 2 days"
             onChange={(e) => setSymptomInput(e.target.value)}
             className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
           />
@@ -128,7 +136,8 @@ export const DoctorAITriagePage: React.FC = () => {
                   Calculated Risk Score: {result.score} / 100
                 </div>
                 <div className="text-[11px] text-ink-soft font-medium">
-                  Confidence Rating: {result.confidence}% Match with NHM Guidelines
+                  {result.contributingFactors.length} corroborating red-flag finding
+                  {result.contributingFactors.length === 1 ? '' : 's'}
                 </div>
               </div>
             </div>

@@ -156,6 +156,44 @@ describe('vitals', () => {
   });
 });
 
+describe('patient EHR timeline', () => {
+  it('scopes consultations and prescriptions to the requested patient', async () => {
+    const cookie = authCookie(doctor);
+    // Both patients must be inside the doctor's district, or access scoping —
+    // not the patientId filter — would be what separates the two timelines.
+    const secondPatient = createPatient({ name: 'Patient Three', district: 'Pune' });
+
+    await request(app).post('/api/consultations').set('Cookie', cookie)
+      .send({ patientId: patient.id, chiefComplaint: 'Fever', diagnosis: 'Viral fever' });
+    await request(app).post('/api/consultations').set('Cookie', cookie)
+      .send({ patientId: secondPatient.id, chiefComplaint: 'Cough', diagnosis: 'Bronchitis' });
+    await request(app).post('/api/prescriptions').set('Cookie', cookie)
+      .send({
+        patientId: patient.id, diagnosis: 'Viral fever',
+        items: [{ medicineName: 'Paracetamol 500mg', dosage: '1 tablet', duration: '5 days' }],
+      });
+
+    // The EHR timeline is built from these filtered lists, so a patientId that
+    // is ignored would show one patient another patient's history.
+    const consults = await request(app).get('/api/consultations')
+      .query({ patientId: patient.id, limit: 50 }).set('Cookie', cookie);
+    expect(consults.status).toBe(200);
+    expect(consults.body.data.items.length).toBe(1);
+    expect(consults.body.data.items.every((c) => c.patientId === patient.id)).toBe(true);
+
+    const rxs = await request(app).get('/api/prescriptions')
+      .query({ patientId: patient.id, limit: 50 }).set('Cookie', cookie);
+    expect(rxs.body.data.items.every((r) => r.patientId === patient.id)).toBe(true);
+    // The timeline titles each prescription by its medicines.
+    expect(rxs.body.data.items[0].medicines[0].name).toBe('Paracetamol 500mg');
+
+    const otherConsults = await request(app).get('/api/consultations')
+      .query({ patientId: secondPatient.id, limit: 50 }).set('Cookie', cookie);
+    expect(otherConsults.body.data.items.length).toBe(1);
+    expect(otherConsults.body.data.items[0].diagnosis).toBe('Bronchitis');
+  });
+});
+
 describe('prescriptions', () => {
   const rxBody = (patientId) => ({
     patientId,
@@ -175,6 +213,32 @@ describe('prescriptions', () => {
     expect(res.status).toBe(201);
     expect(res.body.data.medicines).toHaveLength(1);
     expect(res.body.data.medicines[0].name).toBe('Paracetamol 500mg');
+  });
+
+  it('returns medicines on the list endpoint, not just on a single fetch', async () => {
+    await request(app).post('/api/prescriptions').set('Cookie', authCookie(doctor))
+      .send({
+        ...rxBody(patient.id),
+        items: [{
+          medicineName: 'Amlodipine 5mg', dosage: '5 mg', frequency: '1-0-0',
+          duration: '30 days', quantity: 30,
+          instructions: 'Take one tablet after breakfast.',
+          instructionsMr: 'नाश्त्यानंतर एक गोळी घ्या.',
+        }],
+      });
+
+    const res = await request(app)
+      .get('/api/prescriptions')
+      .set('Cookie', authCookie(doctor));
+
+    expect(res.status).toBe(200);
+    const rx = res.body.data.items.find((r) => r.medicines?.length);
+    // The list drove a "0 Medicines Prescribed" UI when it dropped items.
+    expect(rx).toBeDefined();
+    expect(rx.medicines[0].name).toBeTruthy();
+    // The audio player reads this field aloud, so it must survive the list too.
+    const withMr = res.body.data.items.find((r) => r.medicines?.some((m) => m.instructionsMr));
+    expect(withMr).toBeDefined();
   });
 
   it('requires at least one medicine', async () => {
