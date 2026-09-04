@@ -6,12 +6,28 @@ import { AuthenticationError, AuthorizationError, AppError } from '../utils/erro
 export const ROLES = ['PATIENT', 'ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN'];
 
 /**
- * Verifies the session cookie and loads the user from the database.
+ * Reads the session token from wherever this client sends it.
+ *
+ * The web app has no way to attach a bearer header before its first request
+ * (there is nothing to attach yet), so it authenticates via the httpOnly
+ * cookie set at login. React Native has no cookie jar, so it sends the same
+ * JWT — handed back in the /api/auth/session response body — as a bearer
+ * token instead. Both verify through the identical signToken/verifyToken
+ * pair; only the transport differs.
+ */
+function readSessionToken(req) {
+  const authHeader = req.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) return authHeader.slice('Bearer '.length);
+  return req.cookies?.token;
+}
+
+/**
+ * Verifies the session token and loads the user from the database.
  * The role always comes from the database row, never from the token payload
  * or any client-supplied field.
  */
 export function requireAuth(req, _res, next) {
-  const token = req.cookies?.token;
+  const token = readSessionToken(req);
   if (!token) return next(new AuthenticationError());
 
   let payload;
@@ -109,7 +125,7 @@ export const requireAnyRole = requireRole;
 
 /** Attaches req.user when a valid session exists, but never rejects. */
 export function optionalAuth(req, _res, next) {
-  const token = req.cookies?.token;
+  const token = readSessionToken(req);
   if (!token) return next();
 
   try {

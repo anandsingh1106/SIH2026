@@ -46,6 +46,12 @@ export interface MfaState {
 export interface SessionResult {
   user: User;
   mfa: MfaState;
+  /**
+   * The same session JWT the web app receives as an httpOnly cookie, sent
+   * here too so a client with no cookie jar (React Native) can store it and
+   * send it back as `Authorization: Bearer <token>`. The web app ignores it.
+   */
+  sessionToken?: string;
 }
 
 export interface MfaStatus {
