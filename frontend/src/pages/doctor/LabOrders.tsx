@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { dataService } from '../../services/api/dataService';
-import type { LabOrder, Patient } from '../../types';
+import type { LabOrder, Patient } from '@arogyasetu/shared/types';
 
 /** The button label for moving an order to its next worklist stage. */
 const NEXT_STAGE_LABEL: Record<string, string> = {

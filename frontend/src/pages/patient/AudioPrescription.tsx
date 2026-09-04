@@ -8,10 +8,10 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import { EmptyState, ErrorState } from '../../components/ui/EmptyState';
 import { AudioPrescriptionPlayer } from '../../components/healthcare/AudioPrescriptionPlayer';
-import { backendApi } from '../../services/api/backendApi';
+import { backendApi } from '@arogyasetu/shared/services/api';
 import { mapPrescription } from '../../services/api/dataService';
 import { useAuth } from '../../services/auth/authContext';
-import { Prescription } from '../../types';
+import { Prescription } from '@arogyasetu/shared/types';
 
 export const PatientAudioPrescription: React.FC = () => {
   const { currentUser } = useAuth();

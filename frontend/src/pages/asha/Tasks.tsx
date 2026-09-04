@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { backendApi, PatientSummary } from '../../services/api/backendApi';
-import { Task } from '../../types';
+import { backendApi, PatientSummary } from '@arogyasetu/shared/services/api';
+import { Task } from '@arogyasetu/shared/types';
 import { CheckSquare, CheckCircle2, Clock, MapPin, Plus, CalendarDays } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

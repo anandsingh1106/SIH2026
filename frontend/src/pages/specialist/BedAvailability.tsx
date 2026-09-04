@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
 import { dataService } from '../../services/api/dataService';
-import type { Bed, Referral } from '../../types';
+import type { Bed, Referral } from '@arogyasetu/shared/types';
 
 /** Wards a bed can belong to, in the order a ward board is usually read. */
 const WARD_ORDER: Bed['type'][] = ['icu', 'ventilator', 'emergency', 'isolation', 'general'];

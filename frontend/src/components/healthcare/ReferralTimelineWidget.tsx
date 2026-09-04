@@ -1,5 +1,5 @@
 import React from 'react';
-import { Referral, ReferralStatus } from '../../types';
+import { Referral, ReferralStatus } from '@arogyasetu/shared/types';
 import { CheckCircle2, Clock, Truck, UserCheck, Stethoscope, Activity, CheckSquare, XCircle } from 'lucide-react';
 
 export interface ReferralTimelineWidgetProps {

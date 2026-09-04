@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Sparkles, MessageSquare, Volume2, Mic, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
-import { getAIContextualResponse, AIMessage } from '../../services/ai/aiAssistantService';
+import { getAIContextualResponse, AIMessage } from '@arogyasetu/shared/services/ai';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { AIMessageContent } from './AIMessageContent';

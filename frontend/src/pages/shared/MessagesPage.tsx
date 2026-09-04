@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { dataService } from '../../services/api/dataService';
-import { Message } from '../../types';
+import { Message } from '@arogyasetu/shared/types';
 import { MessageSquare, Send, Paperclip, Search, User, CheckCheck } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

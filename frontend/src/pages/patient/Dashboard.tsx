@@ -20,7 +20,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { dataService } from '../../services/api/dataService';
-import type { Appointment, LabOrder, Patient, Prescription, Referral, Vaccination } from '../../types';
+import type { Appointment, LabOrder, Patient, Prescription, Referral, Vaccination } from '@arogyasetu/shared/types';
 
 export const PatientDashboard: React.FC = () => {
   // A patient's API access is scoped to their own record server-side, so these

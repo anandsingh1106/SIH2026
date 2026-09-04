@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { dataService } from '../../services/api/dataService';
-import type { PatientTimelineEvent } from '../../types';
+import type { PatientTimelineEvent } from '@arogyasetu/shared/types';
 
 type EventType = 'all' | 'consultation' | 'prescription' | 'lab' | 'referral' | 'vaccination' | 'registration';
 

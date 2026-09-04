@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { ReferralTimelineWidget } from '../../components/healthcare/ReferralTimelineWidget';
 import { dataService } from '../../services/api/dataService';
-import type { Referral } from '../../types';
+import type { Referral } from '@arogyasetu/shared/types';
 
 export const PatientReferralStatus: React.FC = () => {
   // A patient's API access is scoped to their own record server-side, so this

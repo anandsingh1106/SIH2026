@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Patient } from '../../types';
+import { Patient } from '@arogyasetu/shared/types';
 import { UserPlus, CheckCircle2, ChevronRight, ChevronLeft, ShieldCheck, Heart, User, MapPin, Phone } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Input } from '../../components/ui/Input';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Priority } from '../../types';
+import { Priority } from '@arogyasetu/shared/types';
 import { Badge } from '../ui/Badge';
 import { AlertCircle, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
 

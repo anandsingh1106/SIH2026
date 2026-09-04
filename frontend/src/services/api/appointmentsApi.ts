@@ -1,4 +1,4 @@
-import { api, Paginated } from './apiClient';
+import { api, Paginated } from '@arogyasetu/shared/services/api';
 
 export interface Appointment {
   id: string;

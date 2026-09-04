@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { MAHARASHTRA_DISTRICTS } from '../../data/mockData';
 import { useAuth } from '../../services/auth/authContext';
 import { isSupabaseConfigured } from '../../services/auth/supabaseAuth';
-import { UserRole } from '../../types';
+import { UserRole } from '@arogyasetu/shared/types';
 
 const ROLE_HOME: Record<string, string> = {
   asha: '/asha/dashboard',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { backendApi } from '../../services/api/backendApi';
+import { backendApi } from '@arogyasetu/shared/services/api';
 import { MAHARASHTRA_STATE_KPIS } from '../../data/mockData';
 import {
   Shield,

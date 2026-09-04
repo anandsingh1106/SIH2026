@@ -10,7 +10,7 @@ import {
 } from '../../components/healthcare/PrintableDischargeSummary';
 import { printDocument } from '../../utils/printDocument';
 import { dataService } from '../../services/api/dataService';
-import type { Patient } from '../../types';
+import type { Patient } from '@arogyasetu/shared/types';
 
 export const SpecialistDischarge: React.FC = () => {
   const [showGenerateModal, setShowGenerateModal] = useState(false);

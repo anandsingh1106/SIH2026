@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Patient, HomeVisit, Vitals, Referral } from '../../types';
+import { Patient, HomeVisit, Vitals, Referral } from '@arogyasetu/shared/types';
 import { Home, User, CheckCircle2, AlertTriangle, ArrowRightLeft, Calendar, Stethoscope, Heart, CloudOff, X } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

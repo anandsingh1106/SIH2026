@@ -1,4 +1,14 @@
 node_modules/
+mobile/.expo/
+mobile/android/build/
+mobile/android/app/build/
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
 frontend/dist/
 frontend/tsconfig.tsbuildinfo
 frontend/tsconfig.node.tsbuildinfo
@@ -23,3 +33,4 @@ DEMO_ACCOUNTS.md
 # Recreate with: cd backend && npm run demo:roster
 DEMO_ROSTER.md
 backend/.demo-roster.json
+mobile/package-lock.json

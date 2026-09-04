@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserRole } from '../../types';
+import { UserRole } from '@arogyasetu/shared/types';
 import { Shield, Sparkles, Users, Stethoscope, BedDouble, Building2, User, ArrowRight } from 'lucide-react';
 
 export const SelectRolePage: React.FC = () => {

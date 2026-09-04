@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
 import { INITIAL_FACILITIES } from '../../data/mockData';
-import { Facility } from '../../types';
+import { Facility } from '@arogyasetu/shared/types';
 
 export const AdminFacilityManagement: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Patient } from '../../types';
+import { Patient } from '@arogyasetu/shared/types';
 import { TriageBadge } from './TriageBadge';
 import { User, Phone, MapPin, AlertOctagon, Heart } from 'lucide-react';
 import { Badge } from '../ui/Badge';

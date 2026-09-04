@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bed } from '../../types';
+import { Bed } from '@arogyasetu/shared/types';
 import { BedDouble, Check, AlertCircle } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 

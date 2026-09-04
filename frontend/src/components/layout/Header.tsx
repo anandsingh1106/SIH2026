@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
 import { useI18n } from '../../hooks/useI18n';
-import { backendApi, NotificationRecord } from '../../services/api/backendApi';
+import { backendApi, NotificationRecord } from '@arogyasetu/shared/services/api';
 import {
   Shield,
   Bell,

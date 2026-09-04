@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
-import { UserRole } from '../../types';
+import { UserRole } from '@arogyasetu/shared/types';
 
 interface StaffMember {
   id: string;

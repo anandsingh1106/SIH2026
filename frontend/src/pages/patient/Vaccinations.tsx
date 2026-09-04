@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
 import { dataService } from '../../services/api/dataService';
-import type { Patient, Vaccination } from '../../types';
+import type { Patient, Vaccination } from '@arogyasetu/shared/types';
 
 interface VaccinationRecord {
   id: string;

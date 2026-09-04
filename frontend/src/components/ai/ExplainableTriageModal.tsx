@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
-import { analyzeTriage, TriageResult } from '../../services/ai/triageEngine';
+import { analyzeTriage, TriageResult } from '@arogyasetu/shared/services/ai';
 import { VitalsInputGroup } from '../healthcare/VitalsInputGroup';
-import { Vitals } from '../../types';
+import { Vitals } from '@arogyasetu/shared/types';
 import { Button } from '../ui/Button';
 import { TriageBadge } from '../healthcare/TriageBadge';
 import { Sparkles, AlertTriangle, CheckCircle2, ShieldAlert } from 'lucide-react';

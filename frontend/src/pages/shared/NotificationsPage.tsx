@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
 import { dataService } from '../../services/api/dataService';
-import { Notification, Priority } from '../../types';
+import { Notification, Priority } from '@arogyasetu/shared/types';
 import { Bell, CheckCheck, Filter, AlertTriangle, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
-import { Task, Referral, Patient } from '../../types';
+import { Task, Referral, Patient } from '@arogyasetu/shared/types';
 import {
   CheckSquare,
   Home,

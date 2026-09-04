@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
 import { INITIAL_MEDICINES } from '../../data/mockData';
-import { Medicine } from '../../types';
+import { Medicine } from '@arogyasetu/shared/types';
 
 export const AdminInventoryManagement: React.FC = () => {
   const [drugs, setDrugs] = useState<Medicine[]>(INITIAL_MEDICINES);

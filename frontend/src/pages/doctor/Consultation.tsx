@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Patient, Prescription, PrescribedMedicine, Vitals, Referral } from '../../types';
-import { checkPrescriptionSafety, AllergyWarning } from '../../services/ai/drugInteractionChecker';
+import { Patient, Prescription, PrescribedMedicine, Vitals, Referral } from '@arogyasetu/shared/types';
+import { checkPrescriptionSafety, AllergyWarning } from '@arogyasetu/shared/services/ai';
 import { Stethoscope, CheckCircle2, AlertOctagon, Plus, Trash2, Sparkles, Pill, FlaskConical, ArrowRightLeft, ShieldCheck, Printer } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
