@@ -824,16 +824,57 @@ export const CLINICAL_GUIDELINES_DATA = [
   },
 ];
 
+/**
+ * Statewide reference figures for Maharashtra's rural public health system.
+ *
+ * Facility counts are the district-wise totals published by NHM (10,580
+ * sub-centres + 1,809 PHCs + 365 CHCs + 81 sub-divisional + 23 district
+ * hospitals). ASHA strength is the NHSRC state figure. MMR/IMR are the SRS
+ * bulletin values for Maharashtra.
+ *
+ * `teleConsultations` is Maharashtra's cumulative eSanjeevani figure as on
+ * December 2024. `abhaAccounts` is the state's ABHA count from the ABDM
+ * dashboard, reported at 7.1 crore.
+ *
+ * Sources:
+ *   https://www.nhm.gov.in/images/pdf/monitoring/rhs/district-wise-health-centres.pdf
+ *   https://nhsrcindia.org/asha-map-table
+ *   https://phd.maharashtra.gov.in/en/scheme/telemedicine/
+ */
 export const MAHARASHTRA_STATE_KPIS = {
-  totalFacilities: 1840,
-  activeAshas: 74200,
-  totalPatientsRegistered: 4820000,
-  teleConsultationsCompleted: 142800,
+  totalFacilities: 12858,
+  activeAshas: 70267,
+  abhaAccounts: 71000000,
+  teleConsultationsCompleted: 4780259,
   maternalMortalityRatio: 33,
   infantMortalityRate: 16,
   immunizationCoveragePercent: 94.8,
   ncdScreeningPercent: 82.4,
 };
+
+export interface InfrastructureGapTier {
+  tier: string;
+  /** Facilities functioning nationally as on 31 March 2023. */
+  functioning: number;
+  /** Population one such facility is meant to serve, in plain areas. */
+  norm: string;
+  /** Rural shortfall against the population norm, as a percentage. */
+  shortfallPercent: number;
+}
+
+/**
+ * All-India rural infrastructure shortfall against the population norms laid
+ * down for the three-tier rural health system. This is the gap the platform
+ * exists to work around: the specialist tier is the scarcest, so referrals
+ * out of a PHC frequently have no CHC ready to receive them.
+ *
+ * Source: Rural Health Statistics / Health Dynamics of India 2022-23, MoHFW.
+ */
+export const INFRASTRUCTURE_GAP: InfrastructureGapTier[] = [
+  { tier: 'Sub-Centres', functioning: 169615, norm: '5,000 people', shortfallPercent: 22 },
+  { tier: 'Primary Health Centres', functioning: 31882, norm: '30,000 people', shortfallPercent: 30 },
+  { tier: 'Community Health Centres', functioning: 6359, norm: '1,20,000 people', shortfallPercent: 36 },
+];
 
 export interface DistrictStat {
   district: string;
@@ -845,17 +886,29 @@ export interface DistrictStat {
   medicineAvailabilityRate: number;
 }
 
+/**
+ * Rural facility counts per district, as published district-wise by NHM.
+ *
+ * `ashaCount` is derived from the official ASHA norm of one worker per 1,000
+ * rural population, applied to the sub-centre count (one sub-centre serves
+ * 5,000 people in plain areas, 3,000 in tribal ones) — so Nandurbar and
+ * Gadchiroli, which are tribal, carry proportionally more ASHAs per centre.
+ * Bed occupancy and medicine availability are demo operational figures; the
+ * live equivalents come from the facility and inventory APIs.
+ *
+ * Source: https://www.nhm.gov.in/images/pdf/monitoring/rhs/district-wise-health-centres.pdf
+ */
 export const MAHARASHTRA_DISTRICT_STATS: DistrictStat[] = [
-  { district: 'Pune', phcCount: 96, chcCount: 22, subCenterCount: 540, ashaCount: 4200, bedOccupancyRate: 78, medicineAvailabilityRate: 94 },
-  { district: 'Mumbai Suburban', phcCount: 45, chcCount: 18, subCenterCount: 120, ashaCount: 2800, bedOccupancyRate: 92, medicineAvailabilityRate: 96 },
-  { district: 'Nashik', phcCount: 104, chcCount: 24, subCenterCount: 590, ashaCount: 4400, bedOccupancyRate: 81, medicineAvailabilityRate: 91 },
-  { district: 'Nagpur', phcCount: 78, chcCount: 16, subCenterCount: 410, ashaCount: 3100, bedOccupancyRate: 74, medicineAvailabilityRate: 93 },
-  { district: 'Chhatrapati Sambhajinagar', phcCount: 88, chcCount: 19, subCenterCount: 480, ashaCount: 3600, bedOccupancyRate: 76, medicineAvailabilityRate: 89 },
-  { district: 'Nandurbar', phcCount: 58, chcCount: 12, subCenterCount: 310, ashaCount: 2200, bedOccupancyRate: 84, medicineAvailabilityRate: 86 },
-  { district: 'Gadchiroli', phcCount: 48, chcCount: 11, subCenterCount: 280, ashaCount: 1950, bedOccupancyRate: 79, medicineAvailabilityRate: 85 },
-  { district: 'Thane', phcCount: 62, chcCount: 15, subCenterCount: 340, ashaCount: 2900, bedOccupancyRate: 88, medicineAvailabilityRate: 92 },
-  { district: 'Satara', phcCount: 72, chcCount: 14, subCenterCount: 390, ashaCount: 2800, bedOccupancyRate: 71, medicineAvailabilityRate: 95 },
-  { district: 'Kolhapur', phcCount: 76, chcCount: 15, subCenterCount: 420, ashaCount: 3000, bedOccupancyRate: 75, medicineAvailabilityRate: 94 },
+  { district: 'Pune', phcCount: 96, chcCount: 21, subCenterCount: 539, ashaCount: 2695, bedOccupancyRate: 78, medicineAvailabilityRate: 94 },
+  { district: 'Nashik', phcCount: 103, chcCount: 24, subCenterCount: 577, ashaCount: 2885, bedOccupancyRate: 81, medicineAvailabilityRate: 91 },
+  { district: 'Ahmednagar', phcCount: 96, chcCount: 23, subCenterCount: 555, ashaCount: 2775, bedOccupancyRate: 76, medicineAvailabilityRate: 92 },
+  { district: 'Thane', phcCount: 78, chcCount: 14, subCenterCount: 492, ashaCount: 2460, bedOccupancyRate: 88, medicineAvailabilityRate: 92 },
+  { district: 'Nagpur', phcCount: 49, chcCount: 9, subCenterCount: 316, ashaCount: 1580, bedOccupancyRate: 74, medicineAvailabilityRate: 93 },
+  { district: 'Chhatrapati Sambhajinagar', phcCount: 50, chcCount: 10, subCenterCount: 279, ashaCount: 1395, bedOccupancyRate: 76, medicineAvailabilityRate: 89 },
+  { district: 'Kolhapur', phcCount: 72, chcCount: 16, subCenterCount: 413, ashaCount: 2065, bedOccupancyRate: 75, medicineAvailabilityRate: 94 },
+  { district: 'Satara', phcCount: 71, chcCount: 15, subCenterCount: 400, ashaCount: 2000, bedOccupancyRate: 71, medicineAvailabilityRate: 95 },
+  { district: 'Nandurbar', phcCount: 58, chcCount: 12, subCenterCount: 290, ashaCount: 2417, bedOccupancyRate: 84, medicineAvailabilityRate: 86 },
+  { district: 'Gadchiroli', phcCount: 45, chcCount: 9, subCenterCount: 376, ashaCount: 3133, bedOccupancyRate: 79, medicineAvailabilityRate: 85 },
 ];
 
 export interface OutbreakAlert {

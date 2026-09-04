@@ -6,14 +6,20 @@ import { ChartCard } from '../../components/ui/ChartCard';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export const DoctorAnalyticsPage: React.FC = () => {
+  /**
+   * Demo OPD throughput for a single PHC. A PHC serves 30,000 people and is
+   * staffed by one medical officer, so the daily load is scaled to what one
+   * doctor can realistically see rather than to a district-hospital volume.
+   * Sunday is a half day; Monday carries the weekend backlog.
+   */
   const weeklyFootfall = [
-    { day: 'Mon', opd: 48, tele: 6 },
-    { day: 'Tue', opd: 52, tele: 8 },
-    { day: 'Wed', opd: 44, tele: 5 },
-    { day: 'Thu', opd: 58, tele: 10 },
-    { day: 'Fri', opd: 49, tele: 7 },
-    { day: 'Sat', opd: 64, tele: 12 },
-    { day: 'Sun', opd: 22, tele: 4 },
+    { day: 'Mon', opd: 42, tele: 5 },
+    { day: 'Tue', opd: 35, tele: 4 },
+    { day: 'Wed', opd: 31, tele: 3 },
+    { day: 'Thu', opd: 36, tele: 6 },
+    { day: 'Fri', opd: 34, tele: 4 },
+    { day: 'Sat', opd: 28, tele: 3 },
+    { day: 'Sun', opd: 12, tele: 2 },
   ];
 
   const morbidityData = [
@@ -47,9 +53,9 @@ export const DoctorAnalyticsPage: React.FC = () => {
       {/* Top Metric Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <MetricCard
-          title="Monthly Footfall"
-          value="1,248 OPD"
-          subtitle="+14% vs last month"
+          title="Weekly Footfall"
+          value="218 OPD"
+          subtitle="Weekly load at one PHC (30,000 population)"
           variant="teal"
           icon={<Users className="w-5 h-5 text-gov-700" />}
         />
@@ -62,7 +68,7 @@ export const DoctorAnalyticsPage: React.FC = () => {
         />
         <MetricCard
           title="Teleconsultations"
-          value="184 Calls"
+          value="27 Calls"
           subtitle="Avg Duration: 8.5 Mins"
           variant="blue"
           icon={<Video className="w-5 h-5 text-sky-600" />}

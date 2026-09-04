@@ -11,8 +11,9 @@ import {
   MAHARASHTRA_STATE_KPIS, 
   INITIAL_FACILITIES, 
   INITIAL_REFERRALS,
-  OUTBREAK_ALERTS 
+  OUTBREAK_ALERTS
 } from '../../data/mockData';
+import { formatCrore } from '../../utils/formatIndianNumber';
 
 export const AdminDashboard: React.FC = () => {
   const kpis = MAHARASHTRA_STATE_KPIS;
@@ -65,8 +66,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-ink mt-2">{kpis.totalFacilities.toLocaleString()}</p>
-          <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1 font-semibold">
-            <ArrowUpRight className="w-3.5 h-3.5" /> 100% On-grid
+          <div className="flex items-center gap-1 text-xs text-ink-soft mt-1 font-semibold">
+            <ArrowUpRight className="w-3.5 h-3.5" /> Sub-centres, PHCs &amp; CHCs
           </div>
         </Card>
 
@@ -78,8 +79,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-ink mt-2">{kpis.activeAshas.toLocaleString()}</p>
-          <div className="flex items-center gap-1 text-xs text-teal-600 mt-1 font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" /> 98.4% Sync Rate
+          <div className="flex items-center gap-1 text-xs text-ink-soft mt-1 font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" /> Norm: 1 per 1,000 population
           </div>
         </Card>
 
@@ -90,9 +91,9 @@ export const AdminDashboard: React.FC = () => {
               <Activity className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-ink mt-2">{kpis.totalPatientsRegistered.toLocaleString()}</p>
-          <div className="flex items-center gap-1 text-xs text-purple-600 mt-1 font-semibold">
-            <TrendingUp className="w-3.5 h-3.5" /> +14.2k this week
+          <p className="text-2xl font-bold text-ink mt-2">{formatCrore(kpis.abhaAccounts)}</p>
+          <div className="flex items-center gap-1 text-xs text-ink-soft mt-1 font-semibold">
+            <TrendingUp className="w-3.5 h-3.5" /> ABDM dashboard, statewide
           </div>
         </Card>
 
@@ -103,9 +104,9 @@ export const AdminDashboard: React.FC = () => {
               <PhoneCall className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-ink mt-2">{kpis.teleConsultationsCompleted.toLocaleString()}</p>
-          <div className="flex items-center gap-1 text-xs text-emerald-600 mt-1 font-semibold">
-            <ArrowUpRight className="w-3.5 h-3.5" /> eSanjeevani Integrated
+          <p className="text-2xl font-bold text-ink mt-2">{formatCrore(kpis.teleConsultationsCompleted)}</p>
+          <div className="flex items-center gap-1 text-xs text-ink-soft mt-1 font-semibold">
+            <ArrowUpRight className="w-3.5 h-3.5" /> eSanjeevani, cumulative to Dec 2024
           </div>
         </Card>
       </div>

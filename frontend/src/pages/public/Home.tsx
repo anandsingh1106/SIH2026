@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { backendApi } from '../../services/api/backendApi';
+import { MAHARASHTRA_STATE_KPIS } from '../../data/mockData';
 import {
   Shield,
   PhoneCall,
@@ -60,7 +61,7 @@ export const HomePage: React.FC = () => {
   const challenges = [
     {
       title: 'Rural Healthcare Access',
-      desc: 'Overcoming geographic barriers across 40,000+ villages with offline-capable ASHA mobile tooling.',
+      desc: 'Overcoming geographic barriers across 40,959 villages with offline-capable ASHA mobile tooling.',
       icon: <Users className="w-5 h-5 text-teal-600" />,
     },
     {
@@ -177,7 +178,9 @@ export const HomePage: React.FC = () => {
               </h1>
 
               <p className="text-lg text-ink-muted leading-relaxed max-w-2xl animate-fade-up [animation-delay:120ms]">
-                A unified, accessible digital healthcare ecosystem bridging <strong>36 districts</strong>, <strong>12,000+ facilities</strong>, <strong>65,000+ ASHA workers</strong>, primary medical officers, and tertiary specialists into one coordinated care grid.
+                A unified, accessible digital healthcare ecosystem bridging <strong>36 districts</strong>,{' '}
+                <strong>{MAHARASHTRA_STATE_KPIS.totalFacilities.toLocaleString('en-IN')} rural facilities</strong>,{' '}
+                <strong>{MAHARASHTRA_STATE_KPIS.activeAshas.toLocaleString('en-IN')} ASHA workers</strong>, primary medical officers, and tertiary specialists into one coordinated care grid.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2 animate-fade-up [animation-delay:180ms]">

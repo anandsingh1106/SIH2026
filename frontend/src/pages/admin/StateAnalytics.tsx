@@ -3,7 +3,7 @@ import { BarChart3, TrendingUp, HeartPulse, Baby, ShieldAlert, Download, Filter 
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { MAHARASHTRA_STATE_KPIS } from '../../data/mockData';
+import { INFRASTRUCTURE_GAP, MAHARASHTRA_STATE_KPIS } from '../../data/mockData';
 
 export const AdminStateAnalytics: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'Q1' | 'Q2' | 'Q3' | 'Annual'>('Annual');
@@ -19,7 +19,7 @@ export const AdminStateAnalytics: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ink">State Public Health Analytics & Epidemiological Trends</h1>
-            <p className="text-sm text-ink-soft">Maternal Mortality, NCD screening penetrance, and tribal healthcare metrics across Maharashtra</p>
+            <p className="text-sm text-ink-soft">Mortality indicators, rural infrastructure coverage, and NCD burden across Maharashtra</p>
           </div>
         </div>
 
@@ -65,20 +65,20 @@ export const AdminStateAnalytics: React.FC = () => {
 
         <Card className="p-5 border-l-4 border-l-emerald-500">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase">Universal Full Immunization</span>
+            <span className="text-xs font-bold text-ink-soft uppercase">Rural Health Facilities</span>
             <TrendingUp className="w-5 h-5 text-emerald-500" />
           </div>
-          <p className="text-2xl font-bold text-ink mt-2">94.8%</p>
-          <p className="text-xs text-ink-soft mt-1">U-WIN verified across 36 districts</p>
+          <p className="text-2xl font-bold text-ink mt-2">{MAHARASHTRA_STATE_KPIS.totalFacilities.toLocaleString('en-IN')}</p>
+          <p className="text-xs text-ink-soft mt-1">Sub-centres, PHCs and CHCs statewide</p>
         </Card>
 
         <Card className="p-5 border-l-4 border-l-amber-500">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase">NCD Screening Penetrance</span>
+            <span className="text-xs font-bold text-ink-soft uppercase">ASHA Workforce</span>
             <ShieldAlert className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-ink mt-2">82.4%</p>
-          <p className="text-xs text-ink-soft mt-1">Population &gt;30 yrs screened</p>
+          <p className="text-2xl font-bold text-ink mt-2">{MAHARASHTRA_STATE_KPIS.activeAshas.toLocaleString('en-IN')}</p>
+          <p className="text-xs text-ink-soft mt-1">Norm: 1 ASHA per 1,000 rural population</p>
         </Card>
       </div>
 
@@ -129,36 +129,41 @@ export const AdminStateAnalytics: React.FC = () => {
           </div>
         </Card>
 
-        {/* Tribal & Remote Talukas Index */}
+        {/* Infrastructure gap against national norms */}
         <Card className="p-5 space-y-4">
-          <h2 className="font-bold text-ink text-sm">Tribal & Remote Talukas Intensive Health Track</h2>
-          <p className="text-xs text-ink-soft">Targeted nutrition, sickle cell anemia, and maternal delivery coverage in Melghat, Gadchiroli, Nandurbar</p>
+          <h2 className="font-bold text-ink text-sm">Rural Infrastructure Gap Against Population Norms</h2>
+          <p className="text-xs text-ink-soft">
+            All-India shortfall as on 31 March 2023, measured against the norm of one sub-centre per
+            5,000 people, one PHC per 30,000 and one CHC per 1,20,000 (3,000 / 20,000 / 80,000 in
+            tribal and hilly areas).
+          </p>
 
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-sand-50 rounded-xl border border-line">
-              <div className="flex justify-between font-bold text-ink">
-                <span>Sickle Cell Anemia Mission (Nandurbar & Gadchiroli)</span>
-                <Badge variant="success">96% Screened</Badge>
+            {INFRASTRUCTURE_GAP.map(tier => (
+              <div key={tier.tier} className="p-3 bg-sand-50 rounded-xl border border-line">
+                <div className="flex justify-between font-bold text-ink">
+                  <span>{tier.tier}</span>
+                  <Badge variant={tier.shortfallPercent >= 30 ? 'danger' : 'warning'}>
+                    {tier.shortfallPercent}% shortfall
+                  </Badge>
+                </div>
+                <p className="text-ink-muted mt-1">
+                  {tier.functioning.toLocaleString('en-IN')} functioning nationally &middot; one per {tier.norm}
+                </p>
+                <div className="w-full bg-sand-100 h-2 rounded-full overflow-hidden mt-2">
+                  <div
+                    className={`h-full rounded-full ${tier.shortfallPercent >= 30 ? 'bg-rose-500' : 'bg-amber-500'}`}
+                    style={{ width: `${tier.shortfallPercent}%` }}
+                  />
+                </div>
               </div>
-              <p className="text-ink-muted mt-1">42,000 tribal youth mapped; genetic counseling cards distributed.</p>
-            </div>
-
-            <div className="p-3 bg-sand-50 rounded-xl border border-line">
-              <div className="flex justify-between font-bold text-ink">
-                <span>100% Institutional Deliveries via Birth Waiting Homes</span>
-                <Badge variant="success">99.1%</Badge>
-              </div>
-              <p className="text-ink-muted mt-1">Zero home deliveries recorded in high-risk talukas during Q3.</p>
-            </div>
-
-            <div className="p-3 bg-sand-50 rounded-xl border border-line">
-              <div className="flex justify-between font-bold text-ink">
-                <span>Severe Acute Malnutrition (SAM) Treatment Units</span>
-                <Badge variant="warning">88% Recovery</Badge>
-              </div>
-              <p className="text-ink-muted mt-1">1,240 children rehabilitated via Nutrition Rehabilitation Centers (NRC).</p>
-            </div>
+            ))}
           </div>
+
+          <p className="text-[11px] text-ink-muted leading-relaxed">
+            The specialist tier carries the widest gap, so a third of PHC referrals have no CHC ready
+            to receive them &mdash; the case for referral tracking and teleconsultation.
+          </p>
         </Card>
       </div>
     </div>
