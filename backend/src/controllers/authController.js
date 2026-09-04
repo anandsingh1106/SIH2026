@@ -1,5 +1,5 @@
 import { supabaseLogin } from '../services/authService.js';
-import { setSessionCookie, clearSessionCookie } from '../services/tokenService.js';
+import { setSessionCookie, clearSessionCookie, signToken } from '../services/tokenService.js';
 import { issueCsrfToken, clearCsrfToken } from '../middleware/csrf.js';
 import { recordAudit } from '../services/auditService.js';
 import { checkLockout, recordFailure, recordSuccess } from '../services/loginAttemptService.js';
@@ -65,9 +65,14 @@ export async function postSupabaseLogin(req, res, next) {
     // Paired with the session: the frontend echoes this back on writes.
     const csrfToken = issueCsrfToken(res);
 
+    // The mobile app has no cookie jar, so it authenticates with this same
+    // token sent as a bearer header instead. The web client already has its
+    // session via the cookie above and ignores this field.
+    const sessionToken = signToken(user, { mfaSatisfied: mfa.satisfied });
+
     return sendSuccess(
       res,
-      { user: toPublicUser(user), csrfToken, mfa },
+      { user: toPublicUser(user), csrfToken, sessionToken, mfa },
       created ? 201 : 200
     );
   } catch (err) {

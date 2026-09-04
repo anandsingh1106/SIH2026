@@ -80,6 +80,41 @@ describe('GET /api/auth/me', () => {
     const res = await request(app).get('/api/auth/me').set('Cookie', `token=${forged}`);
     expect(res.body.data.user.role).toBe('patient');
   });
+
+  // React Native has no cookie jar, so it authenticates with the same JWT
+  // sent as a bearer header instead of a cookie.
+  it('restores a session for a valid bearer token', async () => {
+    const user = createUser({ role: 'ASHA' });
+    const token = signToken(user);
+
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.id).toBe(user.id);
+  });
+
+  it('rejects a malformed bearer token', async () => {
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', 'Bearer garbage');
+    expect(res.status).toBe(401);
+  });
+
+  it('prefers the bearer token when both a cookie and a header are present', async () => {
+    const cookieUser = createUser({ role: 'PATIENT' });
+    const bearerUser = createUser({ role: 'DOCTOR' });
+    const token = signToken(bearerUser);
+
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Cookie', authCookie(cookieUser))
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.id).toBe(bearerUser.id);
+  });
 });
 
 describe('POST /api/auth/session', () => {
