@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient } from '../../types';
-import { UserPlus, Sparkles, CheckCircle2, ChevronRight, ChevronLeft, ShieldCheck, Heart, User, MapPin, Phone } from 'lucide-react';
+import { UserPlus, CheckCircle2, ChevronRight, ChevronLeft, ShieldCheck, Heart, User, MapPin, Phone } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -45,16 +45,20 @@ export const AshaRegisterPatientPage: React.FC = () => {
     assignedAshaId: 'usr-asha-1',
   });
 
-  const handleGenerateAbha = () => {
-    const abha = '91-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000);
-    setFormData({ ...formData, abhaId: abha });
-  };
+  /**
+   * An ABHA number is issued by ABDM against a verified Aadhaar or mobile OTP.
+   * It cannot be minted locally, so registration records the number the patient
+   * already holds and otherwise leaves it blank — a patient without one is
+   * registered anyway and followed up. Care is never blocked on it.
+   */
+  const abhaEntered = Boolean(formData.abhaId?.trim());
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const newPatient: Patient = {
       id: 'pat-' + Date.now(),
-      abhaId: formData.abhaId || '91-' + Math.floor(1000 + Math.random() * 9000) + '-4521-8890',
+      // Blank when the patient has no ABHA yet — never fabricated.
+      abhaId: formData.abhaId?.trim() || '',
       name: formData.name || 'New Registered Patient',
       nameMr: formData.nameMr,
       age: formData.age || 30,
@@ -109,8 +113,20 @@ export const AshaRegisterPatientPage: React.FC = () => {
             Patient Registered Successfully!
           </h2>
           <p className="text-xs text-ink-muted max-w-md mx-auto">
-            {formData.name} has been enrolled into the Maharashtra Health Grid with ABHA ID{' '}
-            <strong className="font-mono text-gov-800">{formData.abhaId}</strong>. Record saved offline and queued for server sync.
+            {formData.name} has been registered.{' '}
+            {abhaEntered ? (
+              <>
+                ABHA number{' '}
+                <strong className="font-mono text-gov-800">{formData.abhaId}</strong> recorded
+                against this patient.
+              </>
+            ) : (
+              <>
+                No ABHA number on file &mdash; the patient can be linked later at any facility.
+                Care is not blocked while it is pending.
+              </>
+            )}{' '}
+            Record saved and queued for server sync.
           </p>
           <div className="pt-4 flex justify-center gap-3">
             <Button
@@ -208,21 +224,22 @@ export const AshaRegisterPatientPage: React.FC = () => {
                 {/* ABHA Generation */}
                 <div className="bg-sand-50 p-4 rounded-xl border border-line space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-ink">Ayushman Bharat Health Account (ABHA ID)</span>
-                    <button
-                      type="button"
-                      onClick={handleGenerateAbha}
-                      className="text-xs text-gov-700 font-bold hover:underline flex items-center gap-1"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      Generate ABHA ID
-                    </button>
+                    <span className="text-xs font-bold text-ink">
+                      Ayushman Bharat Health Account (ABHA number)
+                    </span>
+                    <span className="text-xs font-semibold text-ink-soft">Optional</span>
                   </div>
                   <Input
-                    placeholder="e.g. 91-4521-8890-1200"
+                    placeholder="14-digit ABHA number, if the patient has one"
+                    inputMode="numeric"
                     value={formData.abhaId || ''}
                     onChange={(e) => setFormData({ ...formData, abhaId: e.target.value })}
                   />
+                  <p className="text-[11px] text-ink-muted leading-relaxed">
+                    Leave blank if the patient does not have one. Registration continues either way
+                    &mdash; an ABHA number is issued by ABDM against Aadhaar or mobile verification
+                    and cannot be created here.
+                  </p>
                 </div>
               </div>
             )}

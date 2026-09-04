@@ -6,13 +6,32 @@ import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
 import { printDocument } from '../../utils/printDocument';
 import { Prescription } from '../../types';
-import { INITIAL_PRESCRIPTIONS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
 
 export const PatientPrescriptions: React.FC = () => {
-  const [expanded, setExpanded] = useState<string | null>(INITIAL_PRESCRIPTIONS[0]?.id ?? null);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [printTarget, setPrintTarget] = useState<Prescription | null>(null);
 
-  const prescriptions = INITIAL_PRESCRIPTIONS;
+  useEffect(() => {
+    let cancelled = false;
+    dataService
+      .getPrescriptions()
+      .then((rows) => {
+        if (cancelled) return;
+        setPrescriptions(rows);
+        // Open the most recent one, which is what a patient came to read.
+        setExpanded(rows[0]?.id ?? null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
 
   const handlePrint = (pres: Prescription) => setPrintTarget(pres);
 

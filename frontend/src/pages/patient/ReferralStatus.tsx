@@ -1,14 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRightLeft, CheckCircle, Clock, MapPin, User, ChevronRight } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { ReferralTimelineWidget } from '../../components/healthcare/ReferralTimelineWidget';
-import { INITIAL_REFERRALS, INITIAL_PATIENTS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
+import type { Referral } from '../../types';
 
 export const PatientReferralStatus: React.FC = () => {
-  const patient = INITIAL_PATIENTS[0];
-  const referrals = INITIAL_REFERRALS.filter(r => r.patientId === patient.id);
+  // A patient's API access is scoped to their own record server-side, so this
+  // returns their referrals and nobody else's.
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    dataService
+      .getReferrals()
+      .then((rows) => {
+        if (cancelled) return;
+        // Newest first — the journey a patient is currently on.
+        setReferrals(
+          [...rows].sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const PRIORITY_CONFIG = {
     critical: { variant: 'danger' as const, label: 'Critical' },

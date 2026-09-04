@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Calendar,
@@ -19,26 +19,89 @@ import {
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MetricCard } from '../../components/ui/MetricCard';
-import { INITIAL_PATIENTS, INITIAL_PRESCRIPTIONS, INITIAL_REFERRALS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
+import type { Appointment, LabOrder, Patient, Prescription, Referral, Vaccination } from '../../types';
 
 export const PatientDashboard: React.FC = () => {
-  const patient = INITIAL_PATIENTS[0];
-  const prescription = INITIAL_PRESCRIPTIONS[0];
-  const referral = INITIAL_REFERRALS.find(r => r.patientId === patient.id);
+  // A patient's API access is scoped to their own record server-side, so these
+  // reads return this patient's data and nothing else. Rendering a fixed row
+  // from a fixture showed every signed-in patient somebody else's history.
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [prescription, setPrescription] = useState<Prescription | null>(null);
+  const [referral, setReferral] = useState<Referral | null>(null);
+  const [upcomingVaccine, setUpcomingVaccine] = useState<Vaccination | null>(null);
+  const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
+  const [readyLabOrder, setReadyLabOrder] = useState<LabOrder | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const nextAppointment = {
-    date: '25 Aug 2026',
-    time: '10:30 AM',
-    doctor: 'Dr. Rajesh Deshmukh',
-    facility: 'PHC Paud, Mulshi',
-    type: 'Follow-up Consultation',
-  };
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      dataService.getPatients(),
+      dataService.getPrescriptions(),
+      dataService.getReferrals(),
+      dataService.getVaccinations(),
+      dataService.getAppointments(),
+      dataService.getLabOrders(),
+    ])
+      .then(([patients, prescriptions, referrals, vaccinations, appointments, labOrders]) => {
+        if (cancelled) return;
+        const me = patients[0] ?? null;
+        setPatient(me);
 
-  const upcomingVaccine = {
-    name: 'Influenza Vaccine (Annual)',
-    dueDate: '01 Sep 2026',
-    status: 'due',
-  };
+        const byNewest = <T extends { createdAt?: string; date?: string }>(rows: T[]) =>
+          [...rows].sort((a, b) =>
+            String(b.createdAt ?? b.date ?? '').localeCompare(String(a.createdAt ?? a.date ?? ''))
+          );
+
+        setPrescription(byNewest(prescriptions)[0] ?? null);
+        setReferral(byNewest(referrals.filter((r) => r.status !== 'closed'))[0] ?? null);
+
+        // The next dose that is due or already overdue, soonest first.
+        const pending = vaccinations
+          .filter((v) => v.status === 'DUE' || v.status === 'OVERDUE')
+          .sort((a, b) => String(a.scheduledDate ?? '').localeCompare(String(b.scheduledDate ?? '')));
+        setUpcomingVaccine(pending[0] ?? null);
+
+        // The soonest appointment that has not already happened.
+        const today = new Date().toISOString().slice(0, 10);
+        const upcoming = appointments
+          .filter((a) => a.appointmentDate >= today && a.status !== 'CANCELLED')
+          .sort((a, b) =>
+            `${a.appointmentDate}${a.appointmentTime ?? ''}`.localeCompare(
+              `${b.appointmentDate}${b.appointmentTime ?? ''}`
+            )
+          );
+        setNextAppointment(upcoming[0] ?? null);
+
+        // Only a completed order has a report to collect.
+        const done = labOrders
+          .filter((o) => o.status === 'completed')
+          .sort((a, b) => String(b.dateOrdered ?? '').localeCompare(String(a.dateOrdered ?? '')));
+        setReadyLabOrder(done[0] ?? null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-sm text-ink-soft">Loading your health record…</div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <div className="p-10 text-center text-sm text-ink-soft">
+        No health record is linked to this account yet. Ask your ASHA worker or the facility desk to
+        link it.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -131,17 +194,35 @@ export const PatientDashboard: React.FC = () => {
             <h2 className="font-display font-bold text-ink">Next Appointment</h2>
           </div>
           <div className="bg-gov-50 rounded-xl p-4 border border-gov-100">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-bold text-gov-800">{nextAppointment.type}</p>
-                <p className="text-sm text-ink-muted mt-1">{nextAppointment.doctor}</p>
-                <p className="text-xs text-ink-soft">{nextAppointment.facility}</p>
+            {nextAppointment ? (
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-bold text-gov-800">
+                    {nextAppointment.reason ?? nextAppointment.specialty ?? 'Consultation'}
+                  </p>
+                  {nextAppointment.doctorName && (
+                    <p className="text-sm text-ink-muted mt-1">{nextAppointment.doctorName}</p>
+                  )}
+                  {nextAppointment.facilityName && (
+                    <p className="text-xs text-ink-soft">{nextAppointment.facilityName}</p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-bold text-gov-700">
+                    {new Date(nextAppointment.appointmentDate).toLocaleDateString('en-IN', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                    })}
+                  </p>
+                  {nextAppointment.appointmentTime && (
+                    <p className="text-sm text-ink-soft">{nextAppointment.appointmentTime}</p>
+                  )}
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-gov-700">{nextAppointment.date}</p>
-                <p className="text-sm text-ink-soft">{nextAppointment.time}</p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-sm text-ink-soft">
+                No upcoming appointment booked.
+              </p>
+            )}
             <div className="flex gap-2 mt-4">
               <Link
                 to="/patient/appointments"
@@ -233,29 +314,61 @@ export const PatientDashboard: React.FC = () => {
             <h2 className="font-display font-bold text-ink">Health Reminders</h2>
           </div>
           <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800">Vaccination Due</p>
-                <p className="text-xs text-amber-700">{upcomingVaccine.name}</p>
-                <p className="text-xs text-amber-600 mt-0.5">Due: {upcomingVaccine.dueDate}</p>
+            {upcomingVaccine && (
+              <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">
+                    {upcomingVaccine.status === 'OVERDUE' ? 'Vaccination Overdue' : 'Vaccination Due'}
+                  </p>
+                  <p className="text-xs text-amber-700">
+                    {upcomingVaccine.name}
+                    {upcomingVaccine.dose ? ` — ${upcomingVaccine.dose}` : ''}
+                  </p>
+                  {upcomingVaccine.scheduledDate && (
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      Due: {new Date(upcomingVaccine.scheduledDate).toLocaleDateString('en-IN', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-              <Clock className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-blue-800">Lab Report Ready</p>
-                <p className="text-xs text-blue-700">Complete Blood Count results available</p>
-                <p className="text-xs text-blue-600 mt-0.5">Ordered: 20 Aug 2026</p>
+            )}
+            {readyLabOrder && (
+              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <Clock className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-800">Lab Report Ready</p>
+                  <p className="text-xs text-blue-700">{readyLabOrder.testName} results available</p>
+                  {readyLabOrder.dateOrdered && (
+                    <p className="text-xs text-blue-600 mt-0.5">
+                      Ordered: {new Date(readyLabOrder.dateOrdered).toLocaleDateString('en-IN', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-green-800">Medicine Refill Reminder</p>
-                <p className="text-xs text-green-700">Amlodipine stock lasts 3 more days</p>
+            )}
+
+            {prescription && (
+              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
+                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-green-800">Active Prescription</p>
+                  <p className="text-xs text-green-700">
+                    {prescription.medicines?.length
+                      ? `${prescription.medicines.length} medicine${prescription.medicines.length > 1 ? 's' : ''} prescribed`
+                      : 'Prescription issued'}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {!upcomingVaccine && !readyLabOrder && !prescription && (
+              <p className="text-sm text-ink-soft">No reminders right now.</p>
+            )}
           </div>
         </Card>
       </div>

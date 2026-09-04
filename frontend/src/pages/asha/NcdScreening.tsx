@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Activity, ShieldAlert, CheckCircle2, AlertTriangle, ArrowRight, UserPlus } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Input } from '../../components/ui/Input';
 import { dataService } from '../../services/api/dataService';
-import { Referral } from '../../types';
+import type { NcdScreening, Patient } from '../../types';
 
 export const AshaNcdScreeningPage: React.FC = () => {
-  const [patientName, setPatientName] = useState('Vandana Suresh Jadhav');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patientId, setPatientId] = useState('');
   const [age, setAge] = useState(45);
   const [gender, setGender] = useState('female');
   const [smokeTobacco, setSmokeTobacco] = useState(false);
@@ -25,52 +26,74 @@ export const AshaNcdScreeningPage: React.FC = () => {
   const [breastLump, setBreastLump] = useState(false);
   const [cervicalDischarge, setCervicalDischarge] = useState(false);
 
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  /** The saved screening, carrying the server's CBAC assessment. */
+  const [result, setResult] = useState<NcdScreening | null>(null);
 
-  // Calculate CBAC score
-  let cbacScore = 0;
-  if (age >= 50) cbacScore += 2;
-  else if (age >= 40) cbacScore += 1;
+  useEffect(() => {
+    let cancelled = false;
+    dataService.getPatients().then((rows) => {
+      if (cancelled) return;
+      setPatients(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  if (smokeTobacco) cbacScore += 2;
-  if (alcohol) cbacScore += 1;
-  if (waist >= 90 && gender === 'male') cbacScore += 2;
-  if (waist >= 80 && gender === 'female') cbacScore += 2;
-  if (!physicalActivity) cbacScore += 1;
-  if (familyHistory) cbacScore += 2;
+  const selectedPatient = useMemo(
+    () => patients.find((p) => p.id === patientId),
+    [patients, patientId]
+  );
 
-  const requiresReferral = cbacScore >= 4 || bpSystolic >= 140 || bloodSugar >= 160 || oralLesion || breastLump;
+  // Selecting a patient carries their recorded age and sex into the form, so
+  // the screening is scored against the register rather than retyped values.
+  useEffect(() => {
+    if (!selectedPatient) return;
+    if (selectedPatient.age) setAge(selectedPatient.age);
+    if (selectedPatient.gender) setGender(selectedPatient.gender);
+  }, [selectedPatient]);
+
+  /**
+   * A local preview of whether this screening will trip the referral
+   * threshold, used only to warn the worker before they submit. The
+   * authoritative CBAC score, risk category and recommendations are computed
+   * server-side against the published NPCDCS scoring and read back from the
+   * saved record — scoring the same form in two places is how the two copies
+   * drift apart.
+   */
+  const likelyNeedsReferral =
+    bpSystolic >= 140 || bpDiastolic >= 90 || bloodSugar >= 140 ||
+    oralLesion || breastLump || cervicalDischarge;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (requiresReferral) {
-      const ref: Referral = {
-        id: 'ref-ncd-' + Date.now(),
-        referralCode: 'REF-NCD-' + Math.floor(1000 + Math.random() * 9000),
-        patientId: 'pat-105',
-        patientName,
-        patientAge: age,
-        patientGender: gender,
-        referringFacilityId: 'fac-phc-paud',
-        referringFacilityName: 'PHC Paud Subcenter',
-        referringDoctorName: 'Sunita Gaikwad (ASHA)',
-        targetFacilityId: 'fac-phc-paud',
-        targetFacilityName: 'PHC Paud NCD Clinic',
-        specialty: 'Non-Communicable Diseases (NCD)',
-        priority: bpSystolic >= 160 ? 'high' : 'moderate',
-        status: 'created',
-        provisionalDiagnosis: `CBAC Score ${cbacScore} • Elevated BP (${bpSystolic}/${bpDiastolic}) • RBS ${bloodSugar} mg/dL`,
-        clinicalSummary: `CBAC Screening completed. Risk factors: Family history, elevated blood pressure, random blood glucose 182 mg/dL. Medical Officer consultation required for confirmatory testing and initiation of therapy.`,
-        aiPriorityScore: 78,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        history: [
-          { status: 'created', timestamp: new Date().toISOString(), note: 'CBAC screening form submitted by ASHA', updatedBy: 'Sunita Gaikwad' },
-        ],
-      };
-      await dataService.createReferral(ref);
+    if (!patientId) {
+      setError('Select the citizen being screened.');
+      return;
     }
-    setIsSubmitted(true);
+    setSaving(true);
+    setError(null);
+    try {
+      const saved = await dataService.createNcdScreening({
+        patientId,
+        age,
+        bloodPressureSystolic: bpSystolic,
+        bloodPressureDiastolic: bpDiastolic,
+        bloodGlucose: bloodSugar,
+        waistCircumference: waist,
+        tobaccoUse: smokeTobacco,
+        alcoholUse: alcohol,
+        physicalActivityAdequate: physicalActivity,
+        familyHistory,
+      });
+      setResult(saved);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the screening. Try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -93,27 +116,75 @@ export const AshaNcdScreeningPage: React.FC = () => {
         </p>
       </div>
 
-      {isSubmitted ? (
-        <div className="bg-surface rounded-2xl border border-line p-8 shadow-card text-center space-y-4 animate-in fade-in">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-10 h-10" />
+      {result ? (
+        <div className="bg-surface rounded-2xl border border-line p-8 shadow-card space-y-4 animate-in fade-in">
+          <div className="flex flex-col items-center text-center space-y-3">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <h2 className="text-xl font-bold text-ink">CBAC screening recorded</h2>
+            <p className="text-xs text-ink-muted max-w-md">
+              {result.patientName ?? selectedPatient?.name} screened on{' '}
+              {new Date(result.date).toLocaleDateString('en-IN', {
+                day: '2-digit', month: 'short', year: 'numeric',
+              })}
+              .
+            </p>
           </div>
-          <h2 className="text-xl font-bold text-ink">
-            CBAC Screening Form Logged Successfully!
-          </h2>
-          <p className="text-xs text-ink-muted max-w-md mx-auto">
-            Calculated CBAC Score: <strong>{cbacScore}</strong>. Patient {patientName} has been flagged and an automatic NCD referral has been routed to the PHC Paud Medical Officer queue.
+
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <div className="px-4 py-2 bg-sand-50 border border-line rounded-xl text-center">
+              <p className="text-[10px] font-bold uppercase text-ink-soft">CBAC Score</p>
+              <p className="text-2xl font-bold text-ink">{result.cbacScore ?? '—'}</p>
+            </div>
+            {result.riskCategory && (
+              <Badge
+                variant={
+                  result.riskCategory === 'HIGH'
+                    ? 'danger'
+                    : result.riskCategory === 'MODERATE'
+                    ? 'warning'
+                    : 'success'
+                }
+              >
+                {result.riskCategory} RISK
+              </Badge>
+            )}
+            {result.suspectedHypertension && <Badge variant="warning">Suspected hypertension</Badge>}
+            {result.suspectedDiabetes && <Badge variant="warning">Suspected diabetes</Badge>}
+          </div>
+
+          {result.recommendations?.length > 0 && (
+            <div className="bg-sand-50 border border-line rounded-xl p-4">
+              <p className="text-xs font-bold text-ink mb-2">Recommended actions</p>
+              <ul className="space-y-1.5">
+                {result.recommendations.map((rec, i) => (
+                  <li key={i} className="text-xs text-ink-soft flex gap-2">
+                    <ArrowRight className="w-3.5 h-3.5 shrink-0 mt-0.5 text-gov-700" />
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <p className="text-[11px] text-ink-muted text-center">
+            This is a screening score, not a diagnosis. Confirmatory testing is done by the medical
+            officer.
           </p>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => {
-              setIsSubmitted(false);
-              setPatientName('');
-            }}
-          >
-            Screen Next Citizen
-          </Button>
+
+          <div className="flex justify-center">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => {
+                setResult(null);
+                setPatientId('');
+              }}
+            >
+              Screen Next Citizen
+            </Button>
+          </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6">
@@ -123,12 +194,26 @@ export const AshaNcdScreeningPage: React.FC = () => {
               1. Individual Demographics
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input
-                label="Citizen Name"
-                required
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-              />
+              <div>
+                <label className="block text-xs font-bold text-sand-700 mb-1">
+                  Citizen <span className="text-red-600">*</span>
+                </label>
+                <select
+                  required
+                  value={patientId}
+                  onChange={(e) => setPatientId(e.target.value)}
+                  className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
+                >
+                  <option value="">Select a registered patient…</option>
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.village ? ` — ${p.village}` : ''}
+                      {p.age ? ` (${p.age})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <Input
                 label="Age (Years)"
                 type="number"
@@ -157,7 +242,7 @@ export const AshaNcdScreeningPage: React.FC = () => {
                 2. Part A: Risk Factor Assessment Score
               </h3>
               <span className="text-xs font-bold text-gov-800 bg-gov-50 px-3 py-1 rounded-full border border-gov-200">
-                Current CBAC Score: {cbacScore} {cbacScore >= 4 ? '(High Risk >= 4)' : '(Low Risk < 4)'}
+                Scored on submit
               </span>
             </div>
 
@@ -273,15 +358,22 @@ export const AshaNcdScreeningPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-line flex items-center justify-between">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
+              {error}
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-line flex items-center justify-between gap-4 flex-wrap">
             <div className="text-xs text-ink-soft">
-              {requiresReferral ? (
-                <span className="text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
-                  ⚠️ Score &ge; 4: Auto-generates PHC Doctor NCD Referral
+              {likelyNeedsReferral ? (
+                <span className="text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded border border-amber-200 inline-flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Measured values are above screening thresholds
                 </span>
               ) : (
-                <span className="text-emerald-700 font-bold">
-                  ✅ Score &lt; 4: Routine Annual Follow-up
+                <span className="text-ink-soft">
+                  The CBAC score is calculated when the screening is saved.
                 </span>
               )}
             </div>
@@ -290,10 +382,11 @@ export const AshaNcdScreeningPage: React.FC = () => {
               type="submit"
               variant="primary"
               size="lg"
+              disabled={saving}
               leftIcon={<CheckCircle2 className="w-5 h-5" />}
               className="font-bold bg-gov-700 hover:bg-gov-800"
             >
-              Submit CBAC Screening Record
+              {saving ? 'Saving…' : 'Submit CBAC Screening Record'}
             </Button>
           </div>
         </form>

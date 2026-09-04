@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Syringe, ShieldCheck, Calendar, Download, AlertCircle, Plus, CheckCircle2, Clock } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
-import { INITIAL_PATIENTS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
+import type { Patient, Vaccination } from '../../types';
 
 interface VaccinationRecord {
   id: string;
@@ -12,55 +13,55 @@ interface VaccinationRecord {
   dose: string;
   dueDate: string;
   givenDate?: string;
-  facility: string;
+  /** Not returned by the immunisation API; omitted rather than guessed. */
+  facility?: string;
   status: 'completed' | 'upcoming' | 'overdue';
   batchNumber?: string;
   administeredBy?: string;
 }
 
-const MOCK_VACCINES: VaccinationRecord[] = [
-  {
-    id: 'vac-1',
-    vaccineName: 'COVID-19 Booster (Corbevax)',
-    dose: 'Booster Dose',
-    dueDate: '15 Jan 2024',
-    givenDate: '18 Jan 2024',
-    facility: 'PHC Paud, Pune',
-    status: 'completed',
-    batchNumber: 'COV-99238',
-    administeredBy: 'Sunita Patil (ANM)',
-  },
-  {
-    id: 'vac-2',
-    vaccineName: 'Tetanus & adult Diphtheria (Td)',
-    dose: 'Booster',
-    dueDate: '10 Jun 2025',
-    givenDate: '10 Jun 2025',
-    facility: 'PHC Paud, Pune',
-    status: 'completed',
-    batchNumber: 'TD-40112',
-    administeredBy: 'Sunita Patil (ANM)',
-  },
-  {
-    id: 'vac-3',
-    vaccineName: 'Influenza (Annual Seasonal Flu)',
-    dose: 'Annual 2026',
-    dueDate: '15 Oct 2026',
-    facility: 'PHC Paud, Pune',
-    status: 'upcoming',
-  },
-  {
-    id: 'vac-4',
-    vaccineName: 'Pneumococcal Polysaccharide (PPSV23)',
-    dose: 'Dose 1 (High-Risk Diabetic Cohort)',
-    dueDate: '01 Aug 2026',
-    facility: 'District Hospital Aundh, Pune',
-    status: 'overdue',
-  },
-];
+function formatDate(value?: string): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/** Maps an immunisation record onto the shape this certificate view renders. */
+function toRecord(v: Vaccination): VaccinationRecord {
+  return {
+    id: v.id,
+    vaccineName: v.name,
+    dose: v.dose ?? '—',
+    dueDate: formatDate(v.scheduledDate),
+    givenDate: v.administeredDate ? formatDate(v.administeredDate) : undefined,
+    facility: undefined,
+    status: v.status === 'GIVEN' ? 'completed' : v.status === 'OVERDUE' ? 'overdue' : 'upcoming',
+    batchNumber: v.batchNumber,
+    administeredBy: undefined,
+  };
+}
 
 export const PatientVaccinations: React.FC = () => {
-  const [vaccines, setVaccines] = useState<VaccinationRecord[]>(MOCK_VACCINES);
+  const [vaccines, setVaccines] = useState<VaccinationRecord[]>([]);
+  const [patient, setPatient] = useState<Patient | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([dataService.getVaccinations(), dataService.getPatients()])
+      .then(([rows, patients]) => {
+        if (cancelled) return;
+        setVaccines(rows.map(toRecord));
+        setPatient(patients[0] ?? null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedVaccine, setSelectedVaccine] = useState<VaccinationRecord | null>(null);
 
@@ -142,7 +143,7 @@ export const PatientVaccinations: React.FC = () => {
               </div>
               <p className="text-xs font-medium text-ink-muted">Dose: {vac.dose}</p>
               <div className="flex items-center gap-3 text-xs text-ink-soft flex-wrap">
-                <span>Facility: <strong>{vac.facility}</strong></span>
+                {vac.facility && <span>Facility: <strong>{vac.facility}</strong></span>}
                 {vac.givenDate && <span>• Administered: <strong>{vac.givenDate}</strong></span>}
                 {!vac.givenDate && <span>• Due by: <strong>{vac.dueDate}</strong></span>}
                 {vac.batchNumber && <span>• Batch: <code className="text-sand-700 bg-sand-100 px-1 py-0.5 rounded">{vac.batchNumber}</code></span>}
@@ -189,7 +190,7 @@ export const PatientVaccinations: React.FC = () => {
                 VERIFIED DIGITAL IMMUNIZATION CREDENTIAL
               </div>
               <h3 className="font-bold text-ink text-lg">{selectedVaccine.vaccineName}</h3>
-              <p className="text-xs text-ink-muted">Beneficiary: <strong>{INITIAL_PATIENTS[0].name}</strong> | ABHA: <strong>{INITIAL_PATIENTS[0].abhaId}</strong></p>
+              <p className="text-xs text-ink-muted">Beneficiary: <strong>{patient?.name ?? '—'}</strong>{patient?.abhaId ? <> | ABHA: <strong>{patient.abhaId}</strong></> : null}</p>
               
               <div className="grid grid-cols-2 gap-2 text-left bg-surface p-3 rounded-lg border border-teal-100 text-xs mt-3">
                 <div>
@@ -198,11 +199,11 @@ export const PatientVaccinations: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-ink-soft">Vaccinator:</span>
-                  <p className="font-semibold text-ink">{selectedVaccine.administeredBy || 'Staff Nurse / ANM'}</p>
+                  <p className="font-semibold text-ink">{selectedVaccine.administeredBy ?? '—'}</p>
                 </div>
                 <div>
                   <span className="text-ink-soft">Location:</span>
-                  <p className="font-semibold text-ink">{selectedVaccine.facility}</p>
+                  <p className="font-semibold text-ink">{selectedVaccine.facility ?? '—'}</p>
                 </div>
                 <div>
                   <span className="text-ink-soft">Batch Ref:</span>

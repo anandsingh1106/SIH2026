@@ -4,7 +4,7 @@ import {
   Patient, Referral, Prescription, PrescribedMedicine, Task, HomeVisit, Vitals,
   Facility, Medicine, MedicineAvailability, MedicineOrder,
   Notification, Message, Bed, UserRole, ReferralStatus, QueueToken, QueueSummary,
-  PatientTimelineEvent,
+  PatientTimelineEvent, Vaccination, AuditLog, NcdScreening, LabOrder, Appointment,
 } from '../../types';
 
 type DataChangeListener = (event: { entity: string; action: string; data: unknown }) => void;
@@ -915,10 +915,146 @@ class DataService {
     return sent;
   }
 
+  // --- APPOINTMENTS ---
+  public getAppointments(): Promise<Appointment[]> {
+    return this.safeList(async () => {
+      const res = await api.get<Paginated<Record<string, unknown>>>('/api/appointments', {
+        query: { limit: 100 },
+      });
+      return page(res).map((row) => camelize<Appointment>(row));
+    }, 'appointments');
+  }
+
+  // --- LAB ORDERS ---
+  /**
+   * The lab worklist. Statuses and priorities arrive uppercase from the API
+   * while screens read the lowercase vocabulary, so they are mapped here.
+   */
+  public getLabOrders(): Promise<LabOrder[]> {
+    return this.safeList(async () => {
+      const res = await api.get<Paginated<Record<string, unknown>>>('/api/lab-orders', {
+        query: { limit: 100 },
+      });
+      return page(res).map((row) => {
+        const c = camelize<Record<string, unknown>>(row);
+        return {
+          ...(c as unknown as LabOrder),
+          status: lower(c.status as string) as LabOrder['status'],
+          priority: lower(c.priority as string) as LabOrder['priority'],
+          dateOrdered: String(c.orderedAt ?? c.createdAt ?? ''),
+        };
+      });
+    }, 'lab orders');
+  }
+
+  public async createLabOrder(input: {
+    patientId: string;
+    testName: string;
+    category?: string;
+    priority?: 'ROUTINE' | 'URGENT' | 'STAT';
+    notes?: string;
+  }): Promise<LabOrder> {
+    const created = camelize<LabOrder>(
+      await api.post<Record<string, unknown>>('/api/lab-orders', input)
+    );
+    this.notify('lab_orders', 'create', created);
+    return created;
+  }
+
+  /** Moves an order along the worklist: ordered → collected → processing → done. */
+  public async updateLabOrderStatus(
+    id: string,
+    status: 'ORDERED' | 'SAMPLE_COLLECTED' | 'PROCESSING' | 'COMPLETED'
+  ): Promise<void> {
+    await api.patch(`/api/lab-orders/${id}`, { status });
+    this.notify('lab_orders', 'update', { id, status });
+  }
+
+  // --- NCD SCREENINGS ---
+  public getNcdScreenings(): Promise<NcdScreening[]> {
+    return this.safeList(async () => {
+      const res = await api.get<Paginated<Record<string, unknown>>>('/api/ncd-screenings', {
+        query: { limit: 100 },
+      });
+      return page(res).map((row) => camelize<NcdScreening>(row));
+    }, 'NCD screenings');
+  }
+
+  /**
+   * Records a CBAC screening.
+   *
+   * The CBAC score, risk category and recommendations are computed by the
+   * server against the published NPCDCS scoring — the browser sends only what
+   * was measured, and reads the assessment back. Scoring in two places is how
+   * the two copies drift apart.
+   */
+  public async createNcdScreening(input: {
+    patientId: string;
+    age?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    bloodGlucose?: number;
+    waistCircumference?: number;
+    tobaccoUse?: boolean;
+    alcoholUse?: boolean;
+    physicalActivityAdequate?: boolean;
+    familyHistory?: boolean;
+  }): Promise<NcdScreening> {
+    const created = camelize<NcdScreening>(
+      await api.post<Record<string, unknown>>('/api/ncd-screenings', input)
+    );
+    this.notify('ncd_screenings', 'create', created);
+    return created;
+  }
+
+  // --- VACCINATIONS ---
+  /**
+   * The immunisation register. The API caps a page at 100 and the register is
+   * larger than that, so this pages through rather than silently truncating —
+   * a dropped dose here reads as a child who was never scheduled.
+   */
+  public getVaccinations(): Promise<Vaccination[]> {
+    return this.safeList(async () => {
+      const all: Vaccination[] = [];
+      let currentPage = 1;
+      let lastPage = 1;
+
+      do {
+        const res = await api.get<Paginated<Record<string, unknown>>>('/api/vaccinations', {
+          query: { page: currentPage, limit: 100 },
+        });
+        all.push(...page(res).map((row) => camelize<Vaccination>(row)));
+        const totalPages = res?.pagination?.totalPages ?? 1;
+        lastPage = Math.min(totalPages, 20);
+        currentPage += 1;
+      } while (currentPage <= lastPage);
+
+      return all;
+    }, 'vaccinations');
+  }
+
+  /**
+   * Records a dose as given. The server stamps who administered it and where,
+   * so only the batch number and date travel from the browser.
+   */
+  public async administerVaccination(
+    vaccinationId: string,
+    input: { batchNumber?: string; administeredDate?: string } = {}
+  ): Promise<Vaccination> {
+    const updated = camelize<Vaccination>(
+      await api.post<Record<string, unknown>>(`/api/vaccinations/${vaccinationId}/administer`, input)
+    );
+    this.notify('vaccination', 'administer', updated);
+    return updated;
+  }
+
   // --- AUDIT LOGS ---
-  public getAuditLogs() {
+  public getAuditLogs(): Promise<AuditLog[]> {
     return this.safeList(
-      async () => page(await api.get<Paginated<Record<string, unknown>>>('/api/audit-logs', { query: { limit: 100 } })),
+      async () =>
+        page(
+          await api.get<Paginated<Record<string, unknown>>>('/api/audit-logs', { query: { limit: 100 } })
+        ).map((row) => camelize<AuditLog>(row)),
       'audit logs'
     );
   }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FileCheck2, Download, Printer, Share2, Plus, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -9,23 +9,39 @@ import {
   DischargeSummaryData,
 } from '../../components/healthcare/PrintableDischargeSummary';
 import { printDocument } from '../../utils/printDocument';
-import { INITIAL_PATIENTS } from '../../data/mockData';
-
-/** ABHA addresses shown alongside each admitted patient in the author modal. */
-const ABHA_BY_PATIENT: Record<string, string> = {
-  'Anandi Devi Patil': '91-8273-1928-4491',
-  'Suresh More': '91-1102-4829-0021',
-  'Eknath Shinde': '91-9921-5582-7721',
-};
+import { dataService } from '../../services/api/dataService';
+import type { Patient } from '../../types';
 
 export const SpecialistDischarge: React.FC = () => {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState('Anandi Devi Patil');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
 
-  /** The summary rendered on screen, in the shape the print layout needs. */
+  useEffect(() => {
+    let cancelled = false;
+    dataService.getPatients().then((rows) => {
+      if (cancelled) return;
+      setPatients(rows);
+      setSelectedPatientId((current) => current || rows[0]?.id || '');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedPatient = useMemo(
+    () => patients.find((p) => p.id === selectedPatientId),
+    [patients, selectedPatientId]
+  );
+
+  /**
+   * The summary rendered on screen. Patient identity comes from the register;
+   * the clinical narrative below is the author's template to edit, not a
+   * record of what happened to this patient.
+   */
   const summary: DischargeSummaryData = {
-    patientName: selectedPatient,
-    abhaId: ABHA_BY_PATIENT[selectedPatient] ?? '—',
+    patientName: selectedPatient?.name ?? '—',
+    abhaId: selectedPatient?.abhaId || '—',
     admissionDate: '14 Aug 2026',
     dischargeDate: '18 Aug 2026',
     consultant: 'Dr. Priya Kulkarni, MD, DM',
@@ -207,13 +223,17 @@ export const SpecialistDischarge: React.FC = () => {
           <div>
             <label className="block text-xs font-bold text-sand-700 mb-1">Select Admitted Patient</label>
             <select
-              value={selectedPatient}
-              onChange={e => setSelectedPatient(e.target.value)}
+              value={selectedPatientId}
+              onChange={e => setSelectedPatientId(e.target.value)}
               className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
             >
-              <option value="Anandi Devi Patil">Anandi Devi Patil (ABHA: 91-8273-1928-4491)</option>
-              <option value="Suresh More">Suresh More (ABHA: 91-1102-4829-0021)</option>
-              <option value="Eknath Shinde">Eknath Shinde (ABHA: 91-9921-5582-7721)</option>
+              <option value="">Select a patient…</option>
+              {patients.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.abhaId ? ` (ABHA: ${p.abhaId})` : ''}
+                </option>
+              ))}
             </select>
           </div>
 

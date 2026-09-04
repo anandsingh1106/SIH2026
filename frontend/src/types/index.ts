@@ -397,6 +397,64 @@ export interface Message {
   };
 }
 
+/** A booked clinic appointment. */
+export interface Appointment {
+  id: string;
+  patientId: string;
+  patientName?: string;
+  doctorId?: string;
+  doctorName?: string;
+  facilityId?: string;
+  facilityName?: string;
+  specialty?: string;
+  appointmentDate: string;
+  appointmentTime?: string;
+  type?: string;
+  status?: string;
+  reason?: string;
+  tokenNumber?: number;
+}
+
+/**
+ * A CBAC screening record. The score, risk category and recommendations are
+ * computed server-side against the published NPCDCS scoring, so they are read
+ * back from the response rather than calculated in the browser.
+ */
+export interface NcdScreening {
+  id: string;
+  patientId: string;
+  patientName?: string;
+  date: string;
+  age?: number;
+  bpSystolic?: number;
+  bpDiastolic?: number;
+  bloodGlucose?: number;
+  bmi?: number;
+  waistCircumference?: number;
+  tobaccoUse: boolean;
+  alcoholUse: boolean;
+  cbacScore?: number;
+  riskCategory?: 'LOW' | 'MODERATE' | 'HIGH';
+  suspectedDiabetes: boolean;
+  suspectedHypertension: boolean;
+  recommendations: string[];
+}
+
+/** One dose on a patient's immunisation schedule. */
+export interface Vaccination {
+  id: string;
+  patientId: string;
+  patientName?: string;
+  /** Vaccine name, e.g. "BCG", "Pentavalent-1". */
+  name: string;
+  /** Which dose in the series, e.g. "Birth", "6 weeks". */
+  dose?: string;
+  scheduledDate?: string;
+  administeredDate?: string;
+  batchNumber?: string;
+  status: 'DUE' | 'GIVEN' | 'OVERDUE';
+}
+
 export interface AuditLog {
   id: string;
   userId: string;

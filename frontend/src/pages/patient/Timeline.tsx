@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, Pill, FlaskConical, Syringe, ArrowRightLeft, Stethoscope, Filter } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { INITIAL_PATIENTS, INITIAL_PRESCRIPTIONS, INITIAL_LAB_ORDERS, INITIAL_REFERRALS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
+import type { PatientTimelineEvent } from '../../types';
 
-type EventType = 'all' | 'consultation' | 'prescription' | 'lab' | 'referral' | 'vaccination';
+type EventType = 'all' | 'consultation' | 'prescription' | 'lab' | 'referral' | 'vaccination' | 'registration';
 
 interface TimelineEvent {
   id: string;
@@ -19,6 +20,7 @@ interface TimelineEvent {
 }
 
 const TYPE_COLORS: Record<string, string> = {
+  registration: 'bg-sand-500',
   consultation: 'bg-gov-600',
   prescription: 'bg-purple-600',
   lab: 'bg-blue-600',
@@ -27,6 +29,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
+  registration: <Clock className="w-3.5 h-3.5 text-white" />,
   consultation: <Stethoscope className="w-3.5 h-3.5 text-white" />,
   prescription: <Pill className="w-3.5 h-3.5 text-white" />,
   lab: <FlaskConical className="w-3.5 h-3.5 text-white" />,
@@ -34,67 +37,50 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   vaccination: <Syringe className="w-3.5 h-3.5 text-white" />,
 };
 
+function formatEventDate(value: string): string {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/** Maps a timeline event from the API onto the shape this page renders. */
+function toDisplayEvent(e: PatientTimelineEvent): TimelineEvent {
+  return {
+    id: e.id,
+    date: formatEventDate(e.date),
+    type: e.type as EventType,
+    title: e.title,
+    subtitle: e.actor,
+    detail: e.notes,
+  };
+}
+
 export const PatientTimeline: React.FC = () => {
   const [filter, setFilter] = useState<EventType>('all');
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const events: TimelineEvent[] = [
-    {
-      id: 'e1', date: '23 Aug 2026', type: 'consultation',
-      title: 'Follow-up Consultation — PHC Paud',
-      subtitle: 'Dr. Rajesh Deshmukh (General Medicine)',
-      detail: 'BP controlled at 128/82. HbA1c improved. Continue current medications. Next review in 4 weeks.',
-      badge: 'Completed', badgeVariant: 'success',
-    },
-    {
-      id: 'e2', date: '20 Aug 2026', type: 'lab',
-      title: 'Complete Blood Count (CBC)',
-      subtitle: 'PHC Paud Lab — Pathology',
-      detail: 'Hb: 12.4 g/dL · WBC: 7,200 · Platelets: 2.1 Lakh — All within reference range.',
-      badge: 'Normal', badgeVariant: 'success',
-    },
-    {
-      id: 'e3', date: '20 Aug 2026', type: 'lab',
-      title: 'HbA1c (Glycated Haemoglobin)',
-      subtitle: 'PHC Paud Lab — Biochemistry',
-      detail: 'Result: 7.2% (Previously 8.1%) — Improving glycemic control.',
-      badge: 'Improving', badgeVariant: 'info',
-    },
-    {
-      id: 'e4', date: '10 Aug 2026', type: 'prescription',
-      title: 'Prescription — Hypertension & Diabetes',
-      subtitle: 'Dr. Rajesh Deshmukh',
-      detail: 'Amlodipine 5mg (1-0-0) · Metformin 500mg (1-0-1) · Aspirin 75mg (0-1-0) — 30-day supply.',
-      badge: 'Active', badgeVariant: 'info',
-    },
-    {
-      id: 'e5', date: '28 Jul 2026', type: 'referral',
-      title: 'Specialist Referral — Cardiology',
-      subtitle: 'Referred to B.J. Govt Medical College & Sassoon',
-      detail: 'Referred by Dr. Deshmukh for ECG review and cardiac assessment. Priority: Moderate.',
-      badge: 'In Progress', badgeVariant: 'warning',
-    },
-    {
-      id: 'e6', date: '15 Jul 2026', type: 'consultation',
-      title: 'Initial OPD Visit — PHC Paud',
-      subtitle: 'Dr. Rajesh Deshmukh',
-      detail: 'Chief Complaint: Breathlessness on exertion, elevated BP (158/96). Diagnosed: Stage 2 Hypertension + Type 2 DM.',
-      badge: 'Completed', badgeVariant: 'success',
-    },
-    {
-      id: 'e7', date: '02 Jan 2026', type: 'vaccination',
-      title: 'COVID-19 Booster Dose',
-      subtitle: 'PHC Paud — Immunization Center',
-      detail: 'Covaxin Booster administered. Certificate updated in COWIN.',
-      badge: 'Given', badgeVariant: 'success',
-    },
-    {
-      id: 'e8', date: '14 Jun 2025', type: 'lab',
-      title: 'Fasting Blood Sugar',
-      subtitle: 'PHC Paud Lab',
-      detail: 'Result: 186 mg/dL (Reference: 70-100) — High. Triggered diabetes diagnosis workup.',
-      badge: 'Abnormal', badgeVariant: 'danger',
-    },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    // The patient's own record is the only one their API access returns.
+    dataService
+      .getPatients()
+      .then(async (patients) => {
+        const me = patients[0];
+        if (!me) return [] as PatientTimelineEvent[];
+        return dataService.getPatientTimeline(me.id);
+      })
+      .then((rows) => {
+        if (cancelled) return;
+        setEvents(rows.map(toDisplayEvent));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = filter === 'all' ? events : events.filter(e => e.type === filter);
 
@@ -136,6 +122,18 @@ export const PatientTimeline: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {loading && (
+        <Card className="p-8 text-center text-sm text-ink-soft">Loading your health timeline…</Card>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <Card className="p-8 text-center text-sm text-ink-soft">
+          {events.length === 0
+            ? 'No health records yet. Consultations, prescriptions and lab reports will appear here.'
+            : 'No events of this type.'}
+        </Card>
+      )}
 
       {/* Timeline */}
       <div className="relative">

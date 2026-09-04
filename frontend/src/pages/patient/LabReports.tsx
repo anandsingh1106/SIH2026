@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlaskConical, Download, TrendingUp, TrendingDown, Minus, AlertTriangle, Info } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { INITIAL_LAB_ORDERS } from '../../data/mockData';
+import { dataService } from '../../services/api/dataService';
+import type { LabOrder } from '../../types';
 
 export const PatientLabReports: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const orders = INITIAL_LAB_ORDERS;
+  const [orders, setOrders] = useState<LabOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    dataService
+      .getLabOrders()
+      .then((rows) => {
+        if (!cancelled) setOrders(rows);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const categories = ['all', ...Array.from(new Set(orders.map(o => o.category)))];
 
   const filtered = selectedCategory === 'all'
