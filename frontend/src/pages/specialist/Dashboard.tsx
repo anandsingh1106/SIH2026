@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Referral, Bed } from '../../types';
+import { Referral, Bed } from '@arogyasetu/shared/types';
 import {
   Building2,
   BedDouble,

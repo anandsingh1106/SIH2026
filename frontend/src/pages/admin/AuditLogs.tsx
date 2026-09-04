@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { dataService } from '../../services/api/dataService';
-import type { AuditLog } from '../../types';
+import type { AuditLog } from '@arogyasetu/shared/types';
 
 /**
  * A denied action is recorded with an explicit outcome in its action name.

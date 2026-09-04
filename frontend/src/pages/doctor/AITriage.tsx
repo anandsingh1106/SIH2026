@@ -5,8 +5,8 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
 import { TriageBadge } from '../../components/healthcare/TriageBadge';
-import { analyzeTriage, TriageResult } from '../../services/ai/triageEngine';
-import { Vitals } from '../../types';
+import { analyzeTriage, TriageResult } from '@arogyasetu/shared/services/ai';
+import { Vitals } from '@arogyasetu/shared/types';
 
 export const DoctorAITriagePage: React.FC = () => {
   // Starting on a textbook cardiac emergency made every fresh visit read

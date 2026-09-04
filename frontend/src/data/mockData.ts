@@ -13,7 +13,7 @@ import {
   Notification,
   Message,
   AuditLog,
-} from '../types';
+} from '@arogyasetu/shared/types';
 
 export const MAHARASHTRA_DISTRICTS = [
   'Ahmednagar', 'Akola', 'Amravati', 'Chhatrapati Sambhajinagar', 'Beed',

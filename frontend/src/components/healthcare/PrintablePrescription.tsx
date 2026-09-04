@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Prescription } from '../../types';
+import { Prescription } from '@arogyasetu/shared/types';
 
 /**
  * Print layout for a single prescription.

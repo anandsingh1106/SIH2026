@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
-import { authApi } from '../../services/auth/authApi';
+import { authApi } from '@arogyasetu/shared/services/auth';
 import * as supabaseAuth from '../../services/auth/supabaseAuth';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';

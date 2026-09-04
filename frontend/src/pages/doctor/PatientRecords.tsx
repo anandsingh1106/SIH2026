@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Patient, PatientTimelineEvent } from '../../types';
+import { Patient, PatientTimelineEvent } from '@arogyasetu/shared/types';
 import { FileText, Search, User, Clock, AlertOctagon, Pill, FlaskConical, Stethoscope, ArrowRight } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { SearchInput } from '../../components/ui/SearchInput';

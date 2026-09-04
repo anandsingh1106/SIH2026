@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { dataService } from '../../services/api/dataService';
-import type { LabOrder } from '../../types';
+import type { LabOrder } from '@arogyasetu/shared/types';
 
 export const PatientLabReports: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');

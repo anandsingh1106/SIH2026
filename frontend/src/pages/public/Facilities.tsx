@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Facility } from '../../types';
+import { Facility } from '@arogyasetu/shared/types';
 import { MAHARASHTRA_DISTRICTS } from '../../data/mockData';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Button } from '../../components/ui/Button';

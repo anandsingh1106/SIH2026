@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService, generateToken } from '../../services/api/dataService';
-import { Medicine } from '../../types';
+import { Medicine } from '@arogyasetu/shared/types';
 import { Pill, AlertTriangle, Plus, Search, CheckCircle2, RefreshCw, ShoppingCart, Truck } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

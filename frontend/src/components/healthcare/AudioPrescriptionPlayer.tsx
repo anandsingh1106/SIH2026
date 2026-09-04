@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, Volume2, Globe, FastForward, RotateCcw } from 'lucide-react';
 import { SpeechService } from '../../services/audio/speechSynthesisService';
-import { PrescribedMedicine } from '../../types';
+import { PrescribedMedicine } from '@arogyasetu/shared/types';
 import { Button } from '../ui/Button';
 
 export interface AudioPrescriptionPlayerProps {

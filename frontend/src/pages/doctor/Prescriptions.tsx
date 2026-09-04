@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '../../services/api/dataService';
-import { Prescription } from '../../types';
+import { Prescription } from '@arogyasetu/shared/types';
 import { Pill, Search, Printer, Volume2, User, Plus, Calendar, CheckCircle2 } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

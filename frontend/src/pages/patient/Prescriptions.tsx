@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
 import { printDocument } from '../../utils/printDocument';
-import { Prescription } from '../../types';
+import { Prescription } from '@arogyasetu/shared/types';
 import { dataService } from '../../services/api/dataService';
 
 export const PatientPrescriptions: React.FC = () => {

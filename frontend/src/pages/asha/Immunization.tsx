@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { dataService } from '../../services/api/dataService';
-import type { Patient, Vaccination } from '../../types';
+import type { Patient, Vaccination } from '@arogyasetu/shared/types';
 
 type Tab = 'due' | 'completed' | 'all';
 

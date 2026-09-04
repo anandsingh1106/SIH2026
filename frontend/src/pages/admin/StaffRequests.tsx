@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ShieldCheck, AlertTriangle, Check, X, RefreshCw } from 'lucide-react';
-import { staffAccessApi, AdminStaffRequest } from '../../services/auth/authApi';
+import { staffAccessApi, AdminStaffRequest } from '@arogyasetu/shared/services/auth';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../services/auth/authContext';
-import { getAIContextualResponse, AIMessage } from '../../services/ai/aiAssistantService';
+import { getAIContextualResponse, AIMessage } from '@arogyasetu/shared/services/ai';
 import { Bot, Send, Sparkles, User, Mic, Volume2, ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

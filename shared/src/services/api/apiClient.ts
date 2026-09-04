@@ -49,21 +49,53 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
   onUnauthorized = handler;
 }
 
-const CSRF_COOKIE = 'csrfToken';
-const CSRF_HEADER = 'x-csrf-token';
-
-// Methods that change state; these must carry the CSRF header.
+// Methods that change state; these must carry an auth/CSRF header.
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * How a request authenticates itself, which differs by platform: the web app
+ * sends the session cookie plus a CSRF header read from a readable cookie;
+ * React Native has no cookie jar, so it sends a bearer token instead and skips
+ * `credentials: 'include'` entirely.
+ */
+export interface AuthTransportAdapter {
+  /** Extra headers to attach when calling an unsafe (state-changing) method. */
+  getAuthHeaders(method: string): Record<string, string> | null;
+  /** Whether the browser's cookie jar should be sent with the request. */
+  useCredentials: boolean;
+}
+
+const webDefaultAdapter: AuthTransportAdapter = {
+  useCredentials: true,
+  getAuthHeaders(method) {
+    if (!UNSAFE_METHODS.has(method)) return null;
+    const token = readCsrfTokenFromCookie();
+    return token ? { 'x-csrf-token': token } : null;
+  },
+};
+
+let adapter: AuthTransportAdapter = webDefaultAdapter;
+
+/**
+ * Registers how requests authenticate on this platform. The web app never
+ * needs to call this — its default (cookie + CSRF header) is already wired
+ * in. React Native registers a bearer-token adapter at app startup instead.
+ */
+export function setAuthTransportAdapter(next: AuthTransportAdapter) {
+  adapter = next;
+}
 
 /**
  * Reads the CSRF token the API set as a readable cookie.
  *
  * The same-origin policy is what makes this work: another site can cause the
  * browser to send our cookies, but cannot read them to build this header.
+ * Guarded for non-browser environments (SSR, React Native) where it simply
+ * yields no token rather than throwing.
  */
-function readCsrfToken(): string | null {
+function readCsrfTokenFromCookie(): string | null {
   if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${CSRF_COOKIE}=([^;]*)`));
+  const match = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -88,15 +120,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const { body, query, headers, ...rest } = options;
 
   const method = (rest.method || 'GET').toUpperCase();
-  const csrfToken = UNSAFE_METHODS.has(method) ? readCsrfToken() : null;
+  const authHeaders = adapter.getAuthHeaders(method);
 
   let res: Response;
   try {
     res = await fetch(buildUrl(path, query), {
-      credentials: 'include',
+      credentials: adapter.useCredentials ? 'include' : 'omit',
       headers: {
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-        ...(csrfToken ? { [CSRF_HEADER]: csrfToken } : {}),
+        ...(authHeaders ?? {}),
         ...headers,
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),

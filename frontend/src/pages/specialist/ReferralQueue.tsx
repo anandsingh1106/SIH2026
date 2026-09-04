@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '../../services/api/dataService';
-import { Referral, Bed, ReferralStatus } from '../../types';
+import { Referral, Bed, ReferralStatus } from '@arogyasetu/shared/types';
 import { ArrowRightLeft, BedDouble, CheckCircle2, AlertTriangle, Truck, Clock, Sparkles, User, FileText } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';

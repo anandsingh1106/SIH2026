@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
-import { staffAccessApi, StaffAccessRequest } from '../../services/auth/authApi';
+import { staffAccessApi, StaffAccessRequest } from '@arogyasetu/shared/services/auth';
 import { Button } from '../../components/ui/Button';
 
 const ROLE_LABEL: Record<string, string> = {

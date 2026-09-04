@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
-import { Patient, Referral, Prescription, Medicine } from '../../types';
+import { Patient, Referral, Prescription, Medicine } from '@arogyasetu/shared/types';
 import {
   Stethoscope,
   Users,

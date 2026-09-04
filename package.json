@@ -2,13 +2,21 @@
   "name": "mahaarogya-sangam",
   "private": true,
   "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared",
+    "mobile"
+  ],
   "scripts": {
     "dev": "npm --prefix frontend run dev",
     "server": "npm --prefix backend run start",
     "dev:all": "concurrently -n API,WEB -c blue,green \"npm:server\" \"npm:dev\"",
+    "mobile": "npm --prefix mobile run start",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview",
-    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+    "test": "npm --prefix shared run test && npm --prefix frontend run test && npm --prefix backend run test",
+    "install:all": "npm install"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"

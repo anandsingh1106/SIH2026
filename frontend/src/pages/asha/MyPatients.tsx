@@ -5,7 +5,7 @@ import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { SearchInput } from '../../components/ui/SearchInput';
-import { backendApi, PatientSummary } from '../../services/api/backendApi';
+import { backendApi, PatientSummary } from '@arogyasetu/shared/services/api';
 import { dataService } from '../../services/api/dataService';
 import { useToast } from '../../hooks/useToast';
 

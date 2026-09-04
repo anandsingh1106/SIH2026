@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
 import { getDB } from '../../services/offline/indexedDbService';
-import { SyncOperation } from '../../types';
+import { SyncOperation } from '@arogyasetu/shared/types';
 import { CloudOff, RefreshCw, CheckCircle2, Database, Wifi, AlertTriangle, ArrowUpRight, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';

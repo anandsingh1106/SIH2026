@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '../../services/api/dataService';
-import { Medicine } from '../../types';
+import { Medicine } from '@arogyasetu/shared/types';
 import { MAHARASHTRA_DISTRICTS } from '../../data/mockData';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Badge } from '../../components/ui/Badge';

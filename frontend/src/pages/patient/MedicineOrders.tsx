@@ -9,7 +9,7 @@ import { Card } from '../../components/ui/Card';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import { dataService } from '../../services/api/dataService';
-import { Prescription, MedicineAvailability, MedicineOrder } from '../../types';
+import { Prescription, MedicineAvailability, MedicineOrder } from '@arogyasetu/shared/types';
 
 export const PatientMedicineOrders: React.FC = () => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);

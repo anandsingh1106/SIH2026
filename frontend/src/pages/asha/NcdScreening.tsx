@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Input } from '../../components/ui/Input';
 import { dataService } from '../../services/api/dataService';
-import type { NcdScreening, Patient } from '../../types';
+import type { NcdScreening, Patient } from '@arogyasetu/shared/types';
 
 export const AshaNcdScreeningPage: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);

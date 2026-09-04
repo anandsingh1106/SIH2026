@@ -1,5 +1,5 @@
 import React from 'react';
-import { Vitals } from '../../types';
+import { Vitals } from '@arogyasetu/shared/types';
 import { Input } from '../ui/Input';
 import { Heart, Activity, Thermometer, Wind, Scale, Ruler, Droplets } from 'lucide-react';
 

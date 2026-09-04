@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { TriageBadge } from '../../components/healthcare/TriageBadge';
 import { dataService } from '../../services/api/dataService';
 import { useAuth } from '../../services/auth/authContext';
-import { QueueToken, QueueSummary } from '../../types';
+import { QueueToken, QueueSummary } from '@arogyasetu/shared/types';
 
 const STATUS_LABEL: Record<QueueToken['status'], string> = {
   WAITING: 'Waiting',

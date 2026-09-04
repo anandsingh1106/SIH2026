@@ -30,3 +30,4 @@ export function formatCrore(value: number): string {
   if (abs >= LAKH) return `${sign}${trim(abs / LAKH)} L`;
   return value.toLocaleString('en-IN');
 }
+

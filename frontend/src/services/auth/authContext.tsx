@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, UserRole } from '../../types';
-import { authApi, AuthApiError, SessionProfile, MfaState, MfaAction } from './authApi';
-import { setUnauthorizedHandler } from '../api/apiClient';
+import { User, UserRole } from '@arogyasetu/shared/types';
+import { authApi, AuthApiError, SessionProfile, MfaState, MfaAction } from '@arogyasetu/shared/services/auth';
+import { setUnauthorizedHandler } from '@arogyasetu/shared/services/api';
 import * as supabaseAuth from './supabaseAuth';
 
 /**
