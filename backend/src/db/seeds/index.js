@@ -35,10 +35,45 @@ const FACILITIES = [
     latitude: 18.5286, longitude: 73.8748, phone: '020-26128000',
     emergency_available: 1,
   },
+  // Six sub-centres feed PHC Paud. The rural health norm puts one sub-centre
+  // per 5,000 people and one PHC per 30,000, so a PHC sits above roughly six
+  // of them — the referral chain is only realistic if the base of the pyramid
+  // is wider than the tier above it. Villages and their populations are real
+  // settlements in Mulshi taluka (Census 2011).
   {
     id: 'demo-fac-sc-kolvan', name: 'Sub-Center Kolvan (Demo)', type: 'SUB_CENTER',
     address: 'Kolvan Village', district: 'Pune', taluka: 'Mulshi', village: 'Kolvan',
     latitude: 18.5600, longitude: 73.4600, phone: '020-22923055',
+    emergency_available: 0,
+  },
+  {
+    id: 'demo-fac-sc-ghotawade', name: 'Sub-Center Ghotawade (Demo)', type: 'SUB_CENTER',
+    address: 'Ghotawade Village', district: 'Pune', taluka: 'Mulshi', village: 'Ghotawade',
+    latitude: 18.4870, longitude: 73.6570, phone: '020-22923056',
+    emergency_available: 0,
+  },
+  {
+    id: 'demo-fac-sc-bhukum', name: 'Sub-Center Bhukum (Demo)', type: 'SUB_CENTER',
+    address: 'Bhukum Village', district: 'Pune', taluka: 'Mulshi', village: 'Bhukum',
+    latitude: 18.5310, longitude: 73.6890, phone: '020-22923057',
+    emergency_available: 0,
+  },
+  {
+    id: 'demo-fac-sc-lavale', name: 'Sub-Center Lavale (Demo)', type: 'SUB_CENTER',
+    address: 'Lavale Village', district: 'Pune', taluka: 'Mulshi', village: 'Lavale',
+    latitude: 18.5340, longitude: 73.7200, phone: '020-22923058',
+    emergency_available: 0,
+  },
+  {
+    id: 'demo-fac-sc-hadshi', name: 'Sub-Center Hadshi (Demo)', type: 'SUB_CENTER',
+    address: 'Hadshi Village', district: 'Pune', taluka: 'Mulshi', village: 'Hadshi',
+    latitude: 18.5980, longitude: 73.5390, phone: '020-22923059',
+    emergency_available: 0,
+  },
+  {
+    id: 'demo-fac-sc-male', name: 'Sub-Center Male (Demo)', type: 'SUB_CENTER',
+    address: 'Male Village', district: 'Pune', taluka: 'Mulshi', village: 'Male',
+    latitude: 18.5090, longitude: 73.4470, phone: '020-22923060',
     emergency_available: 0,
   },
   // Facilities outside Pune, so district-level views and the multi-district

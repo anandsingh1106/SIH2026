@@ -38,6 +38,7 @@ if (!patientUser || !doctorUser) {
 }
 
 const phc = db.prepare("SELECT * FROM facilities WHERE name LIKE 'PHC Paud%'").get();
+const chc = db.prepare("SELECT * FROM facilities WHERE name LIKE 'CHC Mulshi%'").get();
 const hospital = db.prepare("SELECT * FROM facilities WHERE name LIKE '%Sassoon%'").get();
 const patients = db.prepare('SELECT * FROM patients ORDER BY created_at').all();
 const ownPatient = db.prepare('SELECT * FROM patients WHERE user_id = ?').get(patientUser.id) || patients[0];
@@ -88,12 +89,19 @@ seed('beds', 'SELECT COUNT(*) c FROM beds', () => {
     INSERT INTO beds (id, facility_id, ward, bed_number, type, status, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
   let n = 0;
-  // Enough beds to show every ward type and a realistic occupancy mix,
-  // without filling the board with rows nobody reads during a demo.
+  // Bed counts follow the rural health norms for each tier, so the referral
+  // chain escalates through facilities that are actually equipped for it:
+  // a PHC has 4-6 beds and no ICU, a CHC has 30 beds across four specialist
+  // departments, and only the medical college holds critical care.
   const plan = [
-    [hospital, 'ICU', 'ICU', 3], [hospital, 'Ward A', 'GENERAL', 4],
-    [hospital, 'Ventilator Unit', 'VENTILATOR', 2], [hospital, 'Maternity', 'MATERNITY', 2],
-    [phc, 'General Ward', 'GENERAL', 3], [phc, 'Emergency', 'EMERGENCY', 2],
+    // PHC — 6 beds, the upper end of the 4-6 norm. No ICU by design.
+    [phc, 'General Ward', 'GENERAL', 4], [phc, 'Emergency', 'EMERGENCY', 2],
+    // CHC — 30-bed norm, staffed by 4 specialists.
+    [chc, 'General Ward', 'GENERAL', 16], [chc, 'Maternity', 'MATERNITY', 8],
+    [chc, 'Emergency', 'EMERGENCY', 4], [chc, 'ICU', 'ICU', 2],
+    // Medical college — tertiary critical care at the top of the chain.
+    [hospital, 'ICU', 'ICU', 6], [hospital, 'Ward A', 'GENERAL', 8],
+    [hospital, 'Ventilator Unit', 'VENTILATOR', 4], [hospital, 'Maternity', 'MATERNITY', 4],
   ];
   for (const [fac, ward, type, qty] of plan) {
     if (!fac) continue;
