@@ -21,6 +21,45 @@ export interface PatientSummary {
   registeredDate?: string;
 }
 
+export interface FamilyMemberRecord {
+  id: string;
+  relatedPatientId?: string;
+  name?: string;
+  relationship: string;
+  dateOfBirth?: string;
+  gender?: string;
+}
+
+export interface MaternalRecord {
+  id: string;
+  patientId: string;
+  patientName?: string;
+  lmpDate?: string;
+  eddDate?: string;
+  gravida?: number;
+  parity?: number;
+  highRisk: boolean;
+  riskFactors: string[];
+  jsskRegistered: boolean;
+  pmsmaRegistered: boolean;
+  outcome?: 'ONGOING' | 'DELIVERED' | 'ABORTED' | 'REFERRED';
+}
+
+export interface AncVisitRecord {
+  id: string;
+  visitNumber: number;
+  date: string;
+  weight?: number;
+  bpSystolic?: number;
+  bpDiastolic?: number;
+  hemoglobin?: number;
+  fundalHeight?: string;
+  fetalHeartRate?: number;
+  tetanusGiven: boolean;
+  ifaTabletsGiven?: number;
+  notes?: string;
+}
+
 export interface VitalsRecord {
   id: string;
   temperature?: number;
@@ -104,6 +143,16 @@ export interface TriageResult {
   disclaimer: string;
 }
 
+export interface AshaAnalytics {
+  assignedPatients: number;
+  tasksOpen: number;
+  tasksCompleted: number;
+  homeVisits: number;
+  highRiskMaternal: number;
+  vaccinationsDue: number;
+  ncdHighRisk: number;
+}
+
 export interface DrugInteractionResult {
   interactions: { drugs: string[]; severity: string; effect: string; guidance: string }[];
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -123,9 +172,15 @@ export const backendApi = {
   getPatient: (id: string) => api.get<PatientSummary>(`/api/patients/${id}`),
   createPatient: (body: Partial<PatientSummary> & { name: string }) =>
     api.post<PatientSummary>('/api/patients', body),
+  updatePatient: (id: string, body: Partial<PatientSummary> & { emergencyContact?: string; emergencyContactPhone?: string }) =>
+    api.patch<PatientSummary>(`/api/patients/${id}`, body),
   getVitals: (patientId: string) => api.get<VitalsRecord[]>(`/api/patients/${patientId}/vitals`),
   recordVitals: (patientId: string, body: Record<string, unknown>) =>
     api.post<VitalsRecord>(`/api/patients/${patientId}/vitals`, body),
+  getFamilyMembers: (patientId: string) =>
+    api.get<FamilyMemberRecord[]>(`/api/patients/${patientId}/family`),
+  addFamilyMember: (patientId: string, body: { relatedPatientId?: string; name?: string; relationship: string }) =>
+    api.post<FamilyMemberRecord>(`/api/patients/${patientId}/family`, body),
 
   // Clinical
   getPrescriptions: (params: { patientId?: string } = {}) =>
@@ -155,6 +210,34 @@ export const backendApi = {
   createHomeVisit: (body: Record<string, unknown>) =>
     api.post<Record<string, unknown>>('/api/home-visits', body),
 
+  // Maternal health (ANC / high-risk pregnancy tracking)
+  getMaternalRecords: (params: { patientId?: string; highRisk?: boolean; page?: number; limit?: number } = {}) =>
+    api.get<Paginated<MaternalRecord>>('/api/maternal-records', { query: page(params) as never }),
+  createMaternalRecord: (body: {
+    patientId: string;
+    lmpDate?: string;
+    eddDate?: string;
+    gravida?: number;
+    parity?: number;
+    highRisk?: boolean;
+    riskFactors?: string[];
+    jsskRegistered?: boolean;
+    pmsmaRegistered?: boolean;
+  }) => api.post<MaternalRecord>('/api/maternal-records', body),
+  addAncVisit: (maternalRecordId: string, body: {
+    visitDate: string;
+    visitNumber?: number;
+    weight?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    hemoglobin?: number;
+    fundalHeight?: string;
+    fetalHeartRate?: number;
+    tetanusGiven?: boolean;
+    ifaTabletsGiven?: number;
+    notes?: string;
+  }) => api.post<AncVisitRecord>(`/api/maternal-records/${maternalRecordId}/anc-visits`, body),
+
   // Beds
   getBeds: (params: { facilityId?: string } = {}) =>
     api.get<Paginated<BedRecord>>('/api/beds', { query: page(params) as never }),
@@ -180,6 +263,7 @@ export const backendApi = {
   // Analytics
   getAnalytics: (scope: 'patient' | 'asha' | 'doctor' | 'specialist' | 'admin') =>
     api.get<Record<string, unknown>>(`/api/analytics/${scope}`),
+  getAshaAnalytics: () => api.get<AshaAnalytics>('/api/analytics/asha'),
   getHeatmap: (metric = 'patients') =>
     api.get<{ metric: string; points: { district: string; taluka?: string; value: number }[] }>(
       '/api/analytics/heatmap', { query: { metric } }
