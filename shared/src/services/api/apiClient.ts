@@ -49,7 +49,14 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
   onUnauthorized = handler;
 }
 
-// Methods that change state; these must carry an auth/CSRF header.
+// Methods that change state; these must carry a CSRF header on web. GET/HEAD
+// are exempt there because CSRF only threatens state-changing requests — the
+// session cookie itself still rides along on every request regardless, via
+// `credentials: 'include'`. This guard is specific to the cookie+CSRF scheme,
+// not a general rule, so it lives in the web adapter below, not the shared
+// gate: React Native has no cookie carrying the session, so its bearer token
+// IS the session and must go on every request, GET included, or every read
+// comes back 401.
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 /**
@@ -59,7 +66,7 @@ const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
  * `credentials: 'include'` entirely.
  */
 export interface AuthTransportAdapter {
-  /** Extra headers to attach when calling an unsafe (state-changing) method. */
+  /** Extra headers this platform attaches to every request. */
   getAuthHeaders(method: string): Record<string, string> | null;
   /** Whether the browser's cookie jar should be sent with the request. */
   useCredentials: boolean;
@@ -86,6 +93,20 @@ export function setAuthTransportAdapter(next: AuthTransportAdapter) {
 }
 
 /**
+ * Prefixed onto every request path. Empty by default: the web app calls a
+ * relative `/api/...` path, which Vite's dev server proxies to the backend
+ * (see frontend/vite.config.ts) and a production build serves from the same
+ * origin as the API. React Native has no such proxy and no origin to resolve
+ * a relative path against, so it registers an absolute backend URL here at
+ * startup instead.
+ */
+let baseUrl = '';
+
+export function setApiBaseUrl(next: string) {
+  baseUrl = next.replace(/\/+$/, '');
+}
+
+/**
  * Reads the CSRF token the API set as a readable cookie.
  *
  * The same-origin policy is what makes this work: another site can cause the
@@ -100,14 +121,23 @@ function readCsrfTokenFromCookie(): string | null {
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']) {
-  if (!query) return path;
+  const fullPath = baseUrl ? `${baseUrl}${path}` : path;
+  if (!query) return fullPath;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== '') params.set(key, String(value));
   }
   const qs = params.toString();
-  return qs ? `${path}?${qs}` : path;
+  return qs ? `${fullPath}?${qs}` : fullPath;
 }
+
+// How long a request waits for a response before giving up. Without this,
+// fetch on a dead connection (e.g. airplane mode) can hang far longer than a
+// user will wait instead of rejecting quickly — on web the OS/browser usually
+// surfaces a fast DNS/connection failure, but React Native's fetch has no such
+// guarantee, so screens calling this offline would sit on "Saving…" instead of
+// falling back to the sync queue.
+const REQUEST_TIMEOUT_MS = 15000;
 
 /**
  * Single entry point for backend calls.
@@ -117,10 +147,16 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
  * message strings.
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, query, headers, ...rest } = options;
+  const { body, query, headers, signal, ...rest } = options;
 
   const method = (rest.method || 'GET').toUpperCase();
   const authHeaders = adapter.getAuthHeaders(method);
+
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => timeoutController.abort(), REQUEST_TIMEOUT_MS);
+  // If the caller passed their own signal, either one aborting should abort the request.
+  const onCallerAbort = () => timeoutController.abort();
+  signal?.addEventListener('abort', onCallerAbort);
 
   let res: Response;
   try {
@@ -133,11 +169,16 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       ...rest,
+      signal: timeoutController.signal,
     });
   } catch (err) {
-    // An aborted request is a caller decision, not a network failure.
-    if (err instanceof DOMException && err.name === 'AbortError') throw err;
+    // The caller's own signal firing is their decision, not a network failure —
+    // everything else (including our own timeout aborting) is treated as unreachable.
+    if (signal?.aborted) throw err;
     throw new ApiError('Cannot reach the server. Check your connection.', 0, 'NETWORK_ERROR');
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener('abort', onCallerAbort);
   }
 
   const payload = await res.json().catch(() => null);
