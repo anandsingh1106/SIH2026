@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/authContext';
-import { isSupabaseConfigured } from '../../services/auth/supabaseAuth';
+import { isSupabaseConfigured } from '@arogyasetu/shared/services/auth';
 import { Shield, Mail, Lock, ArrowRight } from 'lucide-react';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';

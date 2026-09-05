@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User, UserRole } from '@arogyasetu/shared/types';
 import { authApi, AuthApiError, SessionProfile, MfaState, MfaAction } from '@arogyasetu/shared/services/auth';
 import { setUnauthorizedHandler } from '@arogyasetu/shared/services/api';
-import * as supabaseAuth from './supabaseAuth';
+import * as supabaseAuth from '@arogyasetu/shared/services/auth';
 
 /**
  * What sign-in produced.
@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const resetPassword = async (email: string) => {
-    await supabaseAuth.resetPassword(email);
+    await supabaseAuth.resetPassword(email, window.location.origin);
   };
 
   const logout = async () => {

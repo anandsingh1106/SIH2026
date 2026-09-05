@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { setSupabaseClientProvider } from '@arogyasetu/shared/services/auth';
 
 /**
  * Browser Supabase client.
@@ -36,3 +37,8 @@ export function getSupabase(): SupabaseClient {
 
   return client;
 }
+
+setSupabaseClientProvider({
+  isConfigured: isSupabaseConfigured,
+  getClient: getSupabase,
+});

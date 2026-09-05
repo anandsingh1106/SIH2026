@@ -5,7 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { MAHARASHTRA_DISTRICTS } from '../../data/mockData';
 import { useAuth } from '../../services/auth/authContext';
-import { isSupabaseConfigured } from '../../services/auth/supabaseAuth';
+import { isSupabaseConfigured } from '@arogyasetu/shared/services/auth';
 import { UserRole } from '@arogyasetu/shared/types';
 
 const ROLE_HOME: Record<string, string> = {

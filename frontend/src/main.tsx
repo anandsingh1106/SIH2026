@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import './styles/globals.css';
+// Side-effect import: registers this platform's Supabase client provider
+// with the shared supabaseAuth module before anything calls it.
+import './lib/supabase/client';
 
 // Register service worker for PWA offline support (production only —
 // registering it during Vite dev causes stale caches to fight with HMR)

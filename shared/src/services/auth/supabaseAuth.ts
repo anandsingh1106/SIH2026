@@ -1,14 +1,41 @@
-import { getSupabase, isSupabaseConfigured } from '../../lib/supabase/client';
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import type { Session, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 
 /**
  * Supabase Auth wrapper — replaces the Firebase phone-OTP client.
  *
  * Email + password is used because Supabase phone auth requires a paid SMS
  * provider (Twilio/MessageBird), while email works out of the box.
+ *
+ * The client itself is not constructed here: initialising it needs a platform
+ * env-var mechanism (Vite's `import.meta.env` on web, Expo's `Constants` on
+ * React Native) that this file has no business knowing about. Each platform
+ * builds its own client (see frontend/src/lib/supabase/client.ts and its
+ * mobile counterpart) and calls `setSupabaseClientProvider` once at startup.
  */
 
-export { isSupabaseConfigured };
+export interface SupabaseClientProvider {
+  isConfigured(): boolean;
+  getClient(): SupabaseClient;
+}
+
+let provider: SupabaseClientProvider | null = null;
+
+export function setSupabaseClientProvider(next: SupabaseClientProvider): void {
+  provider = next;
+}
+
+export function isSupabaseConfigured(): boolean {
+  return provider?.isConfigured() ?? false;
+}
+
+function getSupabase(): SupabaseClient {
+  if (!provider) {
+    throw new Error(
+      'No Supabase client provider registered. Call setSupabaseClientProvider at app startup.'
+    );
+  }
+  return provider.getClient();
+}
 
 export interface SignUpProfile {
   name: string;
@@ -95,9 +122,14 @@ export async function getCurrentUser(): Promise<SupabaseUser | null> {
   return data.user;
 }
 
-export async function resetPassword(email: string) {
+/**
+ * `redirectBase` is the origin the reset link should return to — the web
+ * origin (e.g. `https://app.example`) on web, or a deep-link scheme (e.g.
+ * `arogyasetu://`) on React Native. Neither platform can be assumed here.
+ */
+export async function resetPassword(email: string, redirectBase: string) {
   const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${redirectBase}/reset-password`,
   });
   if (error) throw new SupabaseAuthError(error.message);
 }
