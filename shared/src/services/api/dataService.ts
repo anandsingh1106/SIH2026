@@ -1,7 +1,7 @@
 import { api, Paginated } from './apiClient';
 import { SyncQueueManager } from '../offline/syncQueueManager';
 import {
-  Patient, Referral, Prescription, PrescribedMedicine, Task, HomeVisit, Vitals,
+  Patient, Priority, Referral, Prescription, PrescribedMedicine, Task, HomeVisit, Vitals,
   Facility, Medicine, MedicineAvailability, MedicineOrder,
   Notification, Message, Bed, UserRole, ReferralStatus, QueueToken, QueueSummary,
   PatientTimelineEvent, Vaccination, AuditLog, NcdScreening, LabOrder, Appointment,
@@ -133,6 +133,29 @@ function generateVisitToken(): string {
   return generateToken('HV');
 }
 
+/**
+ * Referral urgency is the API's own three-level triage vocabulary, distinct
+ * from the four-level `Priority` screens use everywhere else. Sending a
+ * Priority value through unmapped is rejected outright, so the two are
+ * translated in both directions here.
+ */
+function toReferralUrgency(priority?: Priority): 'ROUTINE' | 'URGENT' | 'EMERGENCY' {
+  if (priority === 'critical') return 'EMERGENCY';
+  if (priority === 'high') return 'URGENT';
+  return 'ROUTINE';
+}
+
+function fromReferralUrgency(urgency?: string): Priority {
+  switch (String(urgency ?? '').toUpperCase()) {
+    case 'EMERGENCY':
+      return 'critical';
+    case 'URGENT':
+      return 'high';
+    default:
+      return 'low';
+  }
+}
+
 /** Screening outcome text mapped to the API's risk-level enum. */
 function normalizeRisk(outcome?: string): string | undefined {
   if (!outcome) return undefined;
@@ -224,7 +247,7 @@ function mapReferral(r: Record<string, unknown>): Referral {
 
   return {
     ...(c as unknown as Referral),
-    priority: (lower(c.urgency as string) ?? 'low') as Referral['priority'],
+    priority: fromReferralUrgency(c.urgency as string),
     status: (lower(c.status as string) ?? 'pending') as ReferralStatus,
     // The API names facilities by source/destination; screens say referring/target.
     referringFacilityName: str('referringFacilityName', 'sourceFacilityName'),
@@ -418,7 +441,7 @@ export class DataService {
       patientId: referral.patientId,
       specialty: referral.specialty,
       reason: referral.provisionalDiagnosis || referral.clinicalSummary,
-      urgency: (referral.priority || 'routine').toUpperCase(),
+      urgency: toReferralUrgency(referral.priority),
       clinicalSummary: referral.clinicalSummary,
       diagnosis: referral.provisionalDiagnosis,
       destinationFacilityId: referral.targetFacilityId,
@@ -698,7 +721,9 @@ export class DataService {
       description: task.description,
       patientId: task.patientId,
       priority: (task.priority || 'medium').toUpperCase(),
-      dueDate: task.dueDate,
+      // Omitted rather than sent as "" — the API validates the date format
+      // whenever the field is present.
+      ...(task.dueDate ? { dueDate: task.dueDate } : {}),
       type: task.type,
     };
 
@@ -744,7 +769,10 @@ export class DataService {
       riskLevel: normalizeRisk(visit.screeningOutcome),
       referralRecommended: visit.referralRecommended,
       notes: visit.notes,
-      nextVisitDate: visit.nextVisitDate,
+      // An unset follow-up date must be omitted, not sent as "": the API
+      // validates the field's format whenever it is present, so an empty
+      // string is rejected outright.
+      ...(visit.nextVisitDate ? { nextVisitDate: visit.nextVisitDate } : {}),
     };
 
     try {
