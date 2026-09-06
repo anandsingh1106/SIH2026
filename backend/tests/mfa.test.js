@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp } from '../src/app.js';
 import {
-  resetTestDb, createUser, createPatient, authCookie, passwordOnlyCookie, request,
+  resetTestDb, createUser, createPatient, authCookie, passwordOnlyCookie,
+  authBearer, passwordOnlyBearer, request,
 } from './helpers.js';
 import { getDb } from '../src/db/connection.js';
 import { verifyToken } from '../src/services/tokenService.js';
@@ -125,6 +126,51 @@ describe('enforcement: an enrolled user must actually present the factor', () =>
     const admin = createUser({ role: 'ADMIN', mfaEnrolled: false });
     const res = await request(app).get('/api/audit-logs').set('Cookie', authCookie(admin));
     expect(res.status).toBe(403);
+  });
+});
+
+describe('enforcement holds for bearer-token clients (mobile)', () => {
+  // The mobile app has no cookie jar and sends its session JWT in an
+  // Authorization header. The gate once read `req.cookies.token` alone, so a
+  // bearer request looked anonymous to it and fell through to `next()` —
+  // every screen's data was reachable with a password alone. These pin the
+  // gate to the same token-reading rule `requireAuth` uses.
+  it('blocks a password-only bearer session for an enrolled ASHA', async () => {
+    const asha = createUser({ role: 'ASHA' });
+
+    const res = await request(app)
+      .get('/api/patients')
+      .set(passwordOnlyBearer(asha));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('MFA_REQUIRED');
+  });
+
+  it('blocks a bearer session for a staff account that never enrolled', async () => {
+    const doctor = createUser({ role: 'DOCTOR', mfaEnrolled: false });
+
+    const res = await request(app)
+      .get('/api/patients')
+      .set(passwordOnlyBearer(doctor));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('MFA_ENROLMENT_REQUIRED');
+  });
+
+  it('allows the same ASHA once the factor is satisfied', async () => {
+    const asha = createUser({ role: 'ASHA' });
+
+    const res = await request(app).get('/api/patients').set(authBearer(asha));
+
+    expect(res.status).toBe(200);
+  });
+
+  it('still allows /api/auth/me so the app can route to the verify screen', async () => {
+    const asha = createUser({ role: 'ASHA' });
+
+    const res = await request(app).get('/api/auth/me').set(passwordOnlyBearer(asha));
+
+    expect(res.status).toBe(200);
   });
 });
 

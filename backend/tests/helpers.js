@@ -137,6 +137,23 @@ export function passwordOnlyCookie(user) {
   return authCookie(user, { mfaSatisfied: false });
 }
 
+/**
+ * Bearer token that authenticates as the given user.
+ *
+ * React Native has no cookie jar, so the mobile app sends the same JWT in an
+ * Authorization header instead. Every transport-independent control has to
+ * hold for this one too — a check that reads only `req.cookies` would let a
+ * bearer client straight past it.
+ */
+export function authBearer(user, { mfaSatisfied = true } = {}) {
+  return { Authorization: `Bearer ${signToken(user, { mfaSatisfied })}` };
+}
+
+/** A password-only bearer session, the mobile counterpart of `passwordOnlyCookie`. */
+export function passwordOnlyBearer(user) {
+  return authBearer(user, { mfaSatisfied: false });
+}
+
 /** The CSRF header a write must carry to match `authCookie`. */
 export function csrfHeaders() {
   return { [CSRF_HEADER]: CSRF_TEST_TOKEN };

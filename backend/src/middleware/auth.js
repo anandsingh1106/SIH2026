@@ -15,7 +15,7 @@ export const ROLES = ['PATIENT', 'ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN'];
  * token instead. Both verify through the identical signToken/verifyToken
  * pair; only the transport differs.
  */
-function readSessionToken(req) {
+export function readSessionToken(req) {
   const authHeader = req.get('authorization');
   if (authHeader?.startsWith('Bearer ')) return authHeader.slice('Bearer '.length);
   return req.cookies?.token;

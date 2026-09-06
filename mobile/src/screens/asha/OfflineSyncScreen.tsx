@@ -10,10 +10,11 @@ type Props = NativeStackScreenProps<AshaStackParamList, 'OfflineSync'>;
 /**
  * Mirrors frontend/src/pages/asha/OfflineSync.tsx. The web page also shows a
  * "Cached Tables Overview" grid backed by its IndexedDB mirror of
- * patients/tasks/referrals/medicines — mobile has no such local read cache
- * (dataService here calls the API directly), so that section is dropped
- * rather than shown with fabricated counts. The connectivity banner and
- * pending mutation queue are both backed by the real SQLite-backed queue.
+ * patients/tasks/referrals/medicines. Mobile only mirrors the patient roster
+ * (see patientsCache in dataService), so a four-table grid would be mostly
+ * fabricated counts — it is dropped rather than faked. The connectivity
+ * banner and pending mutation queue are both backed by the real
+ * SQLite-backed queue.
  */
 export function OfflineSyncScreen(_props: Props) {
   const [isOnline, setIsOnline] = useState(true);

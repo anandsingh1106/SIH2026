@@ -1,4 +1,5 @@
 import { verifyToken } from '../services/tokenService.js';
+import { readSessionToken } from './auth.js';
 import { userRepository } from '../repositories/userRepository.js';
 import { isMfaRequiredForRole } from '../services/mfaService.js';
 import { AppError } from '../utils/errors.js';
@@ -44,7 +45,12 @@ export function mfaGate(req, _res, next) {
   // Anonymous requests are the business of requireAuth on the route itself,
   // which returns a 401. Answering here would turn every unauthenticated call
   // into a confusing 403 about two-factor.
-  const token = req.cookies?.token;
+  //
+  // Read the token the same way requireAuth does — bearer header first, then
+  // the cookie. Reading only the cookie would let every bearer-token client
+  // (React Native has no cookie jar) past this gate entirely, since a missing
+  // token is treated as "anonymous, not my problem".
+  const token = readSessionToken(req);
   if (!token) return next();
 
   let payload;
