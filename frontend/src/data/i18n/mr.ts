@@ -1,7 +1,7 @@
 export const mr = {
   common: {
     appName: 'महाआरोग्य संगम',
-    appTagline: 'महाराष्ट्र शासन डिजिटल आरोग्य परिसंस्था',
+    appTagline: 'एकात्मिक डिजिटल आरोग्य परिसंस्था',
     login: 'लॉग इन करा',
     logout: 'लॉग आउट करा',
     register: 'नोंदणी करा',

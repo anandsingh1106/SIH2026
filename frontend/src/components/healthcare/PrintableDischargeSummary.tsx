@@ -45,7 +45,7 @@ export const PrintableDischargeSummary: React.FC<{ summary: DischargeSummaryData
               {s.facilityName}
             </h1>
             <p style={{ fontSize: 11, margin: '2px 0 0', color: '#475569' }}>
-              Government of Maharashtra · Public Health Department
+              MahaAarogya Sangam · Discharge Summary
             </p>
             <p style={{ fontSize: 11, margin: '2px 0 0', color: '#475569' }}>{s.department}</p>
           </div>

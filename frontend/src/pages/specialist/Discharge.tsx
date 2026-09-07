@@ -97,7 +97,7 @@ export const SpecialistDischarge: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-emerald-700">Govt. of Maharashtra • Public Health Department</span>
+              <span className="font-bold text-xs uppercase tracking-wider text-emerald-700">MahaAarogya Sangam • Discharge Record</span>
               <Badge variant="success" className="text-[10px]">FHIR R4 Validated</Badge>
             </div>
             <h2 className="text-xl font-extrabold text-ink mt-1">Sassoon General Hospital & Medical College, Pune</h2>

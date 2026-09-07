@@ -47,7 +47,7 @@ export const AdminReports: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ink">Statutory Health Reports & Export Engine</h1>
-            <p className="text-sm text-ink-soft">Government of Maharashtra & Ministry of Health and Family Welfare (MoHFW) returns</p>
+            <p className="text-sm text-ink-soft">Statutory and programme reporting returns</p>
           </div>
         </div>
 

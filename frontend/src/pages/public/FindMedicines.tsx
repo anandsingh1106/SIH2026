@@ -59,7 +59,7 @@ export const FindMedicinesPage: React.FC = () => {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
           <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <span>
-            <strong>Public Health Notice:</strong> All essential drugs at Government of Maharashtra health institutions are provided <strong>100% free of charge</strong> under the National Health Mission. Prescription from a registered medical officer is required for dispensing.
+            <strong>Public Health Notice:</strong> All essential drugs at public health institutions are provided <strong>100% free of charge</strong> under the National Health Mission. Prescription from a registered medical officer is required for dispensing.
           </span>
         </div>
 

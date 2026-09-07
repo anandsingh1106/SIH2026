@@ -46,7 +46,7 @@ export const ClinicalGuidelinesPage: React.FC = () => {
         <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900 flex items-start gap-2">
           <ShieldAlert className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
           <span>
-            <strong>Clinician Reference:</strong> These guidelines are intended for qualified healthcare practitioners to standardize diagnostic and therapeutic decisions across Government of Maharashtra health facilities.
+            <strong>Clinician Reference:</strong> These guidelines are intended for qualified healthcare practitioners to standardize diagnostic and therapeutic decisions across participating health facilities.
           </span>
         </div>
 

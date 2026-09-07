@@ -127,7 +127,7 @@ export const DoctorPrescriptionsPage: React.FC = () => {
               <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5 print-card">
                 <div className="flex items-center justify-between border-b border-line pb-4">
                   <div>
-                    <h3 className="font-bold text-ink text-lg">Government of Maharashtra E-Prescription</h3>
+                    <h3 className="font-bold text-ink text-lg">Digital E-Prescription</h3>
                     <p className="text-xs text-ink-soft">{selectedRx.facilityName} • Outpatient Department</p>
                   </div>
                   <div className="flex items-center gap-2 no-print">

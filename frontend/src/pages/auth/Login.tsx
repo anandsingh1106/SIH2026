@@ -64,7 +64,7 @@ export const LoginPage: React.FC = () => {
           Sign In to MahaAarogya Sangam
         </h2>
         <p className="mt-1 text-xs text-ink-soft">
-          Government of Maharashtra Digital Public Health Platform
+          Unified Digital Health Platform
         </p>
       </div>
 

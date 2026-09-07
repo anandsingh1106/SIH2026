@@ -15,7 +15,7 @@ export const AboutPage: React.FC = () => {
             About MahaAarogya Sangam
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted max-w-2xl mx-auto leading-relaxed">
-            A comprehensive, patient-centered digital health backbone designed for the Government of Maharashtra, connecting 120+ million citizens across 36 districts.
+            A comprehensive, patient-centered digital health backbone connecting 120+ million citizens across 36 districts.
           </p>
         </div>
 

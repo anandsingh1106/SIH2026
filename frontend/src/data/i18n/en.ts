@@ -1,7 +1,7 @@
 export const en = {
   common: {
     appName: 'MahaAarogya Sangam',
-    appTagline: 'Government of Maharashtra Digital Healthcare Ecosystem',
+    appTagline: 'Unified Digital Healthcare Ecosystem',
     login: 'Log In',
     logout: 'Log Out',
     register: 'Register',

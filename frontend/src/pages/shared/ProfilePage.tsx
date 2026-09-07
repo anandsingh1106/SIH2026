@@ -66,7 +66,7 @@ export const ProfilePage: React.FC = () => {
           <div className="bg-gradient-to-br from-gov-800 via-teal-800 to-sand-900 text-white rounded-2xl p-6 shadow-xl border border-gov-700 space-y-4">
             <div className="flex items-center justify-between border-b border-gov-700/60 pb-3">
               <span className="text-[10px] text-gov-200 uppercase tracking-widest font-bold">
-                Government of Maharashtra
+                MahaAarogya Sangam
               </span>
               <span className="px-2 py-0.5 bg-white/20 text-white text-[10px] font-bold rounded">
                 ABHA ID

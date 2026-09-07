@@ -31,7 +31,7 @@ export const PrintablePrescription: React.FC<{ prescription: Prescription | null
               MahaAarogya Sangam
             </h1>
             <p style={{ fontSize: 11, margin: '2px 0 0', color: '#475569' }}>
-              Government of Maharashtra · Department of Public Health
+              Digital Health Platform · E-Prescription
             </p>
             {rx.facilityName && (
               <p style={{ fontSize: 11, margin: '2px 0 0', color: '#475569' }}>{rx.facilityName}</p>
