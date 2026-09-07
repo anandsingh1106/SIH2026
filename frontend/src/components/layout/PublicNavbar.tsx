@@ -14,7 +14,6 @@ export const PublicNavbar: React.FC = () => {
     { label: t.nav.home, href: '/' },
     { label: t.nav.about, href: '/about' },
     { label: t.nav.facilities, href: '/facilities' },
-    { label: t.nav.findMedicines, href: '/find-medicines' },
     { label: t.nav.healthPrograms, href: '/health-programs' },
     { label: t.nav.clinicalGuidelines, href: '/clinical-guidelines' },
     { label: t.nav.news, href: '/news' },
@@ -22,22 +21,11 @@ export const PublicNavbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-line shadow-2xs">
-      {/* Utility strip: the ambulance number and language stay one tap away on
-          every public page, without claiming any institutional affiliation. */}
-      <div className="bg-sand-50 border-b border-line text-[11px] px-4 sm:px-6 lg:px-8 py-1.5 flex flex-wrap justify-center sm:justify-end items-center gap-x-3 gap-y-1">
-        <a
-          href="tel:108"
-          className="flex items-center gap-1.5 font-bold text-red-700 hover:text-red-800 hover:underline"
-        >
-          <PhoneCall className="w-3 h-3" />
-          <span>24x7 Ambulance: 108</span>
-        </a>
-        <span className="hidden sm:inline text-line" aria-hidden="true">|</span>
-        <LanguageSelector compact />
-      </div>
-
-      {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[4.5rem] py-2 flex items-center justify-between gap-4">
+      {/* One bar, not two. The ambulance number and the language switch used to
+          sit in a strip of their own above this row, which cost a whole band of
+          vertical space on every public page to carry two controls. They now
+          travel with the sign-in buttons on the right. */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[4.5rem] py-2 flex items-center gap-4">
         <Link to="/" className="flex items-center gap-2.5 group min-w-0 2xl:shrink-0">
           <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-lg shadow-soft ring-1 ring-gov-900/10 group-hover:shadow-glow transition-shadow">
             <Shield className="w-6 h-6 text-white" />
@@ -49,21 +37,21 @@ export const PublicNavbar: React.FC = () => {
             {/* The tagline is the first thing to go when space is tight: it
                 repeats what the page already says, and on a narrow bar it was
                 wrapping to a second line and spilling past the border. */}
-            <p className="hidden lg:block 2xl:hidden text-[10px] text-ink-soft font-medium truncate">
+            <p className="hidden 2xl:block text-[10px] text-ink-soft font-medium truncate">
               {t.common.appTagline}
             </p>
           </div>
         </Link>
 
         {/* Desktop Nav Items */}
-        <nav className="hidden 2xl:flex flex-1 items-center justify-center gap-0.5 px-4 min-w-0">
+        <nav className="hidden 2xl:flex items-center gap-0.5 pl-2 shrink-0">
           {links.map((item) => {
             const isActive = location.pathname === item.href;
             return (
               <Link
                 key={item.href}
                 to={item.href}
-                className={`relative px-2.5 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`relative px-2 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   isActive
                     ? 'text-gov-800 bg-gov-50 font-bold after:absolute after:left-3 after:right-3 after:-bottom-px after:h-0.5 after:rounded-full after:bg-gov-600'
                     : 'text-ink-muted hover:text-ink hover:bg-sand-50'
@@ -73,11 +61,27 @@ export const PublicNavbar: React.FC = () => {
               </Link>
             );
           })}
+
         </nav>
 
-        {/* Trailing controls: the buttons and the hamburger travel together so
-            they stay pinned to the right edge at every width. */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Trailing controls: helpline, language, sign-in and the hamburger all
+            travel together, pinned to the right edge at every width. ml-auto
+            holds them there now that the row is no longer justify-between. */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+          {/* The ambulance number stays the one red thing in the bar. */}
+          <a
+            href="tel:108"
+            className="hidden md:flex items-center gap-1.5 text-xs font-bold text-red-700 hover:text-red-800 whitespace-nowrap"
+            title="24x7 ambulance helpline"
+          >
+            <PhoneCall className="w-3.5 h-3.5 shrink-0" />
+            <span>108</span>
+          </a>
+
+          <div className="hidden lg:block">
+            <LanguageSelector compact />
+          </div>
+
         <div className="hidden sm:flex items-center gap-2 shrink-0">
           <Link to="/login" className="shrink-0">
             <Button variant="outline" size="sm" leftIcon={<User className="w-3.5 h-3.5" />}>
@@ -122,17 +126,27 @@ export const PublicNavbar: React.FC = () => {
             </Link>
           ))}
 
-          {/* Emergency is kept in the mobile menu explicitly. The utility strip
-              carries it on desktop, but on a phone that strip is cramped, and
-              this is the one link that must never take a second look to find. */}
+          {/* The helpline and the language switch are hidden from the bar on
+              small screens, so the menu is where they live there. Emergency
+              stays first: it is the one link that must never take a second
+              look to find. */}
+          <a
+            href="tel:108"
+            className="md:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold bg-red-50 text-red-700 border border-red-200"
+          >
+            <PhoneCall className="w-4 h-4 shrink-0" />
+            24x7 Ambulance: 108
+          </a>
           <Link
             to="/emergency"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold bg-red-50 text-red-700 border border-red-200"
+            className="block px-3 py-2 rounded-lg text-sm font-medium text-sand-700 hover:bg-sand-50"
           >
-            <PhoneCall className="w-4 h-4 shrink-0" />
             {t.common.emergency}
           </Link>
+          <div className="lg:hidden pt-1">
+            <LanguageSelector compact />
+          </div>
           <div className="pt-3 border-t border-line flex flex-col gap-2">
             <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="outline" size="sm" className="w-full">
