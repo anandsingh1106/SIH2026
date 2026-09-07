@@ -5,7 +5,14 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "strict": true
+    "strict": true,
+
+    // Emit into a build folder rather than beside the source. A composite
+    // project must emit, and the default put vite.config.js next to
+    // vite.config.ts — where Vite loads the .js in preference to the .ts, so
+    // a build would silently pin the dev server to a stale copy of its config.
+    "outDir": "./node_modules/.tmp/tsconfig.node",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node/tsconfig.tsbuildinfo"
   },
   "include": ["vite.config.ts"]
 }
