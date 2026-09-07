@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { Sparkles, Activity, ShieldAlert, CheckCircle2, AlertTriangle, Stethoscope } from 'lucide-react';
+import {
+  Sparkles,
+  Activity,
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  Stethoscope,
+  PhoneCall,
+  ChevronDown,
+} from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
@@ -20,6 +30,25 @@ export const DoctorAITriagePage: React.FC = () => {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
+
+  /**
+   * Severity styling for the result panel. Presentation only: it reads the
+   * risk level the engine already returned and never influences it.
+   */
+  const VERDICT_TONES = {
+    critical: { shell: 'bg-red-50 border-red-200', score: 'text-red-700', dot: 'bg-red-500' },
+    high: { shell: 'bg-orange-50 border-orange-200', score: 'text-orange-700', dot: 'bg-orange-500' },
+    moderate: { shell: 'bg-amber-50 border-amber-200', score: 'text-amber-700', dot: 'bg-amber-500' },
+    low: { shell: 'bg-emerald-50 border-emerald-200', score: 'text-emerald-700', dot: 'bg-emerald-500' },
+  } as const;
+
+  const verdictTone = result
+    ? VERDICT_TONES[result.riskLevel as keyof typeof VERDICT_TONES] ?? VERDICT_TONES.low
+    : VERDICT_TONES.low;
+
+  // Only the top two tiers make dialling an ambulance the dominant action;
+  // below that it stays available but visually secondary.
+  const isEmergency = result?.riskLevel === 'critical' || result?.riskLevel === 'high';
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,69 +154,112 @@ export const DoctorAITriagePage: React.FC = () => {
         </div>
       </form>
 
-      {/* Results Breakdown */}
+      {/*
+        Result panel.
+        The triage computation is untouched — every value below comes straight
+        from `result`. What changed is the order it is read in: verdict and
+        score first, then the findings that produced them, then the action to
+        take. The model's narrative sits last behind a disclosure, because a
+        clinician deciding whether to call an ambulance should not have to read
+        a paragraph to reach the recommendation.
+      */}
       {result && (
-        <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6 animate-in fade-in">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-            <div className="flex items-center gap-3">
-              <TriageBadge priority={result.riskLevel} size="lg" />
-              <div>
-                <div className="text-sm font-extrabold text-ink">
-                  Calculated Risk Score: {result.score} / 100
-                </div>
-                <div className="text-[11px] text-ink-soft font-medium">
-                  {result.contributingFactors.length} corroborating red-flag finding
-                  {result.contributingFactors.length === 1 ? '' : 's'}
+        <div className="space-y-4 animate-in fade-in">
+          {/* 1. The verdict. Tinted by severity so the state is legible before
+              any text is read. */}
+          <div className={`rounded-2xl border p-5 sm:p-6 shadow-card ${verdictTone.shell}`}>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-2.5 min-w-0">
+                <TriageBadge priority={result.riskLevel} size="lg" />
+                <h3 className="font-display text-xl sm:text-2xl font-extrabold text-ink leading-tight">
+                  {result.primaryConcern}
+                </h3>
+              </div>
+
+              {/* The score reads as a figure, not a sentence. */}
+              <div className="shrink-0 text-right">
+                <div className="text-[11px] font-semibold text-ink-soft">Risk score</div>
+                <div className="flex items-baseline gap-1 justify-end">
+                  <span className={`font-display text-4xl font-extrabold tabular-nums ${verdictTone.score}`}>
+                    {result.score}
+                  </span>
+                  <span className="text-sm font-semibold text-ink-soft">/ 100</span>
                 </div>
               </div>
             </div>
-
-            <div className="text-right">
-              <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Primary Assessment</span>
-              <div className="text-sm font-bold text-gov-800">{result.primaryConcern}</div>
-            </div>
           </div>
 
-          {/* Explainable Factor Weights */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider">
-              Explainable Clinical Risk Drivers & Contributing Factors:
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {result.contributingFactors.map((factor, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 bg-sand-50 border border-line rounded-xl text-xs font-medium text-ink flex items-start gap-2"
-                >
-                  <span className="w-2 h-2 rounded-full bg-gov-600 shrink-0 mt-1" />
-                  <span>{factor}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recommended Action */}
-          <div className="p-4 bg-gov-50 border border-gov-200 rounded-xl text-xs text-gov-900 space-y-1">
-            <div className="font-bold uppercase tracking-wider">Recommended Next Step for Medical Officer:</div>
-            <p className="leading-relaxed">{result.recommendedAction}</p>
-          </div>
-
-          {/* Narrative explanation, when an AI provider is configured */}
-          {result.explanation && (
-            <div>
-              <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2">
-                Explanation {result.aiAssisted && <span className="text-gov-600">(AI-assisted)</span>}:
-              </h4>
-              <p className="text-xs text-sand-700 leading-relaxed bg-sand-50 p-3 rounded-lg border border-line">
-                {result.explanation}
-              </p>
-            </div>
-          )}
-
-          {result.disclaimer && (
-            <p className="text-[11px] text-ink-soft italic border-t border-line pt-3">
-              {result.disclaimer}
+          {/* 2. Why. The same contributing factors, as a scannable list. */}
+          <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 shadow-card">
+            <h4 className="font-display text-base font-bold text-ink">Why this result?</h4>
+            <p className="text-xs text-ink-soft mt-0.5">
+              {result.contributingFactors.length} corroborating finding
+              {result.contributingFactors.length === 1 ? '' : 's'}
             </p>
+            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {result.contributingFactors.map((factor, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-2.5 p-3 bg-raised border border-line rounded-xl text-sm font-medium text-ink"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-2 ${verdictTone.dot}`} />
+                  <span className="leading-snug">{factor}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 3. What to do, and the two actions that follow from it. */}
+          <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 shadow-card">
+            <h4 className="font-display text-base font-bold text-ink">Recommended action</h4>
+            <p className="mt-2 text-sm text-ink-muted leading-relaxed">{result.recommendedAction}</p>
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
+              {/* Dialling is a real, irreversible act, so it is only the
+                  dominant button when the tier actually warrants it. */}
+              <a
+                href="tel:108"
+                className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-colors ${
+                  isEmergency
+                    ? 'bg-red-700 hover:bg-red-800 text-white shadow-soft'
+                    : 'border border-line-strong text-ink-muted hover:bg-raised'
+                }`}
+              >
+                <PhoneCall className="w-4 h-4 shrink-0" />
+                Call 108
+              </a>
+              <Link
+                to="/doctor/patients"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm border border-line-strong text-ink-muted hover:bg-raised transition-colors"
+              >
+                <Stethoscope className="w-4 h-4 shrink-0" />
+                View patient EHR
+              </Link>
+            </div>
+          </div>
+
+          {/* 4. The model's own reasoning, and the disclaimer that qualifies
+              it — available, but not in the way of the decision. */}
+          {(result.explanation || result.disclaimer) && (
+            <details className="group bg-surface rounded-2xl border border-line shadow-card overflow-hidden">
+              <summary className="flex items-center justify-between gap-3 p-5 cursor-pointer list-none hover:bg-raised transition-colors">
+                <span className="font-display text-sm font-bold text-ink">
+                  Detailed explanation
+                  {result.aiAssisted && (
+                    <span className="ml-2 text-xs font-semibold text-gov-700">AI-assisted</span>
+                  )}
+                </span>
+                <ChevronDown className="w-4 h-4 text-ink-soft shrink-0 transition-transform duration-200 group-open:rotate-180" />
+              </summary>
+              <div className="px-5 pb-5 space-y-3 border-t border-line pt-4">
+                {result.explanation && (
+                  <p className="text-sm text-ink-muted leading-relaxed">{result.explanation}</p>
+                )}
+                {result.disclaimer && (
+                  <p className="text-xs text-ink-soft italic">{result.disclaimer}</p>
+                )}
+              </div>
+            </details>
           )}
         </div>
       )}
