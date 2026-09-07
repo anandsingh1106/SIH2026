@@ -52,7 +52,6 @@ type TrendPoint = { month: string; consultations: number; referrals: number };
 const POPULAR_SEARCHES = [
   { label: 'Find a hospital', to: '/facilities' },
   { label: 'Health schemes', to: '/health-programs' },
-  { label: 'Medicines', to: '/find-medicines' },
   { label: 'Vaccination', to: '/health-programs' },
 ];
 
@@ -99,13 +98,6 @@ export const HomePage: React.FC = () => {
       href: '/health-programs',
       icon: <Shield className="w-5 h-5 text-emerald-700" />,
       tint: 'bg-emerald-50 border border-emerald-100',
-    },
-    {
-      title: 'Find Medicines',
-      desc: 'Live stock near you',
-      href: '/find-medicines',
-      icon: <Pill className="w-5 h-5 text-sky-700" />,
-      tint: 'bg-sky-50 border border-sky-100',
     },
     {
       title: 'Book Appointment',
@@ -403,7 +395,7 @@ export const HomePage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {quickActions.map((action) => (
               <Link
                 key={action.title}
