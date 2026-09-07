@@ -58,8 +58,8 @@ export function VerifyTwoFactorScreen({ navigation }: Props) {
         return;
       }
       const accessToken = await supabaseAuth.verifyTotp(factorId, code);
-      await authApi.mfa.verify(accessToken);
-      completeMfa();
+      const { sessionToken } = await authApi.mfa.verify(accessToken);
+      await completeMfa(sessionToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That code was not accepted.');
       setCode('');
@@ -72,9 +72,9 @@ export function VerifyTwoFactorScreen({ navigation }: Props) {
     setError('');
     setIsSubmitting(true);
     try {
-      const { remaining: left } = await authApi.mfa.useRecoveryCode(code);
+      const { remaining: left, sessionToken } = await authApi.mfa.useRecoveryCode(code);
       setRemaining(left);
-      completeMfa();
+      await completeMfa(sessionToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That recovery code is not valid.');
       setCode('');

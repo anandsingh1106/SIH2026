@@ -28,6 +28,10 @@ export function SetupTwoFactorScreen(_props: Props) {
   const [secret, setSecret] = useState('');
   const [code, setCode] = useState('');
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  // Enrolment upgrades the session to aal2, but the user still has to read and
+  // save their recovery codes first. Hold the new bearer token across that step
+  // so finish() can store it.
+  const [upgradedToken, setUpgradedToken] = useState<string | undefined>();
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -58,8 +62,9 @@ export function SetupTwoFactorScreen(_props: Props) {
     setIsSubmitting(true);
     try {
       const accessToken = await supabaseAuth.verifyTotp(factorId, code);
-      const { recoveryCodes: codes } = await authApi.mfa.completeEnrolment(accessToken);
+      const { recoveryCodes: codes, sessionToken } = await authApi.mfa.completeEnrolment(accessToken);
       setRecoveryCodes(codes);
+      setUpgradedToken(sessionToken);
       setStep('codes');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That code was not accepted.');
@@ -80,8 +85,8 @@ export function SetupTwoFactorScreen(_props: Props) {
   };
 
   const finish = () => {
-    completeMfa();
     // RootNavigator swaps to the right role stack once mfaAction flips.
+    void completeMfa(upgradedToken);
   };
 
   return (

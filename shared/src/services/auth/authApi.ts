@@ -50,6 +50,10 @@ export interface SessionResult {
    * The same session JWT the web app receives as an httpOnly cookie, sent
    * here too so a client with no cookie jar (React Native) can store it and
    * send it back as `Authorization: Bearer <token>`. The web app ignores it.
+   *
+   * The two-factor endpoints return this field as well: passing 2FA re-issues
+   * the session at aal2, and a bearer client must replace its stored token or
+   * it keeps presenting the aal1 one and stays blocked.
    */
   sessionToken?: string;
 }
@@ -81,15 +85,23 @@ export const authApi = {
      * never retrievable again.
      */
     completeEnrolment: (accessToken: string) =>
-      api.post<{ recoveryCodes: string[] }>('/api/auth/mfa/enrol/complete', { accessToken }),
+      api.post<{ recoveryCodes: string[]; sessionToken?: string }>(
+        '/api/auth/mfa/enrol/complete',
+        { accessToken }
+      ),
 
     /** Upgrades a password-only session once a TOTP code has been accepted. */
     verify: (accessToken: string) =>
-      api.post<{ verified: boolean }>('/api/auth/mfa/verify', { accessToken }),
+      api.post<{ verified: boolean; sessionToken?: string }>('/api/auth/mfa/verify', {
+        accessToken,
+      }),
 
     /** Signs in with a recovery code when the authenticator is unavailable. */
     useRecoveryCode: (code: string) =>
-      api.post<{ verified: boolean; remaining: number }>('/api/auth/mfa/recovery', { code }),
+      api.post<{ verified: boolean; remaining: number; sessionToken?: string }>(
+        '/api/auth/mfa/recovery',
+        { code }
+      ),
 
     regenerateRecoveryCodes: () =>
       api.post<{ recoveryCodes: string[] }>('/api/auth/mfa/recovery-codes'),

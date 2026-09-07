@@ -25,7 +25,7 @@ interface AuthContextType {
   mfaAction: MfaAction;
   signUp: (email: string, password: string, profile: SessionProfile) => Promise<{ needsEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<SignInResult>;
-  completeMfa: (user?: User) => void;
+  completeMfa: (sessionToken?: string, user?: User) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -124,7 +124,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { user, mfa: state };
   };
 
-  const completeMfa = (user?: User) => {
+  const completeMfa = async (sessionToken?: string, user?: User) => {
+    // Passing 2FA re-issues the session at aal2. The web client picks that up
+    // from the refreshed cookie; here the new bearer token must replace the
+    // stored aal1 one before anything else calls the API, or every request
+    // still presents the un-upgraded token and mfaGate keeps rejecting it.
+    if (sessionToken) await setSessionToken(sessionToken);
     if (user) setCurrentUser(user);
     setMfaAction('none');
   };

@@ -9,7 +9,7 @@ import {
   isMfaRequiredForRole,
 } from '../services/mfaService.js';
 import { verifySupabaseToken } from '../services/supabaseAuthService.js';
-import { setSessionCookie } from '../services/tokenService.js';
+import { setSessionCookie, signToken } from '../services/tokenService.js';
 import { issueCsrfToken } from '../middleware/csrf.js';
 import { recordAudit } from '../services/auditService.js';
 import { sendSuccess } from '../utils/response.js';
@@ -87,8 +87,9 @@ export async function postEnrolComplete(req, res, next) {
     const user = getDb().prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
     setSessionCookie(res, user, { mfaSatisfied: true });
     const csrfToken = issueCsrfToken(res);
+    const sessionToken = signToken(user, { mfaSatisfied: true });
 
-    return sendSuccess(res, { recoveryCodes, csrfToken }, 201);
+    return sendSuccess(res, { recoveryCodes, csrfToken, sessionToken }, 201);
   } catch (err) {
     next(err);
   }
@@ -130,7 +131,12 @@ export async function postVerify(req, res, next) {
     setSessionCookie(res, req.user, { mfaSatisfied: true });
     const csrfToken = issueCsrfToken(res);
 
-    return sendSuccess(res, { verified: true, csrfToken });
+    // The cookie above upgrades the web client. A bearer-token client has no
+    // cookie jar, so without this it would keep sending the aal1 token it got
+    // at sign-in and stay blocked by mfaGate despite having just passed 2FA.
+    const sessionToken = signToken(req.user, { mfaSatisfied: true });
+
+    return sendSuccess(res, { verified: true, csrfToken, sessionToken });
   } catch (err) {
     next(err);
   }
@@ -158,11 +164,13 @@ export async function postRecovery(req, res, next) {
 
     setSessionCookie(res, req.user, { mfaSatisfied: true });
     const csrfToken = issueCsrfToken(res);
+    const sessionToken = signToken(req.user, { mfaSatisfied: true });
 
     return sendSuccess(res, {
       verified: true,
       remaining: countUnusedRecoveryCodes(req.user.id),
       csrfToken,
+      sessionToken,
     });
   } catch (err) {
     next(err);
