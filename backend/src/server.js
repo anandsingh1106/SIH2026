@@ -4,6 +4,15 @@ import { runMigrations } from './db/migrator.js';
 import { ensureDemoQueueForToday } from './db/demoQueue.js';
 import { createApp } from './app.js';
 import { logger } from './utils/logger.js';
+import { networkInterfaces } from 'node:os';
+
+/** Every non-internal IPv4 address of this machine, for the startup banner. */
+function lanAddresses() {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((nic) => nic && nic.family === 'IPv4' && !nic.internal)
+    .map((nic) => nic.address);
+}
 
 async function start() {
   getDb();
@@ -22,10 +31,20 @@ async function start() {
   }
 
   const app = createApp();
-  const server = app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, env.HOST, () => {
     logger.info(`ArogyaSetu API listening on http://localhost:${env.PORT}`, {
       env: env.NODE_ENV,
+      host: env.HOST,
     });
+
+    // When bound to every interface, print the LAN addresses too. Phones and
+    // other machines need one of these, and hunting for it in ipconfig is the
+    // step this setup exists to remove.
+    if (env.HOST === '0.0.0.0' && !isProduction) {
+      for (const address of lanAddresses()) {
+        logger.info(`  reachable on your network at http://${address}:${env.PORT}`);
+      }
+    }
   });
 
   const shutdown = (signal) => {

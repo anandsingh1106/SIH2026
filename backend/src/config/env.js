@@ -27,6 +27,11 @@ function bool(name, fallback = false) {
 export const env = {
   NODE_ENV: optional('NODE_ENV', 'development'),
   PORT: Number(optional('PORT', '4000')),
+  // The interface to bind. In development we listen on every interface so a
+  // phone or a second laptop on the same wifi can reach the API by the
+  // machine's LAN address without anyone editing a config file; production
+  // stays on loopback, where a reverse proxy is expected to sit in front.
+  HOST: optional('HOST', process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0'),
   FRONTEND_URL: optional('FRONTEND_URL', 'http://localhost:3000'),
   // Comma-separated origin allowlist; falls back to FRONTEND_URL.
   CORS_ORIGINS: optional('CORS_ORIGINS'),
