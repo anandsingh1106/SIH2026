@@ -354,28 +354,40 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Citizen Quick Actions — the six errands people actually arrive to do,
-          lifted out of the nav so they are reachable in one tap from the hero. */}
-      <section className="py-10 bg-surface border-b border-line">
+      {/* 2. Citizen quick actions — the errands people actually arrive to do,
+          lifted out of the nav so none of them needs a menu. Each card carries
+          its own tint so the row scans as six choices rather than one block. */}
+      <section className="py-12 bg-surface border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <h2 className="font-display text-xl sm:text-2xl font-extrabold text-ink">
+              How can we help you today?
+            </h2>
+            <Link
+              to="/facilities"
+              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-gov-700 hover:text-gov-800 shrink-0"
+            >
+              View all services <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {quickActions.map((action) => (
               <Link
                 key={action.title}
                 to={action.href}
-                className="group flex flex-col items-center text-center gap-2.5 p-4 sm:p-5 rounded-2xl bg-raised border border-line shadow-2xs hover:shadow-soft hover:border-gov-300 hover:-translate-y-0.5 transition-all duration-200"
+                className={`group flex flex-col gap-2 p-4 sm:p-5 rounded-2xl border shadow-2xs hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 ${action.tint}`}
               >
-                <span
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${action.tint} transition-transform duration-200 group-hover:scale-105`}
-                >
+                <span className="w-11 h-11 rounded-xl bg-surface/80 grid place-items-center shadow-subtle transition-transform duration-200 group-hover:scale-105">
                   {action.icon}
                 </span>
-                <span className="font-bold text-ink text-xs sm:text-[13px] leading-tight">
+                <span className="font-bold text-ink text-sm leading-tight mt-1">
                   {action.title}
                 </span>
-                <span className="text-[10px] sm:text-[11px] text-ink-soft leading-snug">
+                <span className="text-[11px] text-ink-muted leading-snug">
                   {action.desc}
                 </span>
+                <ArrowRight className="w-4 h-4 text-ink-soft mt-auto pt-1 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-gov-700" />
               </Link>
             ))}
           </div>
