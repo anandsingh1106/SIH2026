@@ -17,11 +17,8 @@ export const PublicFooter: React.FC = () => {
               <span className="font-display font-bold text-white text-base">MahaAarogya Sangam</span>
             </div>
             <p className="text-ink-soft text-xs leading-relaxed">
-              Official Digital Healthcare Infrastructure of Maharashtra, connecting 36 districts, frontline ASHA workers, primary health centers, and tertiary hospitals into an accessible public health ecosystem.
+              A unified digital healthcare platform connecting 36 districts, frontline ASHA workers, primary health centers, and tertiary hospitals into an accessible public health ecosystem.
             </p>
-            <div className="pt-2 text-[11px] text-gov-400">
-              Government of Maharashtra Initiative
-            </div>
           </div>
 
           {/* Column 2: Public Portals */}
@@ -77,7 +74,7 @@ export const PublicFooter: React.FC = () => {
         {/* Bottom Bar */}
         <div className="mt-8 pt-6 border-t border-sand-800 flex flex-wrap justify-between items-center gap-4 text-[11px] text-ink-soft">
           <div>
-            © 2026 Public Health Department, Government of Maharashtra. All rights reserved.
+            © 2026 MahaAarogya Sangam. All rights reserved.
           </div>
           <div className="flex gap-4">
             <Link to="/about" className="hover:text-sand-300">Privacy & Data Governance</Link>

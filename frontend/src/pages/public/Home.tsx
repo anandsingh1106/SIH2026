@@ -25,6 +25,7 @@ import {
 import { Button } from '../../components/ui/Button';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { Reveal } from '../../components/ui/Reveal';
+import { HeroIllustration } from '../../components/public/HeroIllustration';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface PlatformStats {
@@ -57,6 +58,53 @@ export const HomePage: React.FC = () => {
       .then((t) => setImpactData(t.points))
       .catch(() => setImpactData([]));
   }, []);
+
+  // The six errands a citizen most often arrives to do. Each points at a route
+  // that already exists, so none of these are dead ends.
+  const quickActions = [
+    {
+      title: 'Find a Hospital',
+      desc: 'Locate facilities near you',
+      href: '/facilities',
+      icon: <Building2 className="w-5 h-5 text-gov-700" />,
+      tint: 'bg-gov-50 border border-gov-100',
+    },
+    {
+      title: 'Health Schemes',
+      desc: 'Check your eligibility',
+      href: '/health-programs',
+      icon: <Shield className="w-5 h-5 text-emerald-700" />,
+      tint: 'bg-emerald-50 border border-emerald-100',
+    },
+    {
+      title: 'Find Medicines',
+      desc: 'Live stock near you',
+      href: '/find-medicines',
+      icon: <Pill className="w-5 h-5 text-sky-700" />,
+      tint: 'bg-sky-50 border border-sky-100',
+    },
+    {
+      title: 'Book Appointment',
+      desc: 'Schedule your visit',
+      href: '/login',
+      icon: <Video className="w-5 h-5 text-indigo-700" />,
+      tint: 'bg-indigo-50 border border-indigo-100',
+    },
+    {
+      title: 'Clinical Guidelines',
+      desc: 'Standards of care',
+      href: '/clinical-guidelines',
+      icon: <FileText className="w-5 h-5 text-amber-700" />,
+      tint: 'bg-amber-50 border border-amber-100',
+    },
+    {
+      title: 'Emergency Help',
+      desc: 'Call 108 — 24x7',
+      href: '/emergency',
+      icon: <PhoneCall className="w-5 h-5 text-red-700" />,
+      tint: 'bg-red-50 border border-red-100',
+    },
+  ];
 
   const challenges = [
     {
@@ -165,38 +213,29 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Copy */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-saffron-100 text-saffron-900 rounded-full text-xs font-bold border border-saffron-200 shadow-subtle animate-fade-up">
-                <Shield className="w-3.5 h-3.5 text-saffron-700" />
-                Government of Maharashtra Digital Public Health Infrastructure
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gov-50 text-gov-800 rounded-full text-xs font-bold border border-gov-200 shadow-subtle animate-fade-up">
+                <Shield className="w-3.5 h-3.5 text-gov-700" />
+                Unified Digital Public Health Platform
               </div>
 
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink tracking-tight leading-tight animate-fade-up [animation-delay:60ms]">
-                Connecting Maharashtra to <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-gov-700 via-gov-600 to-saffron-500 bg-clip-text text-transparent">
-                  Better, Equitable Healthcare
-                </span>
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-extrabold text-ink tracking-tight leading-[1.08] animate-fade-up [animation-delay:60ms]">
+                Better Healthcare<br className="hidden sm:inline" /> for a Healthier Tomorrow
               </h1>
 
-              <p className="text-lg text-ink-muted leading-relaxed max-w-2xl animate-fade-up [animation-delay:120ms]">
-                A unified, accessible digital healthcare ecosystem bridging <strong>36 districts</strong>,{' '}
-                <strong>{MAHARASHTRA_STATE_KPIS.totalFacilities.toLocaleString('en-IN')} rural facilities</strong>,{' '}
-                <strong>{MAHARASHTRA_STATE_KPIS.activeAshas.toLocaleString('en-IN')} ASHA workers</strong>, primary medical officers, and tertiary specialists into one coordinated care grid.
+              <p className="text-lg text-ink-muted leading-relaxed max-w-xl animate-fade-up [animation-delay:120ms]">
+                A unified health platform connecting citizens, healthcare workers and
+                specialists to accessible healthcare services and information.
               </p>
 
               <div className="flex flex-wrap items-center gap-3 pt-2 animate-fade-up [animation-delay:180ms]">
-                <Link to="/facilities">
-                  <Button size="lg" variant="primary" leftIcon={<Search className="w-5 h-5" />}>
-                    Find Nearest Facility
-                  </Button>
-                </Link>
                 <Link to="/register">
-                  <Button size="lg" variant="secondary" rightIcon={<ArrowRight className="w-5 h-5" />}>
-                    Create Your Account
+                  <Button size="lg" variant="primary" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                    Get Started
                   </Button>
                 </Link>
-                <Link to="/emergency">
-                  <Button size="md" variant="danger" leftIcon={<PhoneCall className="w-4 h-4" />}>
-                    Emergency 108
+                <Link to="/about">
+                  <Button size="lg" variant="secondary">
+                    Learn More
                   </Button>
                 </Link>
               </div>
@@ -222,57 +261,33 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Map/Illustration Banner */}
+            {/* Right: the consultation this platform exists to support — a
+                health worker, a mother, and her child over a shared record. */}
             <div className="lg:col-span-5">
-              <div className="bg-gradient-to-br from-gov-800 via-gov-900 to-sand-950 text-white rounded-3xl p-6 sm:p-8 shadow-glow border border-gov-700 relative overflow-hidden animate-fade-up [animation-delay:120ms]">
-                <div className="absolute -top-12 -right-12 w-48 h-48 bg-saffron-500/20 rounded-full blur-2xl pointer-events-none" />
-
-                <div className="flex items-center justify-between border-b border-gov-700/60 pb-4 mb-6">
-                  <div>
-                    <h3 className="font-bold text-base text-white">Maharashtra Health Pulse</h3>
-                    <p className="text-xs text-gov-300">
-                      {stats
-                        ? `Live across ${stats.districts} ${stats.districts === 1 ? 'district' : 'districts'}`
-                        : 'Connecting to the network…'}
-                    </p>
-                  </div>
-                  <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-[10px] font-mono font-bold animate-pulse">
-                    ● LIVE GRID
-                  </span>
+              <div className="relative animate-fade-up [animation-delay:120ms]">
+                <div className="rounded-3xl overflow-hidden shadow-premium border border-line bg-raised">
+                  <HeroIllustration className="w-full h-[280px] sm:h-[340px] lg:h-[420px]" />
                 </div>
 
-                {/* Every figure below is a live count from the platform. */}
-                <div className="grid grid-cols-2 gap-4 text-left">
-                  <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40 transition-colors duration-200 hover:border-saffron-500/50 hover:bg-gov-950/80">
-                    <div className="text-2xl font-bold text-white tabular-nums">{stats ? stats.facilities : '—'}</div>
-                    <div className="text-[11px] text-gov-300 font-medium">PHCs, CHCs &amp; Hospitals</div>
-                  </div>
-                  <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40 transition-colors duration-200 hover:border-saffron-500/50 hover:bg-gov-950/80">
-                    <div className="text-2xl font-bold text-white tabular-nums">{stats ? stats.healthWorkers : '—'}</div>
-                    <div className="text-[11px] text-gov-300 font-medium">Health Workers Onboard</div>
-                  </div>
-                  <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40 transition-colors duration-200 hover:border-saffron-500/50 hover:bg-gov-950/80">
-                    <div className="text-2xl font-bold text-white tabular-nums">{stats ? stats.consultations : '—'}</div>
-                    <div className="text-[11px] text-gov-300 font-medium">Consultations Recorded</div>
-                  </div>
-                  <div className="bg-gov-950/60 p-3.5 rounded-xl border border-gov-700/40 transition-colors duration-200 hover:border-saffron-500/50 hover:bg-gov-950/80">
-                    <div className="text-2xl font-bold text-emerald-400 tabular-nums">
-                      {stats && stats.bedsTotal > 0
-                        ? `${Math.round((stats.bedsAvailable / stats.bedsTotal) * 100)}%`
-                        : '—'}
+                {/* One live figure, floated on the image: proof the platform is
+                    actually running, without rebuilding the whole stats panel
+                    on top of a photo. */}
+                <div className="absolute -bottom-5 left-4 right-4 sm:left-6 sm:right-auto bg-surface rounded-2xl border border-line shadow-elevated px-4 py-3 flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 grid place-items-center shrink-0">
+                    <Activity className="w-5 h-5 text-emerald-700" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-lg font-display font-extrabold text-ink tabular-nums leading-none">
+                      {stats ? stats.consultations.toLocaleString('en-IN') : '—'}
                     </div>
-                    <div className="text-[11px] text-gov-300 font-medium">Bed Capacity Free</div>
+                    <div className="text-[11px] text-ink-soft font-medium mt-0.5">
+                      Consultations recorded
+                    </div>
                   </div>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-gov-700/60 flex items-center justify-between text-xs text-gov-200">
-                  <span className="flex items-center gap-1.5">
-                    <CloudOff className="w-3.5 h-3.5 text-gov-300" />
-                    Offline Sync Queue Active
+                  <span className="ml-auto pl-3 shrink-0 flex items-center gap-1.5 text-[10px] font-bold text-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    LIVE
                   </span>
-                  <Link to="/login" className="font-bold text-white hover:underline flex items-center gap-1">
-                    Sign in →
-                  </Link>
                 </div>
               </div>
             </div>
@@ -280,16 +295,65 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Live Impact Dashboard Section */}
+      {/* 2. Citizen Quick Actions — the six errands people actually arrive to do,
+          lifted out of the nav so they are reachable in one tap from the hero. */}
+      <section className="py-10 bg-surface border-b border-line">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {quickActions.map((action) => (
+              <Link
+                key={action.title}
+                to={action.href}
+                className="group flex flex-col items-center text-center gap-2.5 p-4 sm:p-5 rounded-2xl bg-raised border border-line shadow-2xs hover:shadow-soft hover:border-gov-300 hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <span
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${action.tint} transition-transform duration-200 group-hover:scale-105`}
+                >
+                  {action.icon}
+                </span>
+                <span className="font-bold text-ink text-xs sm:text-[13px] leading-tight">
+                  {action.title}
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-ink-soft leading-snug">
+                  {action.desc}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Live Impact Dashboard Section */}
       <section className="py-16 bg-raised border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-ink">
-              Platform Activity
-            </h2>
-            <p className="text-sm sm:text-base text-ink-muted mt-2">
-              Live counts from this deployment, connecting frontline care to specialist services
-            </p>
+          {/* Impact figures sit left, the ambulance panel right: someone who
+              came here in an emergency should not have to scroll past the
+              statistics to find the number. */}
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-ink">
+                Our Impact
+              </h2>
+              <p className="text-sm sm:text-base text-ink-muted mt-2">
+                Live counts from this deployment, connecting frontline care to specialist services
+              </p>
+            </div>
+
+            <div className="lg:max-w-sm w-full bg-surface rounded-2xl border border-line shadow-card p-4 sm:p-5 flex items-center gap-4">
+              <span className="w-12 h-12 rounded-xl bg-red-600 grid place-items-center shrink-0 shadow-soft">
+                <PhoneCall className="w-6 h-6 text-white" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-ink leading-tight">Need immediate help?</p>
+                <a
+                  href="tel:108"
+                  className="font-display text-2xl font-extrabold text-red-700 hover:text-red-800 leading-none block mt-1"
+                >
+                  Call 108
+                </a>
+                <p className="text-[11px] text-ink-soft mt-1">24x7 free ambulance service</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -320,6 +384,32 @@ export const HomePage: React.FC = () => {
               changeLabel="live ICU and ward capacity"
               variant="red"
               icon={<PhoneCall className="w-5 h-5 text-red-700" />}
+            />
+          </div>
+
+          {/* Network reach. These three moved down from the hero when the photo
+              took its place — they are still the same live counts. */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <MetricCard
+              title="Health Facilities"
+              value={stats ? stats.facilities.toLocaleString('en-IN') : '—'}
+              changeLabel="PHCs, CHCs and hospitals"
+              variant="teal"
+              icon={<Building2 className="w-5 h-5 text-gov-700" />}
+            />
+            <MetricCard
+              title="Health Workers"
+              value={stats ? stats.healthWorkers.toLocaleString('en-IN') : '—'}
+              changeLabel="ASHAs, officers and specialists"
+              variant="emerald"
+              icon={<Stethoscope className="w-5 h-5 text-emerald-700" />}
+            />
+            <MetricCard
+              title="Districts Connected"
+              value={stats ? stats.districts.toLocaleString('en-IN') : '—'}
+              changeLabel="across the care network"
+              variant="blue"
+              icon={<Activity className="w-5 h-5 text-sky-700" />}
             />
           </div>
 
@@ -368,7 +458,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Maharashtra Healthcare Challenges Solved */}
+      {/* 4. Maharashtra Healthcare Challenges Solved */}
       <section className="py-16 bg-surface border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -395,7 +485,7 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 4. Platform Role Workspaces Grid */}
+      {/* 5. Platform Role Workspaces Grid */}
       <section className="py-16 bg-raised border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -431,7 +521,7 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 5. Success Stories & Real-World Impact */}
+      {/* 6. Success Stories & Real-World Impact */}
       <section className="py-16 bg-surface border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -487,7 +577,7 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 6. FAQ Section */}
+      {/* 7. FAQ Section */}
       <section className="py-16 bg-raised border-b border-line">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -510,7 +600,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. Government CTA Bar */}
+      {/* 8. Closing CTA Bar */}
       <section className="py-12 bg-gradient-to-r from-gov-950 via-gov-900 to-gov-950 text-white relative overflow-hidden">
         <div className="trust-divider absolute top-0 left-0 right-0" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">

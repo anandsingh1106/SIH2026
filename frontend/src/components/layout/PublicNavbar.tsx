@@ -23,26 +23,18 @@ export const PublicNavbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-line shadow-2xs">
-      {/* Top Government Ribbon */}
-      <div className="bg-gradient-to-r from-gov-900 via-gov-800 to-gov-900 text-white text-[11px] px-4 py-1.5 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold tracking-wide flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            Government of Maharashtra • Public Health Department
-          </span>
-          <span className="text-gov-300 hidden sm:inline">| महाराष्ट्र शासन आरोग्य विभाग</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <a
-            href="tel:108"
-            className="flex items-center gap-1 text-amber-300 font-bold hover:underline"
-          >
-            <PhoneCall className="w-3 h-3" />
-            <span>24x7 Ambulance: 108</span>
-          </a>
-          <span className="text-gov-400">|</span>
-          <LanguageSelector compact />
-        </div>
+      {/* Utility strip: the ambulance number and language stay one tap away on
+          every public page, without claiming any institutional affiliation. */}
+      <div className="bg-sand-50 border-b border-line text-[11px] px-4 py-1.5 flex justify-end items-center gap-3">
+        <a
+          href="tel:108"
+          className="flex items-center gap-1.5 font-bold text-red-700 hover:text-red-800 hover:underline"
+        >
+          <PhoneCall className="w-3 h-3" />
+          <span>24x7 Ambulance: 108</span>
+        </a>
+        <span className="text-line" aria-hidden="true">|</span>
+        <LanguageSelector compact />
       </div>
 
       {/* Main Navbar */}
