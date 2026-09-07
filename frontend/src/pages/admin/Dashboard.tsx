@@ -6,6 +6,7 @@ import {
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { PageHeader, SectionTitle } from '../../components/layout/PageHeader';
 import { 
   MAHARASHTRA_DISTRICT_STATS, 
   MAHARASHTRA_STATE_KPIS, 
@@ -26,41 +27,38 @@ export const AdminDashboard: React.FC = () => {
       <Breadcrumbs items={[{ label: 'Admin Command Center' }, { label: 'State Overview' }]} />
 
       {/* Top Banner */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-gov-900 via-gov-800 to-gov-700 p-6 rounded-2xl text-white shadow-md">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 bg-gov-600 text-white rounded-full text-xs font-bold uppercase tracking-wider">
-              Maharashtra State Health Command Center
-            </span>
-            <Badge variant="success" className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30 text-[10px]">
-              Live 36 Districts Sync
-            </Badge>
-          </div>
-          <h1 className="text-2xl font-black mt-2">MahaArogya Integrated Health Mission</h1>
-          <p className="text-sm text-gov-200 mt-1">Real-time public healthcare operations, disease surveillance, and rural facility readiness</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <a
-            href="/admin/heatmaps"
-            className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 hover:bg-gov-500 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
-          >
-            <MapPin className="w-4 h-4" /> Epidemic Heatmap
-          </a>
-          <a
-            href="/admin/ai-insights"
-            className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-sand-950 text-xs font-bold rounded-xl transition-all shadow-sm"
-          >
-            <Sparkles className="w-4 h-4" /> AI Outbreak Forecaster
-          </a>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Live across 36 districts
+          </>
+        }
+        title="Health Network"
+        subtitle="Real-time operations, disease surveillance and facility readiness"
+        actions={
+          <>
+            <a
+              href="/admin/heatmaps"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gov-700 hover:bg-gov-800 text-white text-xs font-bold rounded-xl transition-colors shadow-subtle"
+            >
+              <MapPin className="w-4 h-4" /> Epidemic Heatmap
+            </a>
+            <a
+              href="/admin/ai-insights"
+              className="inline-flex items-center gap-2 px-4 py-2.5 border border-line-strong text-ink-muted hover:bg-raised text-xs font-bold rounded-xl transition-colors"
+            >
+              <Sparkles className="w-4 h-4" /> AI Outbreak Forecaster
+            </a>
+          </>
+        }
+      />
 
       {/* Top Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Total Active Facilities</span>
+            <span className="text-xs font-semibold text-ink-soft">Health facilities</span>
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <Building2 className="w-4 h-4" />
             </div>
@@ -73,7 +71,7 @@ export const AdminDashboard: React.FC = () => {
 
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Active ASHA Workforce</span>
+            <span className="text-xs font-semibold text-ink-soft">Health workers</span>
             <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
@@ -86,7 +84,7 @@ export const AdminDashboard: React.FC = () => {
 
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">ABHA Digital Records</span>
+            <span className="text-xs font-semibold text-ink-soft">Citizens registered</span>
             <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
               <Activity className="w-4 h-4" />
             </div>
@@ -99,7 +97,7 @@ export const AdminDashboard: React.FC = () => {
 
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Tele-Consultations</span>
+            <span className="text-xs font-semibold text-ink-soft">Tele-consultations</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <PhoneCall className="w-4 h-4" />
             </div>

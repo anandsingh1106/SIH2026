@@ -105,41 +105,45 @@ export const PatientDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Greeting Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gov-700 via-gov-700 to-gov-800 rounded-2xl p-6 text-white shadow-glow">
-        <div className="absolute -top-10 -right-10 w-52 h-52 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative flex items-start justify-between">
-          <div>
-            <p className="text-gov-200 text-sm font-medium">Good morning,</p>
-            <h1 className="font-display text-2xl font-extrabold mt-0.5">{patient.name}</h1>
-            <p className="text-gov-200 text-sm mt-1">ABHA ID: {patient.abhaId}</p>
-            <div className="flex items-center gap-2 mt-3">
-              <Shield className="w-4 h-4 text-gov-200" />
-              <span className="text-sm text-gov-100">Health records are secure & private</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-2 border-white/40">
+      {/* Patient summary. Every field the dark banner carried is still here —
+          name, ABHA ID, blood group, age, risk — on the page's own surface, so
+          it matches the cards below it instead of announcing itself. */}
+      <div className="bg-surface rounded-2xl border border-line shadow-card p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-14 h-14 rounded-full bg-gov-50 border border-gov-200 grid place-items-center text-2xl font-display font-extrabold text-gov-700 shrink-0">
               {(patient.name ?? '?').charAt(0)}
             </div>
-            <Badge variant="success" className="mt-2 text-xs">Verified</Badge>
+            <div className="min-w-0">
+              <p className="text-sm text-ink-soft">Good morning,</p>
+              <h1 className="font-display text-2xl font-extrabold text-ink mt-0.5 truncate">
+                {patient.name}
+              </h1>
+              <p className="text-sm text-ink-muted mt-1 tabular-nums">ABHA ID: {patient.abhaId}</p>
+            </div>
+          </div>
+          <Badge variant="success" className="shrink-0">Verified</Badge>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-line">
+          <div>
+            <p className="font-display text-xl font-extrabold text-ink">O+</p>
+            <p className="text-xs text-ink-soft mt-0.5">Blood group</p>
+          </div>
+          <div className="px-3 border-x border-line">
+            <p className="font-display text-xl font-extrabold text-ink tabular-nums">{patient.age}</p>
+            <p className="text-xs text-ink-soft mt-0.5">Age</p>
+          </div>
+          <div>
+            <p className="font-display text-xl font-extrabold text-ink capitalize">{patient.riskCategory}</p>
+            <p className="text-xs text-ink-soft mt-0.5">Risk level</p>
           </div>
         </div>
 
-        <div className="relative grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-white/20">
-          <div className="text-center">
-            <p className="text-2xl font-bold">O+</p>
-            <p className="text-gov-200 text-xs">Blood Group</p>
-          </div>
-          <div className="text-center border-x border-white/20">
-            <p className="text-2xl font-bold">{patient.age}</p>
-            <p className="text-gov-200 text-xs">Age (Years)</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold capitalize">{patient.riskCategory}</p>
-            <p className="text-gov-200 text-xs">Risk Level</p>
-          </div>
-        </div>
+        <p className="flex items-center gap-1.5 text-xs text-ink-soft mt-4">
+          <Shield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          Health records are secure and private
+        </p>
       </div>
 
       {/* Emergency SOS */}

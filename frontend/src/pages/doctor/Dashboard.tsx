@@ -20,6 +20,7 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { PageHeader, SectionTitle } from '../../components/layout/PageHeader';
 import { TriageBadge } from '../../components/healthcare/TriageBadge';
 
 export const DoctorDashboard: React.FC = () => {
@@ -59,42 +60,30 @@ export const DoctorDashboard: React.FC = () => {
       />
 
       {/* Doctor Clinic Header */}
-      <div className="bg-gradient-to-r from-gov-800 to-sand-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/15 rounded-full text-xs font-bold text-gov-100 mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" /> PHC Paud OPD Clinic • Mulshi Block
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold">
-            Namaskar, Dr. Rajesh Deshmukh (MBBS, DCH)
-          </h1>
-          <p className="text-xs text-gov-200 mt-1">
-            Primary Medical Officer • Reg No: MMC-2012-08-4521 • Active Shift: Morning OPD
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Link to="/doctor/consultation">
-            <Button
-              variant="primary"
-              size="sm"
-              className="bg-surface text-gov-900 hover:bg-gov-50 font-bold"
-              leftIcon={<Stethoscope className="w-4 h-4 text-gov-700" />}
-            >
-              Start Next Consultation
-            </Button>
-          </Link>
-          <Link to="/doctor/telemedicine">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="bg-gov-900/60 text-white border-gov-600 hover:bg-gov-900"
-              leftIcon={<Video className="w-4 h-4 text-sky-300" />}
-            >
-              Virtual Clinic Room
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            PHC Paud OPD Clinic • Mulshi Block
+          </>
+        }
+        title="Namaskar, Dr. Rajesh Deshmukh"
+        subtitle="Primary Medical Officer • Morning OPD shift"
+        actions={
+          <>
+            <Link to="/doctor/consultation">
+              <Button variant="primary" size="sm" leftIcon={<Stethoscope className="w-4 h-4" />}>
+                Start Consultation
+              </Button>
+            </Link>
+            <Link to="/doctor/telemedicine">
+              <Button variant="secondary" size="sm" leftIcon={<Video className="w-4 h-4" />}>
+                Virtual Clinic
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
       {/* Critical Alert Bar */}
       {lowStockMeds.length > 0 && (
@@ -154,10 +143,9 @@ export const DoctorDashboard: React.FC = () => {
         <div className="lg:col-span-8 space-y-4">
           <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
-                <Users className="w-4 h-4 text-gov-700" />
-                Live OPD Waiting Room & Token Queue
-              </h3>
+              <SectionTitle icon={<Users className="w-4 h-4 text-gov-700" />}>
+                Live OPD queue
+              </SectionTitle>
               <Link to="/doctor/queue" className="text-xs font-bold text-gov-700 hover:underline">
                 Manage Queue →
               </Link>
@@ -205,8 +193,8 @@ export const DoctorDashboard: React.FC = () => {
           <div className="bg-gradient-to-br from-gov-50 to-emerald-50/50 border border-gov-200 rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-gov-700" />
-              <h4 className="font-bold text-gov-900 text-xs uppercase tracking-wider">
-                Clinical AI Diagnostic Assistant
+              <h4 className="font-display text-sm font-bold text-gov-900">
+                AI diagnostic assistant
               </h4>
             </div>
             <p className="text-xs text-sand-700 leading-relaxed">
@@ -221,8 +209,8 @@ export const DoctorDashboard: React.FC = () => {
 
           {/* Quick Doctor Modules */}
           <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-3">
-            <h4 className="font-bold text-ink text-xs uppercase tracking-wider">
-              Clinical Stations
+            <h4 className="font-display text-sm font-bold text-ink">
+              Clinical stations
             </h4>
             <div className="space-y-2 text-xs font-semibold">
               <Link to="/doctor/patients" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">

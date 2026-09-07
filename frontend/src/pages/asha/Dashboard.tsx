@@ -23,6 +23,7 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { PageHeader, SectionTitle } from '../../components/layout/PageHeader';
 
 export const AshaDashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -59,33 +60,30 @@ export const AshaDashboard: React.FC = () => {
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'ASHA Field Workspace', href: '/asha/dashboard' }, { label: 'Daily Command Hub' }]} />
 
-      {/* ASHA Header */}
-      <div className="bg-gradient-to-r from-gov-800 to-teal-800 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/15 rounded-full text-xs font-bold text-gov-100 mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" /> Paud Village • Mulshi Block (Pune)
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold">
-            Namaskar, Sunita Gaikwad (ASHA Worker)
-          </h1>
-          <p className="text-xs text-gov-100 mt-1">
-            Village Population: 1,420 • 284 Households Covered • Subcenter Paud
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Link to="/asha/register-patient">
-            <Button variant="primary" size="sm" className="bg-surface text-gov-900 hover:bg-gov-50 font-bold" leftIcon={<UserPlus className="w-4 h-4 text-gov-700" />}>
-              Register Patient
-            </Button>
-          </Link>
-          <Link to="/asha/map">
-            <Button variant="secondary" size="sm" className="bg-teal-900/60 text-white border-teal-600 hover:bg-teal-900" leftIcon={<MapPin className="w-4 h-4 text-gov-300" />}>
-              Household Map
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Paud Village • Mulshi Block (Pune)
+          </>
+        }
+        title="Namaskar, Sunita Gaikwad"
+        subtitle="Village population 1,420 • 284 households covered • Subcenter Paud"
+        actions={
+          <>
+            <Link to="/asha/register-patient">
+              <Button variant="primary" size="sm" leftIcon={<UserPlus className="w-4 h-4" />}>
+                Register Patient
+              </Button>
+            </Link>
+            <Link to="/asha/map">
+              <Button variant="secondary" size="sm" leftIcon={<MapPin className="w-4 h-4" />}>
+                Household Map
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
       {/* Critical Alert Bar */}
       {criticalReferrals.length > 0 && (
@@ -145,10 +143,9 @@ export const AshaDashboard: React.FC = () => {
           {/* Priority Tasks List */}
           <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-gov-700" />
-                Today's Daily Task Action List
-              </h3>
+              <SectionTitle icon={<CheckSquare className="w-4 h-4 text-gov-700" />}>
+                Today's schedule
+              </SectionTitle>
               <Link to="/asha/tasks" className="text-xs font-bold text-gov-700 hover:underline">
                 View All Tasks ({tasks.length}) →
               </Link>
@@ -238,8 +235,8 @@ export const AshaDashboard: React.FC = () => {
         <div className="space-y-6">
           {/* Active Referrals Tracker */}
           <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-4">
-            <h3 className="font-bold text-ink text-xs uppercase tracking-wider flex items-center justify-between">
-              <span>Village Patients in Referral Care</span>
+            <h3 className="font-display text-base font-bold text-ink flex items-center justify-between">
+              <span>Patients in referral care</span>
               <Link to="/asha/referrals" className="text-gov-700 hover:underline">
                 View ({referrals.length})
               </Link>
@@ -265,9 +262,9 @@ export const AshaDashboard: React.FC = () => {
 
           {/* IEC Quick Guides */}
           <div className="bg-gov-50/70 border border-gov-200 rounded-2xl p-5 shadow-2xs space-y-3">
-            <h4 className="font-bold text-gov-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="font-display text-sm font-bold text-gov-900 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-gov-700" />
-              Frontline Counselling Tip
+              Counselling tip
             </h4>
             <p className="text-xs text-gov-800 leading-relaxed italic">
               "For pregnant mothers with Hb &lt; 8 g/dL, ensure daily intake of 2 large red IFA tablets and encourage leafy green vegetables, jaggery, and drumsticks."

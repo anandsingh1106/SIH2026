@@ -19,6 +19,7 @@ import { MetricCard } from '../../components/ui/MetricCard';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
+import { PageHeader, SectionTitle } from '../../components/layout/PageHeader';
 import { TriageBadge } from '../../components/healthcare/TriageBadge';
 
 export const SpecialistDashboard: React.FC = () => {
@@ -46,42 +47,30 @@ export const SpecialistDashboard: React.FC = () => {
       />
 
       {/* Specialist Header */}
-      <div className="bg-gradient-to-r from-gov-800 to-indigo-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/15 rounded-full text-xs font-bold text-gov-100 mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" /> Sassoon General Hospital & B.J. GMC Pune
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold">
-            Namaskar, Dr. Priya Kulkarni (MD, DM Cardiology)
-          </h1>
-          <p className="text-xs text-gov-200 mt-1">
-            Department of Cardiology & Critical Care • Tertiary Referral Command Nodal Officer
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Link to="/specialist/referrals">
-            <Button
-              variant="primary"
-              size="sm"
-              className="bg-surface text-gov-900 hover:bg-gov-50 font-bold"
-              leftIcon={<ArrowRightLeft className="w-4 h-4 text-gov-700" />}
-            >
-              Inward Referral Triage
-            </Button>
-          </Link>
-          <Link to="/specialist/beds">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="bg-gov-900/60 text-white border-gov-600 hover:bg-gov-900"
-              leftIcon={<BedDouble className="w-4 h-4 text-gov-300" />}
-            >
-              Live Bed Census
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow={
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Sassoon General Hospital & B.J. GMC Pune
+          </>
+        }
+        title="Namaskar, Dr. Priya Kulkarni"
+        subtitle="Cardiology & Critical Care • Tertiary referral nodal officer"
+        actions={
+          <>
+            <Link to="/specialist/referrals">
+              <Button variant="primary" size="sm" leftIcon={<ArrowRightLeft className="w-4 h-4" />}>
+                Referral Triage
+              </Button>
+            </Link>
+            <Link to="/specialist/beds">
+              <Button variant="secondary" size="sm" leftIcon={<BedDouble className="w-4 h-4" />}>
+                Live Bed Census
+              </Button>
+            </Link>
+          </>
+        }
+      />
 
       {/* Critical Case Notification Banner */}
       {criticalCases.length > 0 && (
@@ -141,10 +130,9 @@ export const SpecialistDashboard: React.FC = () => {
         <div className="lg:col-span-8 space-y-4">
           <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4 text-gov-700" />
-                Active Inward Transfers from District Network
-              </h3>
+              <SectionTitle icon={<ArrowRightLeft className="w-4 h-4 text-gov-700" />}>
+                Recent referrals
+              </SectionTitle>
               <Link to="/specialist/referrals" className="text-xs font-bold text-gov-700 hover:underline">
                 Open Referral Center →
               </Link>
@@ -195,10 +183,9 @@ export const SpecialistDashboard: React.FC = () => {
           {/* Bed Census Widget */}
           <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-ink text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <BedDouble className="w-4 h-4 text-gov-700" />
-                Department Bed Roster
-              </h4>
+              <SectionTitle icon={<BedDouble className="w-4 h-4 text-gov-700" />} className="text-sm">
+                Bed roster
+              </SectionTitle>
               <Link to="/specialist/beds" className="text-xs text-gov-700 font-bold hover:underline">
                 All Beds ({beds.length})
               </Link>
@@ -233,8 +220,8 @@ export const SpecialistDashboard: React.FC = () => {
 
           {/* Quick Tertiary Links */}
           <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-2 text-xs font-semibold">
-            <h4 className="font-bold text-ink text-xs uppercase tracking-wider mb-2">
-              Tertiary Care Stations
+            <h4 className="font-display text-sm font-bold text-ink mb-2">
+              Care stations
             </h4>
             <Link to="/specialist/treatment-plans" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
               <span>Multi-Week Treatment Pathways</span>
