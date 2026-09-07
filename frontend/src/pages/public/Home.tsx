@@ -9,6 +9,9 @@ import {
   Activity,
   Users,
   Building2,
+  MapPin,
+  Syringe,
+  Baby,
   Pill,
   Video,
   FileText,
@@ -124,6 +127,35 @@ export const HomePage: React.FC = () => {
       href: '/emergency',
       icon: <PhoneCall className="w-5 h-5 text-red-700" />,
       tint: 'bg-red-50 border border-red-100',
+    },
+  ];
+
+  // Four everyday health topics. Each links at an existing public page —
+  // nothing here is a placeholder route.
+  const awarenessTopics = [
+    {
+      title: 'Vaccination',
+      desc: 'Stay protected',
+      href: '/health-programs',
+      icon: <Syringe className="w-5 h-5 text-emerald-700" />,
+    },
+    {
+      title: 'Healthy living',
+      desc: 'Eat well, stay active',
+      href: '/news',
+      icon: <Heart className="w-5 h-5 text-red-600" />,
+    },
+    {
+      title: 'Disease prevention',
+      desc: 'Know the risks',
+      href: '/clinical-guidelines',
+      icon: <Activity className="w-5 h-5 text-gov-700" />,
+    },
+    {
+      title: 'Maternal care',
+      desc: 'Every stage supported',
+      href: '/health-programs',
+      icon: <Baby className="w-5 h-5 text-indigo-600" />,
     },
   ];
 
@@ -394,7 +426,81 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Live Impact Dashboard Section */}
+      {/* 3. Find care near you, and the number to call when there is no time
+          to look. These two answer the only questions a visitor in trouble
+          actually has, so they sit directly under the service row. */}
+      <section className="py-12 bg-canvas border-b border-line">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Facility finder */}
+            <div className="lg:col-span-2 bg-surface rounded-2xl border border-line shadow-card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center gap-6">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display text-xl sm:text-2xl font-extrabold text-ink leading-tight">
+                  Nearby healthcare facilities
+                </h3>
+                <p className="text-sm text-ink-muted mt-2 max-w-md">
+                  Find hospitals, PHCs, sub-centres and clinics near you, with live
+                  bed availability and the services each one offers.
+                </p>
+                <Link to="/facilities">
+                  <Button
+                    size="md"
+                    variant="primary"
+                    className="mt-5"
+                    leftIcon={<MapPin className="w-4 h-4" />}
+                  >
+                    Find facilities near me
+                  </Button>
+                </Link>
+              </div>
+
+              {/* A map-shaped panel rather than a real map: the facilities page
+                  owns that, and loading tiles here would cost the landing page
+                  its first paint for a picture nobody interacts with. */}
+              <div
+                aria-hidden="true"
+                className="shrink-0 w-full sm:w-56 h-40 rounded-xl bg-raised border border-line relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-grid-fade opacity-70" />
+                <span className="absolute left-8 top-10 w-7 h-7 rounded-full bg-red-600 grid place-items-center shadow-soft">
+                  <Building2 className="w-3.5 h-3.5 text-white" />
+                </span>
+                <span className="absolute right-10 top-16 w-7 h-7 rounded-full bg-gov-600 grid place-items-center shadow-soft">
+                  <Building2 className="w-3.5 h-3.5 text-white" />
+                </span>
+                <span className="absolute left-16 bottom-8 w-7 h-7 rounded-full bg-emerald-600 grid place-items-center shadow-soft">
+                  <Building2 className="w-3.5 h-3.5 text-white" />
+                </span>
+              </div>
+            </div>
+
+            {/* Emergency */}
+            <div className="bg-red-50 rounded-2xl border border-red-100 shadow-card p-6 sm:p-8 flex flex-col">
+              <span className="w-12 h-12 rounded-xl bg-red-600 grid place-items-center shadow-soft">
+                <PhoneCall className="w-6 h-6 text-white" />
+              </span>
+              <h3 className="font-display text-lg font-extrabold text-ink mt-4">
+                Need emergency help?
+              </h3>
+              <p className="text-sm text-ink-muted mt-1">Free 24x7 ambulance service</p>
+              <a
+                href="tel:108"
+                className="font-display text-5xl font-extrabold text-red-700 hover:text-red-800 leading-none mt-4 block tabular-nums"
+              >
+                108
+              </a>
+              <Link
+                to="/emergency"
+                className="mt-auto pt-5 inline-flex items-center gap-1.5 text-sm font-bold text-red-700 hover:text-red-800"
+              >
+                View more helplines <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Live Impact Dashboard Section */}
       <section className="py-16 bg-raised border-b border-line">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Impact figures sit left, the ambulance panel right: someone who
@@ -529,7 +635,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Maharashtra Healthcare Challenges Solved */}
+      {/* 5. Maharashtra Healthcare Challenges Solved */}
       <section className="py-16 bg-surface border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -556,7 +662,7 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 5. Platform Role Workspaces Grid */}
+      {/* 6. Platform Role Workspaces Grid */}
       <section className="py-16 bg-raised border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -592,7 +698,7 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 6. Success Stories & Real-World Impact */}
+      {/* 7. Success Stories & Real-World Impact */}
       <section className="py-16 bg-surface border-b border-line">
         <Reveal className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -648,7 +754,47 @@ export const HomePage: React.FC = () => {
         </Reveal>
       </section>
 
-      {/* 7. FAQ Section */}
+      {/* 8. Health awareness. Prevention is the cheapest care there is, and a
+          public portal is where people arrive before they are ill — so this
+          reads as guidance, not as another dashboard. */}
+      <section className="py-14 bg-emerald-50/60 border-y border-emerald-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-4">
+              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-ink leading-tight">
+                Prevent.<br />Be aware.<br />Live healthier.
+              </h2>
+              <p className="text-sm text-ink-muted mt-3 max-w-sm">
+                Small steps make a big difference. Practical guidance on staying
+                well, written for everyday use rather than for clinicians.
+              </p>
+              <Link to="/health-programs">
+                <Button size="md" variant="primary" className="mt-5" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Explore health tips
+                </Button>
+              </Link>
+            </div>
+
+            <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {awarenessTopics.map((topic) => (
+                <Link
+                  key={topic.title}
+                  to={topic.href}
+                  className="group bg-surface rounded-2xl border border-line shadow-2xs hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 p-4 sm:p-5 text-center"
+                >
+                  <span className="w-11 h-11 rounded-xl bg-raised grid place-items-center mx-auto transition-transform duration-200 group-hover:scale-105">
+                    {topic.icon}
+                  </span>
+                  <p className="font-bold text-ink text-sm mt-3">{topic.title}</p>
+                  <p className="text-[11px] text-ink-soft mt-1 leading-snug">{topic.desc}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FAQ Section */}
       <section className="py-16 bg-raised border-b border-line">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -671,7 +817,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 8. Closing CTA Bar */}
+      {/* 10. Closing CTA Bar */}
       <section className="py-12 bg-gradient-to-r from-gov-950 via-gov-900 to-gov-950 text-white relative overflow-hidden">
         <div className="trust-divider absolute top-0 left-0 right-0" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
