@@ -97,6 +97,16 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
 
   const roleLabel = t.roles[currentRole as keyof typeof t.roles] || currentRole;
 
+  // Rendered once per mount rather than on a ticking timer: the header is
+  // mounted for a working session, and a date does not need to re-render every
+  // second to be correct.
+  const today = new Date().toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+
   return (
     <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur-md border-b border-line shadow-subtle">
       <div className="px-4 sm:px-6 lg:pr-8 lg:pl-64 h-16 flex items-center justify-between gap-4">
@@ -142,8 +152,14 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
           </div>
         </div>
 
-        {/* Right Side: Role Badge, Language, Notifications, Messages, Profile */}
+        {/* Right Side: Date, Role Badge, Language, Notifications, Messages, Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Today's date. Clinical work is dated work — the day a record
+              belongs to is context every screen here assumes. */}
+          <span className="hidden lg:block text-xs font-semibold text-ink-soft tabular-nums whitespace-nowrap">
+            {today}
+          </span>
+
           {/* Active Role Tag */}
           <div className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${roleColors[currentRole]}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-current" />

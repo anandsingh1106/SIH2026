@@ -29,7 +29,7 @@ const RAMPS: Record<RampName, string[]> = {
 };
 
 /** Ink that stays legible on a given ramp step. */
-const LABEL_INK = ['#2d2418', '#2d2418', '#2d2418', '#2d2418', '#ffffff', '#ffffff'];
+const LABEL_INK = ['#0f211e', '#0f211e', '#0f211e', '#0f211e', '#ffffff', '#ffffff'];
 
 export interface MaharashtraChoroplethProps {
   /** District name -> datum. Districts absent from the map render as "no data". */
@@ -116,7 +116,7 @@ export const MaharashtraChoropleth: React.FC<MaharashtraChoroplethProps> = ({
         <defs>
           {/* Soft drop shadow for the selected district only. */}
           <filter id="districtLift" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#4a3f36" floodOpacity="0.35" />
+            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#0f211e" floodOpacity="0.35" />
           </filter>
         </defs>
 
@@ -124,7 +124,7 @@ export const MaharashtraChoropleth: React.FC<MaharashtraChoroplethProps> = ({
           const datum = data[d.name];
           const hasData = datum !== undefined && Number.isFinite(datum.value);
           const bucket = hasData ? bucketOf(datum.value) : -1;
-          const fill = hasData ? colors[bucket] : '#f5f1ea';
+          const fill = hasData ? colors[bucket] : '#f1f5f4';
           const isSelected = selected === d.name;
           const isHovered = hovered?.name === d.name;
 
@@ -133,7 +133,7 @@ export const MaharashtraChoropleth: React.FC<MaharashtraChoroplethProps> = ({
               key={d.name}
               points={d.points}
               fill={fill}
-              stroke={isSelected ? '#2d2418' : isHovered ? '#4a3f36' : '#fffdf9'}
+              stroke={isSelected ? '#0f211e' : isHovered ? '#0d4133' : '#ffffff'}
               strokeWidth={isSelected ? 3.5 : isHovered ? 2.5 : 1.2}
               filter={isSelected ? 'url(#districtLift)' : undefined}
               tabIndex={onSelect ? 0 : -1}

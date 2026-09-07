@@ -157,21 +157,21 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-sand-900 to-sand-950 text-sand-300 flex flex-col border-r border-sand-800 transition-transform duration-200 lg:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-shell to-shell-deep text-sand-300 flex flex-col border-r border-white/5 transition-transform duration-200 lg:translate-x-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       {/* User Header Profile in Sidebar */}
-      <div className="p-4 border-b border-sand-800 flex items-center gap-3">
+      <div className="p-4 border-b border-white/10 flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gov-600 to-gov-800 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-soft ring-1 ring-gov-500/40">
           {currentUser?.name.charAt(0) || 'U'}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-white truncate">{currentUser?.name}</p>
-          <p className="text-[11px] text-gov-400 font-semibold uppercase tracking-wider">
+          <p className="text-[11px] text-gov-300 font-semibold uppercase tracking-wider">
             {roleLabel}
           </p>
-          <p className="text-[10px] text-ink-soft truncate mt-0.5">
+          <p className="text-[10px] text-white/45 truncate mt-0.5">
             {currentUser?.facilityName || currentUser?.district}
           </p>
         </div>
@@ -179,7 +179,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
 
       {/* Nav List */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-ink-soft px-3 pb-2">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-white/45 px-3 pb-2">
           {roleLabel}
         </div>
         {navItems.map((item) => (
@@ -193,8 +193,8 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
                before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:rounded-full 
                before:bg-saffron-400 before:transition-all before:duration-200 ${
                 isActive
-                  ? 'bg-gov-700/90 text-white font-bold shadow-soft before:h-6'
-                  : 'text-sand-300 hover:text-white hover:bg-sand-800/70 hover:translate-x-0.5 before:h-0'
+                  ? 'bg-gov-600 text-white font-bold shadow-soft before:h-6'
+                  : 'text-white/70 hover:text-white hover:bg-white/10 hover:translate-x-0.5 before:h-0'
               }`
             }
           >
@@ -211,8 +211,8 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
           </NavLink>
         ))}
 
-        <div className="pt-4 mt-4 border-t border-sand-800">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-ink-soft px-3 pb-2">
+        <div className="pt-4 mt-4 border-t border-white/10">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/45 px-3 pb-2">
             {t.nav.settings}
           </div>
           <NavLink
@@ -220,7 +220,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
+                isActive ? 'bg-gov-600 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
+                isActive ? 'bg-gov-600 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -244,7 +244,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium ${
-                isActive ? 'bg-gov-700 text-white' : 'text-ink-soft hover:text-white hover:bg-sand-800'
+                isActive ? 'bg-gov-600 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'
               }`
             }
           >
@@ -254,13 +254,18 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
         </div>
       </nav>
 
-      {/* Emergency Hotline in Sidebar */}
-      <div className="p-3 bg-sand-950/60 border-t border-sand-800 text-[11px] flex items-center justify-between">
-        <a href="tel:108" className="flex items-center gap-1.5 text-red-400 hover:underline font-bold">
-          <PhoneCall className="w-3.5 h-3.5" />
-          <span>{t.common.emergency}</span>
+      {/* Emergency call, pinned to the foot of the rail. This is the one action
+          that must be reachable without reading the nav, so it is a filled
+          button in the only red on the sidebar rather than a text link. */}
+      <div className="p-3 border-t border-white/10 space-y-2">
+        <a
+          href="tel:108"
+          className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-red-700 hover:bg-red-600 text-white font-bold text-sm shadow-soft transition-colors"
+        >
+          <PhoneCall className="w-4 h-4 shrink-0" />
+          <span>{t.common.emergency} · 108</span>
         </a>
-        <span className="text-ink-soft">v1.0 {t.common.appName}</span>
+        <p className="text-[10px] text-white/35 text-center">v1.0 {t.common.appName}</p>
       </div>
     </aside>
   );

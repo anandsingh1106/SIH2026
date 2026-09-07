@@ -4,26 +4,41 @@
 
 @layer base {
   /*
-   * Warm & human palette.
+   * Clinical & calm palette.
    *
    * Everything downstream -- Tailwind's canvas/surface/ink/line colours and
    * every component built on them -- resolves through these variables, so the
    * whole product can be retuned from this block alone.
+   *
+   * The ground is a cool, faintly green-tinted off-white rather than a neutral
+   * grey: against the emerald brand it reads as one deliberate family, and it
+   * lets plain white cards lift off the page without needing a heavy shadow.
    */
   :root {
-    --canvas: 245 241 234;      /* #f5f1ea  warm page background      */
-    --surface: 255 253 249;     /* #fffdf9  cards, panels             */
-    --raised: 250 248 245;      /* #faf8f5  inset / secondary blocks  */
-    --line: 233 226 214;        /* #e9e2d6  hairlines                 */
-    --line-strong: 216 204 186; /* #d8ccba  emphasised borders        */
+    /* A warm off-white ground, not a cool grey one. Clinical software is read
+       for whole shifts; the faint cream cast takes the glare off a page that
+       is mostly white cards, while staying neutral enough that the red/amber
+       risk states still land as alarms rather than decoration. */
+    --canvas: 250 249 246;      /* #faf9f6  page background           */
+    --surface: 255 255 255;     /* #ffffff  cards, panels             */
+    --raised: 246 245 241;      /* #f6f5f1  inset / secondary blocks  */
+    --line: 231 229 223;        /* #e7e5df  hairlines                 */
+    --line-strong: 212 209 200; /* #d4d1c8  emphasised borders        */
 
-    --ink: 45 36 24;            /* #2d2418  headings                  */
-    --ink-muted: 107 93 77;     /* #6b5d4d  body copy                 */
-    --ink-soft: 155 136 116;    /* #9b8874  captions, placeholders    */
+    /* Dark charcoal with the barest green cast, so headings sit in the same
+       family as the teal brand without reading as coloured text. */
+    --ink: 28 34 32;            /* #1c2220  headings                  */
+    --ink-muted: 82 92 89;      /* #525c59  body copy                 */
+    --ink-soft: 124 134 130;    /* #7c8682  captions, placeholders    */
 
     --primary: 15 118 110;      /* teal   -- trust, clinical actions  */
     --primary-foreground: 255 255 255;
-    --accent: 232 135 30;       /* saffron -- warmth, highlights      */
+    --accent: 5 150 105;        /* emerald -- highlights, active nav  */
+
+    /* The sidebar's own ground. Dark forest green, deliberately deeper than
+       any content surface so the navigation reads as a fixed frame. */
+    --shell: 11 61 46;          /* #0b3d2e  sidebar background        */
+    --shell-deep: 8 46 35;      /* #082e23  sidebar gradient foot     */
   }
 
   html {
@@ -141,17 +156,19 @@
   height: 6px;
 }
 
+/* Driven off the same tokens as every other surface, so the scrollbar cannot
+   drift back to a warm cast when the palette moves. */
 ::-webkit-scrollbar-track {
-  background: #f5f1ea;
+  background: rgb(var(--raised));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d8ccba;
+  background: rgb(var(--line-strong));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b9a892;
+  background: rgb(var(--ink-soft));
 }
 
 /* The printable document is rendered off-screen until printing. */

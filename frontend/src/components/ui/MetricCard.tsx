@@ -84,24 +84,26 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         )
       )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-bold text-ink-soft uppercase tracking-wider">{title}</p>
+      {/* Icon chip leads, figure and label stack beside it: the number is what
+          the eye is looking for, so nothing sits above it competing for the
+          first fixation. */}
+      <div className="flex items-center gap-3.5">
         {icon && (
           <div
             className={clsx(
-              'p-2.5 rounded-xl shrink-0 transition-colors duration-200',
+              'w-11 h-11 grid place-items-center rounded-xl shrink-0 transition-colors duration-200',
               iconColors[variant]
             )}
           >
             {icon}
           </div>
         )}
-      </div>
-
-      <div className="mt-3 flex items-baseline gap-2">
-        <h3 className="text-3xl font-display font-extrabold tracking-tight text-ink tabular-nums">
-          {animatedValue}
-        </h3>
+        <div className="min-w-0">
+          <h3 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight text-ink tabular-nums leading-none">
+            {animatedValue}
+          </h3>
+          <p className="mt-1.5 text-xs font-semibold text-ink-soft truncate">{title}</p>
+        </div>
       </div>
 
       {(subtitle || change !== undefined) && (

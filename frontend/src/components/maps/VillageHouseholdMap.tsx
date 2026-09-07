@@ -302,7 +302,7 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
                   y={(isHovered ? 7.6 : 6.5) * k}
                   fontSize={2 * k}
                   textAnchor="middle"
-                  fill="#2d2418"
+                  fill="#0f211e"
                   fontWeight="bold"
                   pointerEvents="none"
                   style={{

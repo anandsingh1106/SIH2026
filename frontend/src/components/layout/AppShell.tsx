@@ -12,10 +12,12 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-canvas text-ink-muted flex flex-col antialiased">
-      {/* Warm ambient wash behind the whole workspace. */}
+      {/* A single soft wash behind the workspace, keyed to the brand teal and
+          kept faint — enough to stop the ground reading as flat grey, not
+          enough to compete with the risk colours on the cards. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(232,135,30,0.10),transparent)]"
+        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(15,118,110,0.05),transparent)]"
       />
 
       {/* Offline Status & Sync Alert Bar */}
@@ -31,7 +33,7 @@ export const AppShell: React.FC = () => {
         {/* Mobile Backdrop */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-sand-900/50 backdrop-blur-sm z-30 lg:hidden animate-fade-in"
+            className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-30 lg:hidden animate-fade-in"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />

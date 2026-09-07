@@ -53,20 +53,32 @@ export default {
           950: '#3f1b08',
         },
 
-        // Warm-tinted neutrals replace slate. Same scale positions so the
-        // sweep from slate-N to sand-N is mechanical and safe.
+        // Cool, faintly green-tinted neutrals. Kept under the `sand` name
+        // because ~570 call sites across the app already reference this scale;
+        // retuning the values here restyles all of them at once, where a
+        // rename would mean touching a hundred files for no visual gain.
+        // The dark end (800-950) is what the sidebar and overlays sit on, so
+        // it runs into forest green rather than brown.
         sand: {
-          50: '#faf8f5',
-          100: '#f5f1ea',
-          200: '#e9e2d6',
-          300: '#d8ccba',
-          400: '#b9a892',
-          500: '#9b8874',
-          600: '#7d6b59',
-          700: '#635447',
-          800: '#4a3f36',
-          900: '#2d2418',
-          950: '#1a140d',
+          50: '#faf9f6',
+          100: '#f6f5f1',
+          200: '#e7e5df',
+          300: '#d4d1c8',
+          400: '#a8a89f',
+          500: '#7c8682',
+          600: '#525c59',
+          700: '#0f4a39',
+          800: '#0d4133',
+          900: '#0b3d2e',
+          950: '#082e23',
+        },
+
+        // The navigation shell. Exposed as its own token so a sidebar never
+        // has to spell the hex out, and so it can move independently of the
+        // neutral scale later.
+        shell: {
+          DEFAULT: 'rgb(var(--shell) / <alpha-value>)',
+          deep: 'rgb(var(--shell-deep) / <alpha-value>)',
         },
 
         brand: {
@@ -104,20 +116,22 @@ export default {
 
       // Warm-tinted shadows. A neutral-black shadow over a warm surface reads
       // grey and kills the warmth, so every shadow carries a brown cast.
+      // Cool-cast shadows. A warm brown shadow over this green-tinted ground
+      // reads muddy, so every shadow is thrown in the same ink as the text.
       boxShadow: {
-        'subtle': '0 1px 2px 0 rgba(74, 63, 54, 0.05)',
-        'card': '0 1px 3px rgba(74, 63, 54, 0.06), 0 1px 2px -1px rgba(74, 63, 54, 0.04)',
-        'elevated': '0 4px 12px -2px rgba(74, 63, 54, 0.10), 0 2px 6px -2px rgba(74, 63, 54, 0.06)',
-        'soft': '0 2px 8px -2px rgba(232, 135, 30, 0.08), 0 10px 28px -12px rgba(74, 63, 54, 0.14)',
+        'subtle': '0 1px 2px 0 rgba(28, 34, 32, 0.04)',
+        'card': '0 1px 3px rgba(28, 34, 32, 0.06), 0 1px 2px -1px rgba(28, 34, 32, 0.04)',
+        'elevated': '0 4px 12px -2px rgba(28, 34, 32, 0.10), 0 2px 6px -2px rgba(28, 34, 32, 0.06)',
+        'soft': '0 2px 8px -2px rgba(15, 118, 110, 0.10), 0 10px 28px -12px rgba(28, 34, 32, 0.12)',
         'glow': '0 0 0 1px rgba(15, 118, 110, 0.08), 0 10px 28px -8px rgba(15, 118, 110, 0.26)',
         'glow-saffron': '0 0 0 1px rgba(232, 135, 30, 0.12), 0 10px 28px -8px rgba(232, 135, 30, 0.30)',
-        'premium': '0 1px 2px rgba(74, 63, 54, 0.04), 0 14px 30px -12px rgba(74, 63, 54, 0.20)',
+        'premium': '0 1px 2px rgba(28, 34, 32, 0.04), 0 14px 30px -12px rgba(28, 34, 32, 0.18)',
       },
 
       backgroundImage: {
         'trust-line': 'linear-gradient(90deg, #0f766e 0%, #2dd4bf 40%, #e8871e 100%)',
-        'warm-hero': 'linear-gradient(180deg, #fef8ee 0%, #faf8f5 55%, #fffdf9 100%)',
-        'grid-pattern': 'radial-gradient(circle, rgba(232,135,30,0.16) 1px, transparent 1px)',
+        'warm-hero': 'linear-gradient(180deg, #f0fdf9 0%, #faf9f6 55%, #ffffff 100%)',
+        'grid-pattern': 'radial-gradient(circle, rgba(15,118,110,0.14) 1px, transparent 1px)',
       },
       backgroundSize: {
         'grid-sm': '22px 22px',
