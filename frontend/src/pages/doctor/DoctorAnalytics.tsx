@@ -24,7 +24,7 @@ export const DoctorAnalyticsPage: React.FC = () => {
 
   const morbidityData = [
     { name: 'Essential Hypertension', value: 34, color: '#1d4ed8' },
-    { name: 'Type 2 Diabetes Mellitus', value: 28, color: '#0d9488' },
+    { name: 'Type 2 Diabetes Mellitus', value: 28, color: '#2563eb' },
     { name: 'Viral URI / Seasonal Flu', value: 18, color: '#f59e0b' },
     { name: 'Gestational Anemia', value: 12, color: '#e11d48' },
     { name: 'Musculoskeletal Pain', value: 8, color: '#8b5cf6' },
@@ -95,7 +95,7 @@ export const DoctorAnalyticsPage: React.FC = () => {
                 <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Bar dataKey="opd" fill="#0f766e" radius={[4, 4, 0, 0]} name="In-Person OPD" />
+                <Bar dataKey="opd" fill="#1d4ed8" radius={[4, 4, 0, 0]} name="In-Person OPD" />
                 <Bar dataKey="tele" fill="#0284c7" radius={[4, 4, 0, 0]} name="Telemedicine" />
               </BarChart>
             </ResponsiveContainer>

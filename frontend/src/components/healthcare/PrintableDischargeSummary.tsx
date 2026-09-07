@@ -38,7 +38,7 @@ export const PrintableDischargeSummary: React.FC<{ summary: DischargeSummaryData
   return createPortal(
     <div id="printable-prescription" aria-hidden="true">
       {/* Letterhead */}
-      <div style={{ borderBottom: '2px solid #0f766e', paddingBottom: 12, marginBottom: 16 }}>
+      <div style={{ borderBottom: '2px solid #1d4ed8', paddingBottom: 12, marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: '#0f172a' }}>

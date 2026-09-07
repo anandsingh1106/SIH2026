@@ -63,7 +63,7 @@ export const ProfilePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 stagger">
         {/* Left Column: ABHA Virtual Card */}
         <div className="space-y-4">
-          <div className="bg-gradient-to-br from-gov-800 via-teal-800 to-sand-900 text-white rounded-2xl p-6 shadow-xl border border-gov-700 space-y-4">
+          <div className="bg-gradient-to-br from-gov-800 via-blue-800 to-sand-900 text-white rounded-2xl p-6 shadow-xl border border-gov-700 space-y-4">
             <div className="flex items-center justify-between border-b border-gov-700/60 pb-3">
               <span className="text-[10px] text-gov-200 uppercase tracking-widest font-bold">
                 MahaAarogya Sangam

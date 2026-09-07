@@ -160,12 +160,12 @@ export const AdminDistrictAnalytics: React.FC = () => {
             </p>
           </Card>
 
-          <Card className="p-4 bg-teal-50/70 border-teal-200">
-            <span className="text-xs font-bold text-teal-800 uppercase">ASHA Workforce</span>
-            <div className="mt-2 text-2xl font-bold text-teal-950">
+          <Card className="p-4 bg-blue-50/70 border-blue-200">
+            <span className="text-xs font-bold text-blue-800 uppercase">ASHA Workforce</span>
+            <div className="mt-2 text-2xl font-bold text-blue-950">
               {current.ashaCount.toLocaleString()}
             </div>
-            <p className="text-xs text-teal-700 mt-1">100% village and ward coverage</p>
+            <p className="text-xs text-blue-700 mt-1">100% village and ward coverage</p>
           </Card>
 
           <Card className="p-4 bg-purple-50/70 border-purple-200">

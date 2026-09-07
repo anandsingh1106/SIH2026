@@ -74,7 +74,7 @@ export const PatientVaccinations: React.FC = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
             <Syringe className="w-6 h-6" />
           </div>
           <div>
@@ -88,7 +88,7 @@ export const PatientVaccinations: React.FC = () => {
             setSelectedVaccine(vaccines[0]);
             setShowCertificateModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 shadow-sm transition-all self-start md:self-auto"
+          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 shadow-sm transition-all self-start md:self-auto"
         >
           <Download className="w-4 h-4" />
           Download Universal QR Certificate
@@ -97,13 +97,13 @@ export const PatientVaccinations: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 bg-teal-50 border-teal-200">
+        <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider">Completed Vaccines</span>
-            <ShieldCheck className="w-5 h-5 text-teal-600" />
+            <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Completed Vaccines</span>
+            <ShieldCheck className="w-5 h-5 text-blue-600" />
           </div>
-          <p className="text-2xl font-bold text-teal-900 mt-2">{completedCount}</p>
-          <p className="text-xs text-teal-700 mt-1">Verified with U-WIN & CoWIN</p>
+          <p className="text-2xl font-bold text-blue-900 mt-2">{completedCount}</p>
+          <p className="text-xs text-blue-700 mt-1">Verified with U-WIN & CoWIN</p>
         </Card>
 
         <Card className="p-4 bg-amber-50 border-amber-200">
@@ -157,7 +157,7 @@ export const PatientVaccinations: React.FC = () => {
                     setSelectedVaccine(vac);
                     setShowCertificateModal(true);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Certificate
@@ -184,15 +184,15 @@ export const PatientVaccinations: React.FC = () => {
       >
         {selectedVaccine && (
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-teal-300 rounded-xl p-5 bg-teal-50/40 text-center space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold">
-                <CheckCircle2 className="w-4 h-4 text-teal-600" />
+            <div className="border-2 border-dashed border-blue-300 rounded-xl p-5 bg-blue-50/40 text-center space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 text-blue-600" />
                 VERIFIED DIGITAL IMMUNIZATION CREDENTIAL
               </div>
               <h3 className="font-bold text-ink text-lg">{selectedVaccine.vaccineName}</h3>
               <p className="text-xs text-ink-muted">Beneficiary: <strong>{patient?.name ?? '—'}</strong>{patient?.abhaId ? <> | ABHA: <strong>{patient.abhaId}</strong></> : null}</p>
               
-              <div className="grid grid-cols-2 gap-2 text-left bg-surface p-3 rounded-lg border border-teal-100 text-xs mt-3">
+              <div className="grid grid-cols-2 gap-2 text-left bg-surface p-3 rounded-lg border border-blue-100 text-xs mt-3">
                 <div>
                   <span className="text-ink-soft">Date of Dose:</span>
                   <p className="font-semibold text-ink">{selectedVaccine.givenDate || selectedVaccine.dueDate}</p>
@@ -213,7 +213,7 @@ export const PatientVaccinations: React.FC = () => {
 
               <div className="pt-2">
                 <div className="w-28 h-28 mx-auto bg-sand-900 rounded-lg p-2 text-white flex flex-col items-center justify-center text-[10px] text-center">
-                  <div className="w-full h-full border border-teal-400 flex items-center justify-center font-mono font-bold tracking-tighter">
+                  <div className="w-full h-full border border-blue-400 flex items-center justify-center font-mono font-bold tracking-tighter">
                     [QR VERIFIED]
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export const PatientVaccinations: React.FC = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCertificateModal(false)}
-                className="flex-1 px-4 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg hover:bg-teal-700"
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"
               >
                 Save PDF to Device
               </button>

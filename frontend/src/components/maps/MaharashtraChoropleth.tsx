@@ -23,9 +23,9 @@ export type RampName = 'teal' | 'saffron' | 'severity';
  * information, hue only carries the theme.
  */
 const RAMPS: Record<RampName, string[]> = {
-  teal: ['#f0fdf9', '#ccfbf1', '#5eead4', '#14b8a6', '#0f766e', '#134e4a'],
+  teal: ['#eff6ff', '#dbeafe', '#93c5fd', '#3b82f6', '#1d4ed8', '#1e3a8a'],
   saffron: ['#fef8ee', '#fdedd3', '#f6bb6d', '#e8871e', '#b45412', '#753815'],
-  severity: ['#f0fdf9', '#fdedd3', '#f6bb6d', '#e8871e', '#dc2626', '#991b1b'],
+  severity: ['#eff6ff', '#fdedd3', '#f6bb6d', '#e8871e', '#dc2626', '#991b1b'],
 };
 
 /** Ink that stays legible on a given ramp step. */

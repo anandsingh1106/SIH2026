@@ -23,19 +23,21 @@ export default {
           soft: 'rgb(var(--ink-soft) / <alpha-value>)',
         },
 
-        // Teal stays the trust anchor — it is what makes this read as health.
+        // Blue is the trust anchor — the most widely used signal in clinical
+        // software, and what makes this read as healthcare rather than as a
+        // generic SaaS dashboard. 600/700 are the interactive weights.
         gov: {
-          50: '#f0fdf9',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#172554',
         },
 
         // Saffron/marigold — the warmth. Used for accents, highlights, CTAs.
@@ -60,17 +62,17 @@ export default {
         // The dark end (800-950) is what the sidebar and overlays sit on, so
         // it runs into forest green rather than brown.
         sand: {
-          50: '#faf9f6',
-          100: '#f6f5f1',
-          200: '#e7e5df',
-          300: '#d4d1c8',
-          400: '#a8a89f',
-          500: '#7c8682',
-          600: '#525c59',
-          700: '#0f4a39',
-          800: '#0d4133',
-          900: '#0b3d2e',
-          950: '#082e23',
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#6b7280',
+          600: '#475569',
+          700: '#1e3a5f',
+          800: '#163051',
+          900: '#0f2144',
+          950: '#0a1732',
         },
 
         // The navigation shell. Exposed as its own token so a sidebar never
@@ -82,8 +84,8 @@ export default {
         },
 
         brand: {
-          emerald: '#064e3b',
-          teal: '#0f766e',
+          emerald: '#1e3a8a',
+          teal: '#2563eb',
           sky: '#0284c7',
           amber: '#d97706',
           saffron: '#e8871e',
@@ -119,19 +121,19 @@ export default {
       // Cool-cast shadows. A warm brown shadow over this green-tinted ground
       // reads muddy, so every shadow is thrown in the same ink as the text.
       boxShadow: {
-        'subtle': '0 1px 2px 0 rgba(28, 34, 32, 0.04)',
-        'card': '0 1px 3px rgba(28, 34, 32, 0.06), 0 1px 2px -1px rgba(28, 34, 32, 0.04)',
-        'elevated': '0 4px 12px -2px rgba(28, 34, 32, 0.10), 0 2px 6px -2px rgba(28, 34, 32, 0.06)',
-        'soft': '0 2px 8px -2px rgba(15, 118, 110, 0.10), 0 10px 28px -12px rgba(28, 34, 32, 0.12)',
-        'glow': '0 0 0 1px rgba(15, 118, 110, 0.08), 0 10px 28px -8px rgba(15, 118, 110, 0.26)',
-        'glow-saffron': '0 0 0 1px rgba(232, 135, 30, 0.12), 0 10px 28px -8px rgba(232, 135, 30, 0.30)',
-        'premium': '0 1px 2px rgba(28, 34, 32, 0.04), 0 14px 30px -12px rgba(28, 34, 32, 0.18)',
+        'subtle': '0 1px 2px 0 rgba(31, 41, 55, 0.04)',
+        'card': '0 1px 3px rgba(31, 41, 55, 0.06), 0 1px 2px -1px rgba(31, 41, 55, 0.04)',
+        'elevated': '0 4px 12px -2px rgba(31, 41, 55, 0.10), 0 2px 6px -2px rgba(31, 41, 55, 0.06)',
+        'soft': '0 2px 8px -2px rgba(37, 99, 235, 0.10), 0 10px 28px -12px rgba(31, 41, 55, 0.12)',
+        'glow': '0 0 0 1px rgba(37, 99, 235, 0.08), 0 10px 28px -8px rgba(37, 99, 235, 0.26)',
+        'glow-saffron': '0 0 0 1px rgba(96, 165, 250, 0.14), 0 10px 28px -8px rgba(96, 165, 250, 0.32)',
+        'premium': '0 1px 2px rgba(31, 41, 55, 0.04), 0 14px 30px -12px rgba(31, 41, 55, 0.18)',
       },
 
       backgroundImage: {
-        'trust-line': 'linear-gradient(90deg, #0f766e 0%, #2dd4bf 40%, #e8871e 100%)',
-        'warm-hero': 'linear-gradient(180deg, #f0fdf9 0%, #faf9f6 55%, #ffffff 100%)',
-        'grid-pattern': 'radial-gradient(circle, rgba(15,118,110,0.14) 1px, transparent 1px)',
+        'trust-line': 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 45%, #60a5fa 100%)',
+        'warm-hero': 'linear-gradient(180deg, #eff6ff 0%, #f0f7ff 55%, #ffffff 100%)',
+        'grid-pattern': 'radial-gradient(circle, rgba(37,99,235,0.13) 1px, transparent 1px)',
       },
       backgroundSize: {
         'grid-sm': '22px 22px',

@@ -224,9 +224,9 @@ export const VillageHouseholdMap: React.FC<{ villageName?: string; onSelectHouse
 
           {/* PHC Subcenter / Anganwadi Center Landmark */}
           <g transform="translate(48, 42)">
-            <circle r="4" fill="#0f766e" />
-            <circle r="7" fill="none" stroke="#0f766e" strokeWidth="0.8" strokeDasharray="1 1" />
-            <text x="6" y="2" fontSize="2.8" fontWeight="bold" fill="#0f766e">
+            <circle r="4" fill="#1d4ed8" />
+            <circle r="7" fill="none" stroke="#1d4ed8" strokeWidth="0.8" strokeDasharray="1 1" />
+            <text x="6" y="2" fontSize="2.8" fontWeight="bold" fill="#1d4ed8">
               PHC Paud Subcenter
             </text>
           </g>

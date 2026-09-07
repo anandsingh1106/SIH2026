@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { backendApi } from '@arogyasetu/shared/services/api';
 import { MAHARASHTRA_STATE_KPIS } from '../../data/mockData';
 import {
@@ -45,7 +45,28 @@ interface PlatformStats {
 
 type TrendPoint = { month: string; consultations: number; referrals: number };
 
+/** The handful of searches that cover most first visits. */
+const POPULAR_SEARCHES = [
+  { label: 'Find a hospital', to: '/facilities' },
+  { label: 'Health schemes', to: '/health-programs' },
+  { label: 'Medicines', to: '/find-medicines' },
+  { label: 'Vaccination', to: '/health-programs' },
+];
+
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [heroQuery, setHeroQuery] = useState('');
+
+  // Hands the query to the facilities page, which already does the searching
+  // and reads it from ?search= (see Facilities.tsx).
+  // An empty box still navigates — landing on the full directory is a better
+  // answer than doing nothing when someone presses Enter.
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = heroQuery.trim();
+    navigate(q ? `/facilities?search=${encodeURIComponent(q)}` : '/facilities');
+  };
+
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [impactData, setImpactData] = useState<TrendPoint[]>([]);
 
@@ -110,7 +131,7 @@ export const HomePage: React.FC = () => {
     {
       title: 'Rural Healthcare Access',
       desc: 'Overcoming geographic barriers across 40,959 villages with offline-capable ASHA mobile tooling.',
-      icon: <Users className="w-5 h-5 text-teal-600" />,
+      icon: <Users className="w-5 h-5 text-blue-600" />,
     },
     {
       title: 'Specialist Availability',
@@ -227,7 +248,45 @@ export const HomePage: React.FC = () => {
                 specialists to accessible healthcare services and information.
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 pt-2 animate-fade-up [animation-delay:180ms]">
+              {/* Search leads, because most people arrive looking for one
+                  specific thing. It submits into the existing facilities page
+                  rather than being decorative. */}
+              <form
+                onSubmit={handleHeroSearch}
+                className="flex flex-col sm:flex-row gap-2 pt-1 animate-fade-up [animation-delay:150ms]"
+                role="search"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-soft pointer-events-none" />
+                  <input
+                    type="search"
+                    value={heroQuery}
+                    onChange={(e) => setHeroQuery(e.target.value)}
+                    placeholder="Search hospitals, medicines, schemes…"
+                    aria-label="Search hospitals, medicines and schemes"
+                    className="w-full bg-surface border border-line rounded-xl pl-10 pr-4 py-3 text-sm text-ink placeholder:text-ink-soft shadow-subtle transition-shadow focus:outline-none focus:border-gov-600 focus:ring-4 focus:ring-gov-600/12"
+                  />
+                </div>
+                <Button type="submit" size="lg" variant="primary">
+                  Search
+                </Button>
+              </form>
+
+              {/* The searches people actually run, one tap away. */}
+              <div className="flex flex-wrap items-center gap-2 text-xs animate-fade-up [animation-delay:200ms]">
+                <span className="font-semibold text-ink-soft">Popular:</span>
+                {POPULAR_SEARCHES.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    className="px-3 py-1.5 rounded-full bg-raised border border-line font-semibold text-ink-muted hover:border-gov-300 hover:text-gov-700 hover:bg-gov-50 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1 animate-fade-up [animation-delay:240ms]">
                 <Link to="/register">
                   <Button size="lg" variant="primary" rightIcon={<ArrowRight className="w-5 h-5" />}>
                     Get Started
@@ -438,8 +497,8 @@ export const HomePage: React.FC = () => {
                 <AreaChart data={impactData}>
                   <defs>
                     <linearGradient id="colorConsult" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0f766e" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#0f766e" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="colorRef" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0284c7" stopOpacity={0.4} />
@@ -449,7 +508,7 @@ export const HomePage: React.FC = () => {
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#94a3b8" />
                   <YAxis tick={{ fontSize: 12 }} stroke="#94a3b8" />
                   <Tooltip />
-                  <Area type="monotone" dataKey="consultations" stroke="#0f766e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorConsult)" />
+                  <Area type="monotone" dataKey="consultations" stroke="#1d4ed8" strokeWidth={2.5} fillOpacity={1} fill="url(#colorConsult)" />
                   <Area type="monotone" dataKey="referrals" stroke="#0284c7" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRef)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -535,7 +594,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-teal-50/50 border border-teal-200/60 space-y-3">
+            <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-200/60 space-y-3">
               <div className="text-xs font-bold text-gov-800">Paud Village, Mulshi Block (Pune)</div>
               <h4 className="font-bold text-ink text-sm">
                 "Zero Delay in Critical High-Risk Pregnancy Referral"
@@ -543,7 +602,7 @@ export const HomePage: React.FC = () => {
               <p className="text-xs text-ink-muted leading-relaxed italic">
                 "When ASHA worker Sunita identified severe gestational anemia (Hb 7.8 g/dL) during a routine home visit, she flagged it immediately offline. The PHC Doctor initiated a tele-referral, reserving an ICU bed at Sassoon Hospital before the ambulance even departed."
               </p>
-              <div className="text-[11px] font-semibold text-sand-700 pt-2 border-t border-teal-100">
+              <div className="text-[11px] font-semibold text-sand-700 pt-2 border-t border-blue-100">
                 — Dr. Rajesh Deshmukh, Medical Officer
               </div>
             </div>

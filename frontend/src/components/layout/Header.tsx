@@ -88,7 +88,7 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   };
 
   const roleColors = {
-    asha: 'bg-teal-50 text-teal-800 border-teal-200',
+    asha: 'bg-blue-50 text-blue-800 border-blue-200',
     doctor: 'bg-sky-50 text-sky-800 border-sky-200',
     specialist: 'bg-indigo-50 text-indigo-800 border-indigo-200',
     admin: 'bg-purple-50 text-purple-800 border-purple-200',

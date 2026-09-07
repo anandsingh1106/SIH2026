@@ -63,7 +63,7 @@ export const AshaOfflineSyncPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
-            <CloudOff className="w-6 h-6 text-teal-600" />
+            <CloudOff className="w-6 h-6 text-blue-600" />
             Offline Data Synchronization & Cache Engine
           </h1>
           <p className="text-xs text-ink-soft mt-0.5">
@@ -88,12 +88,12 @@ export const AshaOfflineSyncPage: React.FC = () => {
       <div
         className={`p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs ${
           isOnline
-            ? 'bg-teal-50/70 border-teal-200 text-teal-900'
+            ? 'bg-blue-50/70 border-blue-200 text-blue-900'
             : 'bg-amber-50 border-amber-200 text-amber-900'
         }`}
       >
         <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-xl ${isOnline ? 'bg-teal-600 text-white' : 'bg-amber-600 text-white animate-pulse'}`}>
+          <div className={`p-3 rounded-xl ${isOnline ? 'bg-blue-600 text-white' : 'bg-amber-600 text-white animate-pulse'}`}>
             <Wifi className="w-6 h-6" />
           </div>
           <div>

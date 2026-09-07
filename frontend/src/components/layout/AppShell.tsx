@@ -12,12 +12,12 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-canvas text-ink-muted flex flex-col antialiased">
-      {/* A single soft wash behind the workspace, keyed to the brand teal and
+      {/* A single soft wash behind the workspace, keyed to the brand blue and
           kept faint — enough to stop the ground reading as flat grey, not
           enough to compete with the risk colours on the cards. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(15,118,110,0.05),transparent)]"
+        className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(37,99,235,0.05),transparent)]"
       />
 
       {/* Offline Status & Sync Alert Bar */}

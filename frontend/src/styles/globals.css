@@ -4,7 +4,7 @@
 
 @layer base {
   /*
-   * Clinical & calm palette.
+   * Soft blue clinical palette.
    *
    * Everything downstream -- Tailwind's canvas/surface/ink/line colours and
    * every component built on them -- resolves through these variables, so the
@@ -15,30 +15,30 @@
    * lets plain white cards lift off the page without needing a heavy shadow.
    */
   :root {
-    /* A warm off-white ground, not a cool grey one. Clinical software is read
-       for whole shifts; the faint cream cast takes the glare off a page that
-       is mostly white cards, while staying neutral enough that the red/amber
-       risk states still land as alarms rather than decoration. */
-    --canvas: 250 249 246;      /* #faf9f6  page background           */
+    /* A faintly blue-tinted off-white, sitting in the same family as the brand
+       rather than fighting it. Clinical software is read for whole shifts, so
+       the ground stays close to white — but never pure white, which glares
+       against a page that is mostly white cards. */
+    --canvas: 240 247 255;      /* #f0f7ff  page background           */
     --surface: 255 255 255;     /* #ffffff  cards, panels             */
-    --raised: 246 245 241;      /* #f6f5f1  inset / secondary blocks  */
-    --line: 231 229 223;        /* #e7e5df  hairlines                 */
-    --line-strong: 212 209 200; /* #d4d1c8  emphasised borders        */
+    --raised: 241 246 253;      /* #f1f6fd  inset / secondary blocks  */
+    --line: 223 232 244;        /* #dfe8f4  hairlines                 */
+    --line-strong: 199 213 232; /* #c7d5e8  emphasised borders        */
 
-    /* Dark charcoal with the barest green cast, so headings sit in the same
-       family as the teal brand without reading as coloured text. */
-    --ink: 28 34 32;            /* #1c2220  headings                  */
-    --ink-muted: 82 92 89;      /* #525c59  body copy                 */
-    --ink-soft: 124 134 130;    /* #7c8682  captions, placeholders    */
+    /* Dark slate. Cool enough to belong with the blue, dark enough that body
+       copy is not competing with the primary for attention. */
+    --ink: 31 41 55;            /* #1f2937  headings                  */
+    --ink-muted: 71 85 105;     /* #475569  body copy                 */
+    --ink-soft: 107 114 128;    /* #6b7280  captions, placeholders    */
 
-    --primary: 15 118 110;      /* teal   -- trust, clinical actions  */
+    --primary: 37 99 235;       /* blue   -- trust, clinical actions  */
     --primary-foreground: 255 255 255;
-    --accent: 5 150 105;        /* emerald -- highlights, active nav  */
+    --accent: 96 165 250;       /* light blue -- highlights, active nav */
 
-    /* The sidebar's own ground. Dark forest green, deliberately deeper than
-       any content surface so the navigation reads as a fixed frame. */
-    --shell: 11 61 46;          /* #0b3d2e  sidebar background        */
-    --shell-deep: 8 46 35;      /* #082e23  sidebar gradient foot     */
+    /* The sidebar's own ground. Deep navy, deliberately darker than any
+       content surface so the navigation reads as a fixed frame. */
+    --shell: 15 33 68;          /* #0f2144  sidebar background        */
+    --shell-deep: 10 23 50;     /* #0a1732  sidebar gradient foot     */
   }
 
   html {
@@ -136,10 +136,10 @@
   }
 }
 
-/* Trust accent divider -- teal through to saffron, used sparingly. */
+/* Trust accent divider -- deep to light blue, used sparingly. */
 .trust-divider {
   height: 3px;
-  background-image: linear-gradient(90deg, #0f766e 0%, #2dd4bf 40%, #e8871e 100%);
+  background-image: linear-gradient(90deg, #1d4ed8 0%, #2563eb 45%, #60a5fa 100%);
 }
 
 /* Soft dotted-grid backdrop for hero/feature sections, faded at the edges. */

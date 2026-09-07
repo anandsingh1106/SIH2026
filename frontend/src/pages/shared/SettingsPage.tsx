@@ -56,8 +56,8 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {syncMsg && (
-        <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-900 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
           <span>{syncMsg}</span>
         </div>
       )}
@@ -101,7 +101,7 @@ export const SettingsPage: React.FC = () => {
         {/* 2. Offline Database & Sync Settings */}
         <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
           <h3 className="font-bold text-ink text-sm uppercase tracking-wider flex items-center gap-2">
-            <CloudOff className="w-4 h-4 text-teal-600" />
+            <CloudOff className="w-4 h-4 text-blue-600" />
             Offline IndexedDB Sync Engine
           </h3>
 

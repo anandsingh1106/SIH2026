@@ -156,7 +156,7 @@ export const PatientEmergency: React.FC = () => {
               <div className="flex items-center gap-2 pt-1">
                 <a
                   href="tel:+919423188231"
-                  className="flex-1 text-center py-1.5 bg-teal-600 text-white text-xs font-semibold rounded-lg hover:bg-teal-700"
+                  className="flex-1 text-center py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700"
                 >
                   Call ASHA: +91 94231 88231
                 </a>

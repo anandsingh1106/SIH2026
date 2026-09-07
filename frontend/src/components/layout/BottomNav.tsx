@@ -86,7 +86,7 @@ export const BottomNav: React.FC = () => {
           {({ isActive }) => (
             <>
               <span
-                className={`absolute -top-1 h-0.5 rounded-full bg-saffron-500 transition-all duration-200 ${
+                className={`absolute -top-1 h-0.5 rounded-full bg-gov-500 transition-all duration-200 ${
                   isActive ? 'w-7 opacity-100' : 'w-0 opacity-0'
                 }`}
               />

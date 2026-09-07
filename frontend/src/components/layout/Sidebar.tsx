@@ -191,7 +191,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
               `group relative flex items-center justify-between pl-3.5 pr-3 py-2.5 rounded-xl text-sm font-medium 
                transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] 
                before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:rounded-full 
-               before:bg-saffron-400 before:transition-all before:duration-200 ${
+               before:bg-gov-300 before:transition-all before:duration-200 ${
                 isActive
                   ? 'bg-gov-600 text-white font-bold shadow-soft before:h-6'
                   : 'text-white/70 hover:text-white hover:bg-white/10 hover:translate-x-0.5 before:h-0'
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
             </div>
             {/* A zero badge is noise, so an empty queue shows no pill at all. */}
             {item.count !== undefined && item.count > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-saffron-500 text-white tabular-nums">
+              <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-gov-500 text-white tabular-nums">
                 {item.count}
               </span>
             )}

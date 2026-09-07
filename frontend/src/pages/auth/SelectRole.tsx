@@ -15,9 +15,9 @@ export const SelectRolePage: React.FC = () => {
       facility: 'PHC Paud Subcenter, Mulshi Block (Pune District)',
       desc: 'Task-first, mobile-first, and 100% offline-capable. Manage village household maps, conduct maternal ANC visits, execute CBAC NCD surveys, track vaccinations, and issue emergency 108 tele-referrals.',
       features: ['Offline IndexedDB Storage', 'Village Household Map', 'ANC & Immunization Tracker', '9-Stage Referral Dispatch'],
-      icon: <Users className="w-8 h-8 text-teal-600" />,
-      color: 'border-teal-300 hover:border-teal-500 bg-teal-50/30',
-      btnColor: 'bg-teal-700 hover:bg-teal-800 text-white',
+      icon: <Users className="w-8 h-8 text-blue-600" />,
+      color: 'border-blue-300 hover:border-blue-500 bg-blue-50/30',
+      btnColor: 'bg-blue-700 hover:bg-blue-800 text-white',
       path: '/asha/dashboard',
     },
     {

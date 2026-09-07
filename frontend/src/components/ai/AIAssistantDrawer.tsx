@@ -81,7 +81,7 @@ export const AIAssistantDrawer: React.FC = () => {
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-full max-w-md bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col h-[560px] animate-in slide-in-from-bottom-5 duration-200">
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-gov-800 to-teal-800 text-white flex items-center justify-between shadow-xs">
+          <div className="p-4 bg-gradient-to-r from-gov-800 to-blue-800 text-white flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="p-2 bg-white/15 backdrop-blur-xs rounded-lg">
                 <Bot className="w-5 h-5 text-gov-200" />

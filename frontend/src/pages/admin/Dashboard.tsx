@@ -72,7 +72,7 @@ export const AdminDashboard: React.FC = () => {
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-ink-soft">Health workers</span>
-            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
