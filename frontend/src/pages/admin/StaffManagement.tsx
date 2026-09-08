@@ -1,84 +1,111 @@
-import React, { useState } from 'react';
-import { Users, Plus, Search, Filter, ShieldCheck, CheckCircle2, Award, Phone } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Users, Search, ShieldCheck, ShieldAlert, Phone, Building2 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { Modal } from '../../components/ui/Modal';
-import { UserRole } from '@arogyasetu/shared/types';
+import { backendApi, type StaffRecord } from '@arogyasetu/shared/services/api';
 
-interface StaffMember {
-  id: string;
-  name: string;
-  role: UserRole;
-  facility: string;
-  district: string;
-  phone: string;
-  activeStatus: 'on_duty' | 'on_leave' | 'transit';
-  trainedInNcd: boolean;
-  trainingCompletedDate: string;
+const ROLE_FILTERS = ['all', 'doctor', 'specialist', 'asha', 'admin'] as const;
+type RoleFilter = (typeof ROLE_FILTERS)[number];
+
+const ROLE_LABEL: Record<string, string> = {
+  doctor: 'Medical Officer',
+  specialist: 'Tertiary Specialist',
+  asha: 'ASHA Worker',
+  admin: 'Administrator',
+};
+
+/** A phone column reads badly when the demo accounts carry `demo:doctor`. */
+const isRealPhone = (phone: string) => /\d/.test(phone);
+
+function formatLastSeen(iso?: string): string {
+  if (!iso) return 'Never signed in';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return 'Never signed in';
+  return `Last seen ${d.toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  })}`;
 }
 
-const MOCK_STAFF: StaffMember[] = [
-  { id: 'st-1', name: 'Dr. Rajesh Deshmukh', role: 'doctor', facility: 'PHC Paud', district: 'Pune', phone: '+91 98220 11029', activeStatus: 'on_duty', trainedInNcd: true, trainingCompletedDate: 'Jan 2026' },
-  { id: 'st-2', name: 'Dr. Priya Kulkarni', role: 'specialist', facility: 'Sassoon Hospital', district: 'Pune', phone: '+91 98220 33918', activeStatus: 'on_duty', trainedInNcd: true, trainingCompletedDate: 'Mar 2025' },
-  { id: 'st-3', name: 'Sunita Patil', role: 'asha', facility: 'PHC Paud (Ward 3)', district: 'Pune', phone: '+91 94231 88231', activeStatus: 'on_duty', trainedInNcd: true, trainingCompletedDate: 'Feb 2026' },
-  { id: 'st-4', name: 'Meena Gaikwad', role: 'asha', facility: 'CHC Mulshi', district: 'Pune', phone: '+91 94231 00921', activeStatus: 'on_duty', trainedInNcd: true, trainingCompletedDate: 'Feb 2026' },
-  { id: 'st-5', name: 'Dr. Arvind Mehra', role: 'doctor', facility: 'District Hospital Aundh', district: 'Pune', phone: '+91 98220 77120', activeStatus: 'on_leave', trainedInNcd: false, trainingCompletedDate: 'Pending' },
-];
-
 export const AdminStaffManagement: React.FC = () => {
-  const [staff, setStaff] = useState<StaffMember[]>(MOCK_STAFF);
+  const [staff, setStaff] = useState<StaffRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
 
-  const filtered = staff.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.facility.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'all' || s.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  useEffect(() => {
+    let cancelled = false;
+    backendApi
+      .getStaff()
+      .then((res) => {
+        if (!cancelled) setStaff(res.items);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load the staff roster.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return staff.filter((s) => {
+      const matchesRole = roleFilter === 'all' || s.role === roleFilter;
+      const matchesSearch =
+        q === '' ||
+        s.name.toLowerCase().includes(q) ||
+        (s.facility ?? '').toLowerCase().includes(q);
+      return matchesRole && matchesSearch;
+    });
+  }, [staff, search, roleFilter]);
+
+  // Staff cannot open a health record until a second factor is enrolled, so
+  // this is the roster's real readiness figure rather than a training count.
+  const awaitingMfa = staff.filter((s) => !s.mfaEnrolled).length;
 
   return (
     <div className="space-y-6">
       <Breadcrumbs items={[{ label: 'Admin Command Center' }, { label: 'Healthcare Workforce Management' }]} />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-            <Users className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-ink">Healthcare Workforce Roster & Deployment</h1>
-            <p className="text-sm text-ink-soft">Medical Officers, Tertiary Specialists, Staff Nurses, and frontline ASHA cadres</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+          <Users className="w-6 h-6" />
         </div>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-xl hover:bg-gov-700 shadow-sm transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Onboard Healthcare Staff
-        </button>
+        <div>
+          <h1 className="text-xl font-bold text-ink">Healthcare Workforce Roster</h1>
+          <p className="text-sm text-ink-soft">
+            Medical Officers, Tertiary Specialists and frontline ASHA cadres registered on this platform
+          </p>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — counts of the accounts this deployment actually holds. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 bg-purple-50 border-purple-200">
-          <span className="text-xs font-bold text-purple-800 uppercase">State ASHA Cadre</span>
-          <p className="text-2xl font-bold text-purple-950 mt-1">74,200 active</p>
-          <p className="text-xs text-purple-700 mt-1">Digital PWA-equipped health workers</p>
+          <span className="text-xs font-bold text-purple-800 uppercase">Staff accounts</span>
+          <p className="text-2xl font-bold text-purple-950 mt-1">{loading ? '—' : staff.length}</p>
+          <p className="text-xs text-purple-700 mt-1">Registered on this platform</p>
         </Card>
 
         <Card className="p-4 bg-blue-50 border-blue-200">
-          <span className="text-xs font-bold text-blue-800 uppercase">Medical Officers (PHC / CHC)</span>
-          <p className="text-2xl font-bold text-blue-950 mt-1">6,840 posted</p>
-          <p className="text-xs text-blue-700 mt-1">98.2% rural retention rate</p>
+          <span className="text-xs font-bold text-blue-800 uppercase">Clinicians</span>
+          <p className="text-2xl font-bold text-blue-950 mt-1">
+            {loading ? '—' : staff.filter((s) => s.role === 'doctor' || s.role === 'specialist').length}
+          </p>
+          <p className="text-xs text-blue-700 mt-1">Medical officers and specialists</p>
         </Card>
 
         <Card className="p-4 bg-emerald-50 border-emerald-200">
-          <span className="text-xs font-bold text-emerald-800 uppercase">NCD Screening Certified</span>
-          <p className="text-2xl font-bold text-emerald-950 mt-1">94% Certified</p>
-          <p className="text-xs text-emerald-700 mt-1">National NCD module completed</p>
+          <span className="text-xs font-bold text-emerald-800 uppercase">Two-factor enrolled</span>
+          <p className="text-2xl font-bold text-emerald-950 mt-1">
+            {loading ? '—' : `${staff.length - awaitingMfa} of ${staff.length}`}
+          </p>
+          <p className="text-xs text-emerald-700 mt-1">
+            {awaitingMfa === 0 ? 'Every account can open a record' : `${awaitingMfa} awaiting enrolment`}
+          </p>
         </Card>
       </div>
 
@@ -90,13 +117,13 @@ export const AdminStaffManagement: React.FC = () => {
             type="text"
             placeholder="Search by staff name or posted facility..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-2 border border-line rounded-lg text-xs"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          {['all', 'doctor', 'specialist', 'asha'].map(rf => (
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+          {ROLE_FILTERS.map((rf) => (
             <button
               key={rf}
               onClick={() => setRoleFilter(rf)}
@@ -112,90 +139,83 @@ export const AdminStaffManagement: React.FC = () => {
         </div>
       </Card>
 
+      {error && (
+        <Card className="p-4 bg-rose-50 border-rose-200 text-sm text-rose-800">{error}</Card>
+      )}
+
+      {loading && (
+        <Card className="p-8 text-center text-ink-soft text-sm">Loading workforce roster…</Card>
+      )}
+
+      {!loading && !error && filtered.length === 0 && (
+        <Card className="p-8 text-center text-ink-soft text-sm">
+          {staff.length === 0
+            ? 'No staff accounts are registered yet.'
+            : 'No staff match this search.'}
+        </Card>
+      )}
+
       {/* Staff Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
-        {filtered.map(st => (
+        {filtered.map((st) => (
           <Card key={st.id} className="p-5 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-bold text-ink text-base">{st.name}</h3>
-                  <Badge variant={st.role === 'specialist' ? 'warning' : st.role === 'doctor' ? 'info' : 'success'} className="uppercase text-[10px]">
-                    {st.role}
+                  <Badge
+                    variant={st.role === 'specialist' ? 'warning' : st.role === 'doctor' ? 'info' : 'success'}
+                    className="uppercase text-[10px]"
+                  >
+                    {ROLE_LABEL[st.role] ?? st.role}
                   </Badge>
-                  <Badge variant={st.activeStatus === 'on_duty' ? 'success' : 'default'} className="text-[10px] capitalize">
-                    {st.activeStatus.replace('_', ' ')}
-                  </Badge>
+                  {st.status !== 'ACTIVE' && (
+                    <Badge variant="default" className="text-[10px] capitalize">
+                      {st.status.toLowerCase()}
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-xs text-ink-soft mt-1">
-                  Posting: <strong className="text-sand-700">{st.facility}</strong> ({st.district} District)
+                <p className="text-xs text-ink-soft mt-1 flex items-center gap-1">
+                  <Building2 className="w-3 h-3" />
+                  {st.facility ? (
+                    <>
+                      Posting: <strong className="text-sand-700">{st.facility}</strong>
+                      {st.district && ` (${st.district} District)`}
+                    </>
+                  ) : (
+                    <>{st.district ? `${st.district} District` : 'No facility assigned'}</>
+                  )}
                 </p>
               </div>
             </div>
 
             <div className="p-3 bg-sand-50 rounded-xl border border-line flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-purple-600" />
-                <span className="text-ink-muted">NCD & Tele-triage Training:</span>
+                {st.mfaEnrolled ? (
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <ShieldAlert className="w-4 h-4 text-amber-600" />
+                )}
+                <span className="text-ink-muted">Two-factor authentication</span>
               </div>
-              <span className={`font-bold ${st.trainedInNcd ? 'text-emerald-700' : 'text-amber-700'}`}>
-                {st.trainedInNcd ? `Certified (${st.trainingCompletedDate})` : 'Pending Module'}
+              <span className={`font-bold ${st.mfaEnrolled ? 'text-emerald-700' : 'text-amber-700'}`}>
+                {st.mfaEnrolled ? 'Enrolled' : 'Not enrolled'}
               </span>
             </div>
 
-            <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft">
-              <span className="flex items-center gap-1">
-                <Phone className="w-3 h-3 text-ink-soft" /> {st.phone}
-              </span>
-              <button className="text-purple-600 font-bold hover:underline">View Service Record →</button>
+            <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft gap-2">
+              {isRealPhone(st.phone) ? (
+                <span className="flex items-center gap-1">
+                  <Phone className="w-3 h-3 text-ink-soft" /> {st.phone}
+                </span>
+              ) : (
+                <span className="truncate">{st.email ?? '—'}</span>
+              )}
+              <span className="shrink-0">{formatLastSeen(st.lastLoginAt)}</span>
             </div>
           </Card>
         ))}
       </div>
-
-      {/* Modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Onboard Healthcare Personnel"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-sand-700 mb-1">Full Name</label>
-            <input type="text" placeholder="e.g. Dr. Shruti Ranade" className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-sand-700 mb-1">Cadre / Role</label>
-              <select className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface">
-                <option value="doctor">Medical Officer (PHC)</option>
-                <option value="specialist">Tertiary Specialist</option>
-                <option value="asha">ASHA Worker</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-sand-700 mb-1">Assigned Facility</label>
-              <input type="text" placeholder="e.g. PHC Paud" className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="flex-1 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700"
-            >
-              Issue Digital Credentials & ABHA Role
-            </button>
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

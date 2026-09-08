@@ -52,6 +52,44 @@ export const userRepository = {
     return this.findById(id, db);
   },
 
+  /**
+   * Staff directory for administrators.
+   *
+   * PATIENT is never listed: this is a workforce roster, and patients reach the
+   * admin screens only as counts in analytics.
+   */
+  listStaff({ role, district, search, page = 1, limit = 20 } = {}, db = getDb()) {
+    const where = ["u.role != 'PATIENT'"];
+    const params = [];
+
+    if (role) { where.push('u.role = ?'); params.push(role); }
+    if (district) { where.push('u.district = ?'); params.push(district); }
+    if (search) {
+      where.push('(u.name LIKE ? OR f.name LIKE ?)');
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    const whereSql = `WHERE ${where.join(' AND ')}`;
+
+    const total = db
+      .prepare(`SELECT COUNT(*) AS c FROM users u LEFT JOIN facilities f ON f.id = u.facility_id ${whereSql}`)
+      .get(...params).c;
+
+    const items = db
+      .prepare(`
+        ${SELECT_WITH_FACILITY}
+        ${whereSql}
+        ORDER BY CASE u.role
+                   WHEN 'ADMIN' THEN 0 WHEN 'SPECIALIST' THEN 1
+                   WHEN 'DOCTOR' THEN 2 ELSE 3 END,
+                 u.name
+        LIMIT ? OFFSET ?
+      `)
+      .all(...params, limit, (page - 1) * limit);
+
+    return { items, total };
+  },
+
   linkAuthUserId(id, authUserId, db = getDb()) {
     db.prepare('UPDATE users SET auth_user_id = ?, updated_at = ? WHERE id = ?')
       .run(authUserId, new Date().toISOString(), id);

@@ -56,3 +56,12 @@ export function patchUserRole(req, res, next) {
     return sendSuccess(res, result);
   } catch (err) { next(err); }
 }
+
+/** Staff roster for the workforce screen. */
+export function getStaff(req, res, next) {
+  try {
+    const { page, limit, role, district, search } = req.validatedQuery;
+    const { items, total } = service.listStaff({ page, limit, role, district, search });
+    return sendPaginated(res, items, { page, limit, total });
+  } catch (err) { next(err); }
+}

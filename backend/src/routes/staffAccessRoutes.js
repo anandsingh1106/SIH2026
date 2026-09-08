@@ -5,6 +5,7 @@ import { validate } from '../middleware/validate.js';
 import { idParamSchema } from '../validators/common.js';
 import {
   staffRequestSchema, reviewRequestSchema, listRequestsSchema, setRoleSchema, userIdParamSchema,
+  listStaffSchema,
 } from '../validators/authValidators.js';
 
 const router = Router();
@@ -29,6 +30,15 @@ router.get(
   requireRole('ADMIN'),
   validate({ query: listRequestsSchema }),
   ctrl.getRequests
+);
+
+// The workforce roster. Read-only, so requireRole is enough here — unlike the
+// approval routes below, listing staff grants nobody access to a health record.
+router.get(
+  '/staff',
+  requireRole('ADMIN'),
+  validate({ query: listStaffSchema }),
+  ctrl.getStaff
 );
 
 router.post(

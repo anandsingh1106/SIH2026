@@ -3,6 +3,7 @@ import { getDb, transaction } from '../db/connection.js';
 import { recordAudit } from './auditService.js';
 import { notify } from './notificationService.js';
 import { MFA_REQUIRED_ROLES } from './mfaService.js';
+import { userRepository } from '../repositories/userRepository.js';
 import { AppError, NotFoundError, ConflictError } from '../utils/errors.js';
 
 /**
@@ -388,4 +389,35 @@ export function setUserRole(admin, targetUserId, newRole, requestMeta = {}) {
 
     return { userId: target.id, role: newRole };
   });
+}
+
+/**
+ * Staff directory.
+ *
+ * The workforce screen needs a roster, which the request queue above cannot
+ * supply: it only knows about people who applied, not the staff already in
+ * place. Kept here because both are administrator views of the same people.
+ */
+export function listStaff(filters = {}, db = getDb()) {
+  const { items, total } = userRepository.listStaff(filters, db);
+
+  return {
+    items: items.map((u) => ({
+      id: u.id,
+      name: u.name,
+      role: u.role.toLowerCase(),
+      status: u.status,
+      facility: u.facility_name || undefined,
+      facilityId: u.facility_id || undefined,
+      district: u.district || undefined,
+      taluka: u.taluka || undefined,
+      phone: u.phone,
+      email: u.email || undefined,
+      // Staff roles must clear a second factor before they can open a record,
+      // so whether one is enrolled is the roster's real readiness signal.
+      mfaEnrolled: Boolean(u.mfa_enrolled_at),
+      lastLoginAt: u.last_login_at || undefined,
+    })),
+    total,
+  };
 }

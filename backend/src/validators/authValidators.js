@@ -57,6 +57,13 @@ export const listRequestsSchema = paginationSchema.extend({
   status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN', 'ALL']).default('PENDING'),
 });
 
+/** Staff directory filters. PATIENT is excluded by the query itself. */
+export const listStaffSchema = paginationSchema.extend({
+  role: z.enum(['ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN']).optional(),
+  district: z.string().trim().max(100).optional(),
+  search: z.string().trim().max(120).optional(),
+});
+
 export const setRoleSchema = z.object({
   role: z.enum(['PATIENT', 'ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN']),
 });

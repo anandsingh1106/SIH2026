@@ -133,6 +133,21 @@ export interface FacilityRecord {
   emergencyAvailable?: boolean;
 }
 
+export interface StaffRecord {
+  id: string;
+  name: string;
+  role: string;
+  status: string;
+  facility?: string;
+  facilityId?: string;
+  district?: string;
+  taluka?: string;
+  phone: string;
+  email?: string;
+  mfaEnrolled: boolean;
+  lastLoginAt?: string;
+}
+
 export interface TriageResult {
   riskScore: number;
   riskCategory: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
@@ -259,6 +274,10 @@ export const backendApi = {
   getUnreadCount: () => api.get<{ unread: number }>('/api/notifications/unread-count'),
   markNotificationRead: (id: string) => api.patch<NotificationRecord>(`/api/notifications/${id}/read`),
   markAllNotificationsRead: () => api.post<{ updated: number }>('/api/notifications/read-all'),
+
+  // Staff directory (admin only)
+  getStaff: (params: { role?: string; district?: string; search?: string } = {}) =>
+    api.get<Paginated<StaffRecord>>('/api/staff-access/staff', { query: page(params) as never }),
 
   // Analytics
   getAnalytics: (scope: 'patient' | 'asha' | 'doctor' | 'specialist' | 'admin') =>

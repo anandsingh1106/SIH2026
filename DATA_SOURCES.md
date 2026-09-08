@@ -31,7 +31,7 @@ defects that work uncovered.
 | National shortfall (Mar 2023) | SC 22% / PHC 30% / CHC 36% | Reported, see caveat |
 | Bed occupancy, medicine availability | — | Demo data |
 | OPD footfall, teleconsultation counts | — | Demo data |
-| Screens reading the live database | 13 wired, 1 outstanding | See below |
+| Screens reading the live database | 14 wired | See below |
 
 ---
 
@@ -320,7 +320,7 @@ a question with no defensible answer.
 
 ## Screens wired to live data
 
-The figures above are reference data. Separately, thirteen screens were rendering
+The figures above are reference data. Separately, fourteen screens were rendering
 hardcoded arrays while the backend already served the same records. Each now
 reads from the API, so what a reviewer clicks is the database, not a fixture.
 
@@ -388,9 +388,25 @@ removed rather than filled with plausible values:
 | `consentRef` on every audit row | No consent-reference field exists in the schema |
 | "NORMAL" flag on lab orders with no result | A flag before a result is clinically wrong |
 
-`admin/StaffManagement.tsx` still renders a fixture. There is no staff-listing
-endpoint — `/api/staff-access` handles access requests, not a directory — so
-wiring it needs a new API rather than a frontend change.
+`admin/StaffManagement.tsx` previously rendered a fixture because no
+staff-listing endpoint existed. `GET /api/staff-access/staff` now serves the
+roster (ADMIN only), and the screen reads it.
+
+Two fields the old fixture displayed were dropped rather than invented, for the
+same reason as the table above:
+
+| Removed | Reason |
+| --- | --- |
+| `activeStatus` — on duty / on leave / in transit | Nothing records a duty roster |
+| `trainedInNcd` and the training completion date | No training record exists in the schema |
+
+In their place the card shows whether the account has enrolled a second factor
+and when it last signed in — both real, and the more useful signal: a staff
+account without 2FA cannot open a patient record at all.
+
+The "Onboard Healthcare Staff" modal was removed. It wrote nothing, and issuing
+a clinical role outside the audited `/api/staff-access` approval flow is exactly
+what that flow exists to prevent.
 
 ---
 

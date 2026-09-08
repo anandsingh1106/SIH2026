@@ -296,3 +296,54 @@ describe('review queue', () => {
     expect(listRequests({ status: 'APPROVED' }).total).toBe(1);
   });
 });
+
+describe('staff directory', () => {
+  it('lists staff but never patients', async () => {
+    const facility = createFacility({ name: 'PHC Paud', district: 'Pune' });
+    const admin = createUser({ role: 'ADMIN', name: 'Admin One' });
+    createUser({ role: 'DOCTOR', name: 'Dr Roster', facilityId: facility.id, district: 'Pune' });
+    createUser({ role: 'PATIENT', name: 'Patient Roster' });
+
+    const res = await request(app).get('/api/staff-access/staff').set('Cookie', authCookie(admin));
+
+    expect(res.status).toBe(200);
+    const names = res.body.data.items.map((s) => s.name);
+    expect(names).toContain('Dr Roster');
+    expect(names).not.toContain('Patient Roster');
+  });
+
+  it('resolves the facility name a staff member is posted to', async () => {
+    const facility = createFacility({ name: 'PHC Paud', district: 'Pune' });
+    const admin = createUser({ role: 'ADMIN' });
+    createUser({ role: 'DOCTOR', name: 'Dr Posted', facilityId: facility.id });
+
+    const res = await request(app).get('/api/staff-access/staff').set('Cookie', authCookie(admin));
+
+    const doctor = res.body.data.items.find((s) => s.name === 'Dr Posted');
+    expect(doctor.facility).toBe('PHC Paud');
+    expect(doctor.role).toBe('doctor');
+  });
+
+  it('filters by role', async () => {
+    const admin = createUser({ role: 'ADMIN' });
+    createUser({ role: 'DOCTOR', name: 'Dr Filter' });
+    createUser({ role: 'ASHA', name: 'Asha Filter' });
+
+    const res = await request(app).get('/api/staff-access/staff?role=ASHA').set('Cookie', authCookie(admin));
+
+    expect(res.body.data.items.map((s) => s.name)).toEqual(['Asha Filter']);
+  });
+
+  // The roster carries every clinician's posting and contact details, so it is
+  // an administrator view only.
+  it('refuses a non-administrator', async () => {
+    const doctor = createUser({ role: 'DOCTOR' });
+    const res = await request(app).get('/api/staff-access/staff').set('Cookie', authCookie(doctor));
+    expect(res.status).toBe(403);
+  });
+
+  it('requires authentication', async () => {
+    const res = await request(app).get('/api/staff-access/staff');
+    expect(res.status).toBe(401);
+  });
+});
