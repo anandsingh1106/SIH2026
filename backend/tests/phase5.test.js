@@ -369,6 +369,25 @@ describe('AI services', () => {
     expect(r.riskCategory).toBe('ROUTINE');
   });
 
+  it('names a fever below the escalation threshold instead of reporting nothing', async () => {
+    const r = await assessTriage({ symptoms: ['fever'], vitals: { temperature: 38.2 } });
+    // One abnormal observation is not a same-day referral, but it must still
+    // appear — a silent ROUTINE reads as "nothing wrong".
+    expect(r.riskCategory).toBe('ROUTINE');
+    expect(r.detectedFindings.map((f) => f.reason).join(' ')).toMatch(/38\.2.*fever/i);
+  });
+
+  it('escalates a fever with tachycardia, the early-sepsis pair', async () => {
+    const r = await assessTriage({ symptoms: ['fever'], vitals: { temperature: 39.1, heartRate: 110 } });
+    expect(r.riskCategory).toBe('URGENT');
+    expect(r.detectedFindings).toHaveLength(2);
+  });
+
+  it('flags hypothermia as urgent', async () => {
+    const r = await assessTriage({ symptoms: ['weakness'], vitals: { temperature: 34.5 } });
+    expect(r.riskCategory).toBe('URGENT');
+  });
+
   it('never recommends medication', async () => {
     const r = await assessTriage({ symptoms: ['fever', 'headache'] });
     expect(r.disclaimer).toMatch(/does not recommend or prescribe/i);

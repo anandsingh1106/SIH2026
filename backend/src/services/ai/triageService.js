@@ -43,7 +43,15 @@ function vitalRedFlags(vitals = {}) {
   else if (sys != null && sys >= 160) flags.push({ severity: 'URGENT', reason: `Systolic BP ${sys} is markedly raised` });
 
   if (hr != null && (hr > 130 || hr < 45)) flags.push({ severity: 'URGENT', reason: `Heart rate ${hr} is outside the safe range` });
+  else if (hr != null && hr > 100) flags.push({ severity: 'ATTENTION', reason: `Heart rate ${hr} is elevated` });
+
+  // 39.5 alone left a 38–39.4°C fever with no finding at all, which reads as
+  // "nothing wrong" on a patient who plainly has a significant fever. 38.0 is
+  // the standard threshold for fever; 39.5 stays the point of escalation.
   if (temp != null && temp >= 39.5) flags.push({ severity: 'URGENT', reason: `Temperature ${temp}°C is very high` });
+  else if (temp != null && temp >= 38) flags.push({ severity: 'ATTENTION', reason: `Temperature ${temp}°C indicates fever` });
+  else if (temp != null && temp < 35) flags.push({ severity: 'URGENT', reason: `Temperature ${temp}°C indicates hypothermia` });
+
   if (rr != null && rr > 30) flags.push({ severity: 'URGENT', reason: `Respiratory rate ${rr} is elevated` });
 
   return flags;
@@ -83,7 +91,15 @@ export async function assessTriage({ symptoms = [], vitals = {}, age, notes }) {
     matched.push(flag);
     if (flag.severity === 'EMERGENCY') category = 'EMERGENCY';
     else if (flag.severity === 'URGENT' && category !== 'EMERGENCY') category = 'URGENT';
+    // ATTENTION is recorded as a finding but does not escalate on its own: a
+    // single abnormal observation is not a reason for a same-day referral.
   }
+
+  // Two or more abnormal observations together are a different matter. A fever
+  // with tachycardia is the classic early-sepsis pair, and scoring that as
+  // ROUTINE with no findings is the failure worth avoiding here.
+  const attentionCount = matched.filter((m) => m.severity === 'ATTENTION').length;
+  if (category === 'ROUTINE' && attentionCount >= 2) category = 'URGENT';
 
   // Age extremes raise the floor but never lower an existing escalation.
   if (age != null && (age < 5 || age > 70) && category === 'ROUTINE' && matched.length > 0) {
