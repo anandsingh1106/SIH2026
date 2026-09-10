@@ -1,4 +1,5 @@
 export type AuthStackParamList = {
+  Landing: undefined;
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
