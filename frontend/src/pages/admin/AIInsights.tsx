@@ -152,7 +152,7 @@ export const AdminAIInsights: React.FC = () => {
           <div className="text-center py-16 text-ink-soft">
             <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-500" />
             <p className="font-semibold text-sand-700">All AI predictive alerts addressed</p>
-            <p className="text-xs text-ink-soft mt-1">Surveillance engine is monitoring telemetry streams across 36 districts.</p>
+            <p className="text-xs text-ink-soft mt-1">Surveillance engine is monitoring telemetry streams across 33 rural districts.</p>
           </div>
         )}
       </div>

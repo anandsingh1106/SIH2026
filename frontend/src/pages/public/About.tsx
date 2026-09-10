@@ -42,6 +42,30 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Names the tier structure the platform actually models, using the
+            state's current administrative terminology rather than the textbook
+            PHC/CHC labels: sub-centres and PHCs are Ayushman Arogya Mandir
+            spokes, district hospitals are the hubs they refer into. */}
+        <div className="bg-surface rounded-2xl border border-line p-8 shadow-xs space-y-4">
+          <h2 className="text-xl font-bold text-ink">How the Care Network is Organised</h2>
+          <p className="text-xs text-ink-muted leading-relaxed">
+            Maharashtra delivers rural care through a hub-and-spoke network. Sub-centres and
+            Primary Health Centres operate as <span className="font-semibold text-ink">Ayushman Arogya Mandir</span> spokes,
+            handling screening, maternal care and first contact. District hospitals act as
+            <span className="font-semibold text-ink"> hubs</span>, carrying the specialist capacity a spoke refers into.
+            This platform models that same structure end to end — a referral raised at a spoke
+            travels to a hub with its record, its transport and its bed reservation attached,
+            rather than restarting as a fresh case on arrival.
+          </p>
+          <p className="text-[11px] text-ink-soft leading-relaxed">
+            The rural facility figures used across these screens cover the 33 districts that
+            appear in the National Health Mission&rsquo;s rural health tables. Mumbai City and
+            Mumbai Suburban are absent from those tables because they have no rural PHC
+            network, so state-wide services such as the 108 ambulance fleet are described
+            across all 36 districts instead.
+          </p>
+        </div>
+
         {/* Core Pillars */}
         <div className="bg-surface rounded-2xl border border-line p-8 shadow-xs space-y-6">
           <h2 className="text-xl font-bold text-ink">Architectural & Ethical Pillars</h2>

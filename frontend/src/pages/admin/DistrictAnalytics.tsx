@@ -75,7 +75,7 @@ export const AdminDistrictAnalytics: React.FC = () => {
                 means "not yet reported", which is not the same as zero, so it
                 is stated rather than filled in with a misleading value. */}
             <p className="text-[11px] text-ink-soft mt-0.5">
-              {Object.keys(mapData).length} of 36 districts reporting — unshaded districts have no data submitted
+              {Object.keys(mapData).length} of 33 rural districts reporting — unshaded districts have no data submitted
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -113,7 +113,7 @@ export const AdminDistrictAnalytics: React.FC = () => {
             <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search 36 districts..."
+              placeholder="Search 33 rural districts..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 border border-line rounded-lg text-xs"

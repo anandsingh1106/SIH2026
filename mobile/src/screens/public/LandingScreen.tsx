@@ -82,7 +82,7 @@ export function LandingScreen({ navigation }: Props) {
       <Text style={styles.heroTitle}>Healthcare that reaches your village</Text>
       <Text style={styles.heroSubtitle}>
         Health records, appointments and referrals in one place — connecting frontline
-        ASHA workers, primary health centres and specialists across Maharashtra.
+        ASHA workers, Ayushman Arogya Mandirs and district specialists across Maharashtra.
       </Text>
 
       {/* The emergency panel sits above the sign-in buttons and the statistics.
@@ -95,6 +95,21 @@ export function LandingScreen({ navigation }: Props) {
         <Text style={styles.emergencyLabel}>Need emergency help?</Text>
         <Text style={styles.emergencyNumber}>108</Text>
         <Text style={styles.emergencyHint}>Tap to call — free 24x7 ambulance</Text>
+      </Pressable>
+
+      {/* A sibling of the 108 card, never nested inside it: a tap that lands on
+          a Pressable within a Pressable can fire either handler, and on this
+          card that means dialling the wrong ambulance service. */}
+      <Pressable
+        style={styles.maternalRow}
+        onPress={() => {
+          Linking.openURL(`tel:${MATERNAL_HELPLINE}`).catch(() => {});
+        }}
+        accessibilityRole="button"
+      >
+        <Text style={styles.maternalText}>
+          Pregnant, in labour, or a sick infant? Call {MATERNAL_HELPLINE} — free JSSK transport
+        </Text>
       </Pressable>
 
       <View style={styles.ctaBlock}>
@@ -183,6 +198,13 @@ const FEATURES = [
   },
 ] as const;
 
+/**
+ * The maternal transport line is a different service from 108 and is easy to
+ * miss: 102 is the free JSSK ambulance for pregnant women and infants, and a
+ * woman in labour ringing 108 is reaching the wrong fleet.
+ */
+const MATERNAL_HELPLINE = '102';
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#FAF9F6' },
   content: { paddingHorizontal: 20 },
@@ -212,6 +234,11 @@ const styles = StyleSheet.create({
   emergencyLabel: { fontSize: 14, fontWeight: '700', color: '#111827', marginTop: 12 },
   emergencyNumber: { fontSize: 46, fontWeight: '800', color: '#B91C1C', lineHeight: 50, marginTop: 2 },
   emergencyHint: { fontSize: 12, color: '#7F1D1D', marginTop: 2 },
+  maternalRow: {
+    backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA', borderRadius: 12,
+    paddingVertical: 12, paddingHorizontal: 14, marginTop: 10,
+  },
+  maternalText: { fontSize: 12, fontWeight: '600', color: '#9A3412', lineHeight: 17 },
 
   ctaBlock: { marginTop: 22 },
   primaryButton: {

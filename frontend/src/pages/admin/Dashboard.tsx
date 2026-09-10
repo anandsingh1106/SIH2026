@@ -31,7 +31,7 @@ export const AdminDashboard: React.FC = () => {
         eyebrow={
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Live across 36 districts
+            Live across 33 rural districts
           </>
         }
         title="Health Network"

@@ -17,7 +17,7 @@ export const PublicFooter: React.FC = () => {
               <span className="font-display font-bold text-white text-base">MahaAarogya Sangam</span>
             </div>
             <p className="text-ink-soft text-xs leading-relaxed">
-              A unified digital healthcare platform connecting 36 districts, frontline ASHA workers, primary health centers, and tertiary hospitals into an accessible public health ecosystem.
+              A unified digital healthcare platform connecting 33 rural districts, frontline ASHA workers, Ayushman Arogya Mandirs, and tertiary hospitals into an accessible public health ecosystem.
             </p>
           </div>
 

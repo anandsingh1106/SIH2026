@@ -494,3 +494,78 @@ queried from the database, not fixed figures — they change as the demo is used
 
 Maharashtra's village count (40,959) on the landing page is from the same census
 series.
+
+---
+
+## Policy research dossier — what was and was not adopted
+
+A research dossier compiled for the SIH submission was reviewed against this
+file. Its terminology was adopted; its figures were not, and the reasons differ
+per item.
+
+### Adopted (no figure involved)
+
+| Item | Where it landed |
+| --- | --- |
+| "Ayushman Arogya Mandir" hub-and-spoke naming | `public/About.tsx` gains a section naming the tier structure; the mobile landing hero and `PublicFooter.tsx` use the term instead of "primary health centers" |
+| 102 / JSSK as a service distinct from 108 | Surfaced on the mobile landing screen, which previously offered only 108 |
+
+These are naming and structure, not measurements, so they carry no sourcing
+burden. The JSSK distinction is a safety point rather than a presentational
+one: a woman in labour who dials 108 reaches the wrong fleet.
+
+### Not adopted — unverifiable in this environment
+
+The dossier states its own figures should be re-verified before use. That could
+not be done here: no web access was available, so every number in it is
+unconfirmed. Adding unsourced figures would reverse the work recorded in
+[Claims removed as unsupportable](#claims-removed-as-unsupportable), where
+"100% On-grid", "98.4% Sync Rate" and "eSanjeevani Integrated" were deleted for
+exactly that reason.
+
+Nothing below is in the product. Each needs a live source check first.
+
+| Dossier claim | Status |
+| --- | --- |
+| 859 million ABHA accounts; 878 million linked records (national) | Unverified |
+| 449 million eSanjeevani teleconsultations (national) | Unverified |
+| 1.8 lakh Ayushman Arogya Mandirs (national) | Unverified |
+| Maharashtra health budget ₹5,980.08 Cr (2026–27) | Unverified |
+| Rural doctor:patient ratio 1:1,500 | Unverified |
+| 87 Mobile Medical Units across 14 districts; 6 in Gadchiroli | Unverified |
+| SAHI / BODH national AI-health frameworks | Unverified |
+| Sickle Cell Mission coverage and 82% screening progress | Unverified |
+| Snakebite notifiable status / NAPSE 2024 | Unverified |
+| 2,000+ private "Health ATM" kiosks in rural Maharashtra | Unverified |
+
+### Contradicts a figure already sourced here
+
+| Dossier claim | This file records | Resolution |
+| --- | --- | --- |
+| eSanjeevani Maharashtra: 6.69 lakh patients | 47,80,259 teleconsultations, Dec 2024, from the Maharashtra PHD portal | Not changed. The sourced figure stands until the discrepancy is settled against the live portal. The two may count different things — patients versus consultations — but that is a guess, not a reconciliation. |
+| "36-district live health metrics" | 33 districts in the NHM rural health tables | Both are right in their own scope, and the UI was wrong. See below. |
+
+### District count: 33 or 36
+
+Maharashtra has **36 administrative districts**. The NHM rural health tables
+cover **33**, omitting Mumbai City and Mumbai Suburban, which have no rural PHC
+network. Every rural facility figure in this file is therefore a 33-district
+figure.
+
+Four screens claimed "36 districts" while rendering 33-district data —
+`admin/Dashboard.tsx`, `admin/DistrictAnalytics.tsx`, `admin/AIInsights.tsx`
+and `PublicFooter.tsx`. All four now say "33 rural districts", which is what the
+data behind them actually covers.
+
+Two references to 36 were left alone because they are correct: `public/About.tsx`
+describes the state as a whole, and `public/Emergency.tsx` describes the 108
+ambulance fleet, which is not scoped to the rural tables.
+
+### APIs named in the dossier
+
+ABDM Sandbox, e-Rakt Kosh and APISetu are real developer endpoints, but none is
+integrated here and none was called. The ABDM posture in this codebase is
+unchanged and deliberate: ABHA numbers are accepted, never generated — see
+[Screens wired to live data](#screens-wired-to-live-data). Describing any of
+these as integrated would repeat the "eSanjeevani Integrated" claim that was
+removed above.
