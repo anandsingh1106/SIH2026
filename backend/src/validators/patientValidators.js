@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { dateString, searchSchema } from './common.js';
+import { dateString, searchSchema, abhaIdentifier } from './common.js';
 
 export const listPatientsSchema = searchSchema.extend({
   district: z.string().trim().max(100).optional(),
@@ -10,7 +10,7 @@ export const listPatientsSchema = searchSchema.extend({
 
 export const createPatientSchema = z.object({
   name: z.string().trim().min(2).max(160),
-  abhaId: z.string().trim().max(50).optional(),
+  abhaId: abhaIdentifier.optional(),
   dateOfBirth: dateString.optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
   phone: z.string().trim().max(20).optional(),
