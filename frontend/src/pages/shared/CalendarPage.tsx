@@ -6,8 +6,10 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
+import { useToast } from '../../hooks/useToast';
 
 export const CalendarPage: React.FC = () => {
+  const toast = useToast();
   const { currentRole } = useAuth();
   const [view, setView] = useState<'day' | 'week' | 'month' | 'agenda'>('month');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -146,7 +148,7 @@ export const CalendarPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => alert(`Opening event details: ${evt.title}`)}
+                onClick={() => toast.info('Event details not available', 'Detailed event view is not implemented yet.')}
               >
                 View Flow
               </Button>
