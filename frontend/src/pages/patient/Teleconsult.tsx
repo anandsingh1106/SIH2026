@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, MessageSquare } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { Video, Mic, MicOff, VideoOff, PhoneOff, MessageSquare, Clock, User, RefreshCw } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
 import { VideoStreamTile } from '../../components/healthcare/VideoStreamTile';
-import { useVideoCall } from '../../hooks/useVideoCall';
 import { appointmentsApi, Appointment } from '../../services/api/appointmentsApi';
+import { useVideoCall } from '../../hooks/useVideoCall';
 import { useToast } from '../../hooks/useToast';
 
 const initials = (name: string) =>
   name
+    .replace(/^Dr\.?\s+/i, '')
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -20,56 +21,45 @@ const initials = (name: string) =>
 const STATUS_LABEL: Record<string, string> = {
   idle: 'NOT STARTED',
   'requesting-media': 'ASKING FOR CAMERA…',
-  waiting: 'WAITING FOR PATIENT',
+  waiting: 'WAITING FOR DOCTOR',
   connecting: 'CONNECTING…',
   connected: '🔴 LIVE CONSULTATION',
   ended: 'CALL ENDED',
   error: 'CONNECTION PROBLEM',
 };
 
-/**
- * The doctor's side of the teleconsultation. It shares a room key with the
- * patient's screen: the patient opens /patient/teleconsult/<appointmentId>, so
- * the doctor joins the same appointment id here.
- */
-export const DoctorTelemedicinePage: React.FC = () => {
+export const PatientTeleconsult: React.FC = () => {
   const { appointmentId } = useParams<{ appointmentId: string }>();
   const navigate = useNavigate();
-
   const toast = useToast();
-  const [waiting, setWaiting] = useState<Appointment[]>([]);
-  const [isLoadingList, setIsLoadingList] = useState(false);
-  const [chatMessages, setChatMessages] = useState<{ sender: 'doctor' | 'patient'; text: string; time: string }[]>([]);
+
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [chatMessages, setChatMessages] = useState<{ sender: 'patient' | 'doctor'; text: string; time: string }[]>([]);
   const [msgInput, setMsgInput] = useState('');
-  const [notes, setNotes] = useState('');
 
-  const loadWaiting = async () => {
-    setIsLoadingList(true);
-    try {
-      const { items } = await appointmentsApi.list();
-      setWaiting(items.filter((a) => a.type === 'telemedicine' && a.status === 'upcoming'));
-    } catch (err) {
-      toast.error('Could not load consultations', err instanceof Error ? err.message : undefined);
-    } finally {
-      setIsLoadingList(false);
-    }
-  };
-
-  const [active, setActive] = useState<Appointment | null>(null);
+  const call = useVideoCall({
+    roomId: appointmentId ?? '',
+    role: 'patient',
+    autoStart: Boolean(appointmentId),
+  });
 
   useEffect(() => {
-    if (!appointmentId) {
-      void loadWaiting();
-      return;
-    }
-
+    if (!appointmentId) return;
     let cancelled = false;
+
     (async () => {
+      setIsLoading(true);
       try {
         const apt = await appointmentsApi.get(appointmentId);
-        if (!cancelled) setActive(apt);
-      } catch {
-        // The room still works without the record; the header just stays generic.
+        if (cancelled) return;
+        setAppointment(apt);
+      } catch (err) {
+        if (cancelled) return;
+        toast.error('Could not open the consultation', err instanceof Error ? err.message : undefined);
+        navigate('/patient/appointments', { replace: true });
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     })();
 
@@ -79,123 +69,33 @@ export const DoctorTelemedicinePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appointmentId]);
 
-  const call = useVideoCall({
-    roomId: appointmentId ?? '',
-    role: 'doctor',
-    autoStart: Boolean(appointmentId),
-  });
-
   const handleSendMsg = (e: React.FormEvent) => {
     e.preventDefault();
     if (!msgInput.trim()) return;
-    setChatMessages((prev) => [...prev, { sender: 'doctor', text: msgInput, time: 'Just now' }]);
+    setChatMessages((prev) => [...prev, { sender: 'patient', text: msgInput, time: 'Just now' }]);
     setMsgInput('');
   };
 
   const handleEndCall = () => {
     call.hangUp();
-    navigate('/doctor/telemedicine');
+    toast.success('Consultation ended');
+    navigate('/patient/appointments');
   };
 
-  const patientInitials = initials(active?.patient ?? '') || 'PT';
-
-  // No room chosen yet — ask which consultation to join.
-  if (!appointmentId) {
-    return (
-      <div className="space-y-6">
-        <Breadcrumbs
-          items={[
-            { label: 'Doctor Workspace', href: '/doctor/dashboard' },
-            { label: 'Telemedicine Virtual OPD Clinic Room' },
-          ]}
-        />
-
-        <div>
-          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
-            <Video className="w-6 h-6 text-gov-700" />
-            Telemedicine Virtual OPD & Video Consultation Room
-          </h1>
-          <p className="text-xs text-ink-soft mt-0.5">
-            Peer-to-peer video consultation connecting remote village subcenters with doctors
-          </p>
-        </div>
-
-        <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden">
-          <div className="flex items-center justify-between gap-3 p-4 border-b border-line bg-sand-50">
-            <div>
-              <h2 className="font-bold text-ink text-sm">Scheduled video consultations</h2>
-              <p className="text-xs text-ink-soft mt-0.5">
-                Pick a patient to open the consultation room. The patient joins the same room from
-                their appointments list.
-              </p>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-              onClick={loadWaiting}
-              disabled={isLoadingList}
-            >
-              Refresh
-            </Button>
-          </div>
-
-          {isLoadingList ? (
-            <div className="p-8 text-center text-sm text-ink-soft">Loading consultations…</div>
-          ) : waiting.length === 0 ? (
-            <div className="p-8 text-center text-sm text-ink-soft">
-              <Video className="w-8 h-8 mx-auto mb-3 opacity-40" />
-              No video consultations scheduled right now.
-            </div>
-          ) : (
-            <ul className="divide-y divide-line">
-              {waiting.map((apt) => (
-                <li key={apt.id} className="flex items-center justify-between gap-4 p-4 hover:bg-sand-50/60">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gov-600 shrink-0" />
-                      <span className="font-semibold text-ink text-sm truncate">
-                        {apt.patient || 'Patient'}
-                      </span>
-                      <Badge variant="info" className="text-[10px]">
-                        📹 Tele-consult
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-ink-soft mt-1 truncate">
-                      {apt.reason || apt.specialty || 'Consultation'} • {apt.facility}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <Clock className="w-3.5 h-3.5 text-ink-soft" />
-                      <span className="text-xs font-semibold text-sand-700">
-                        {apt.date} at {apt.time}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    leftIcon={<Video className="w-4 h-4" />}
-                    onClick={() => navigate(`/doctor/telemedicine/${apt.id}`)}
-                  >
-                    Join Call
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div className="text-center py-12 text-ink-soft text-sm">Loading the consultation…</div>;
   }
+
+  if (!appointment) return null;
+
+  const doctorInitials = initials(appointment.doctor) || 'DR';
 
   return (
     <div className="space-y-6">
       <Breadcrumbs
         items={[
-          { label: 'Doctor Workspace', href: '/doctor/dashboard' },
-          { label: 'Telemedicine', href: '/doctor/telemedicine' },
-          { label: 'Consultation Room' },
+          { label: 'My Appointments', href: '/patient/appointments' },
+          { label: 'Video Consultation' },
         ]}
       />
 
@@ -203,19 +103,14 @@ export const DoctorTelemedicinePage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <Video className="w-6 h-6 text-gov-700" />
-            Telemedicine Virtual OPD & Video Consultation Room
+            Video Consultation
           </h1>
           <p className="text-xs text-ink-soft mt-0.5">
-            {active
-              ? `${active.patient || 'Patient'} • ${active.specialty || 'Consultation'} • ${active.date} at ${active.time}`
-              : `Consultation room: ${appointmentId}`}
+            {appointment.doctor} • {appointment.facility} • {appointment.date} at {appointment.time}
           </p>
         </div>
 
-        <Badge
-          variant={call.status === 'connected' ? 'success' : call.status === 'error' ? 'danger' : 'info'}
-          size="md"
-        >
+        <Badge variant={call.status === 'connected' ? 'success' : call.status === 'error' ? 'danger' : 'info'} size="md">
           {STATUS_LABEL[call.status] ?? call.status}
         </Badge>
       </div>
@@ -229,7 +124,7 @@ export const DoctorTelemedicinePage: React.FC = () => {
       {call.mediaDenied && !call.error && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-900">
           This browser could not open a camera — another tab or app may be holding it. You can still
-          see and hear the patient.
+          see and hear the other side.
         </div>
       )}
 
@@ -237,24 +132,26 @@ export const DoctorTelemedicinePage: React.FC = () => {
         {/* Video canvas */}
         <div className="lg:col-span-8 space-y-4">
           <div className="bg-sand-900 rounded-2xl overflow-hidden aspect-video relative shadow-xl border border-sand-800">
+            {/* Remote (doctor) fills the frame */}
             <VideoStreamTile
               stream={call.remoteStream}
               className="absolute inset-0 w-full h-full"
               placeholder={
                 <div className="space-y-2 text-center">
                   <div className="w-24 h-24 rounded-full bg-gov-700/80 text-white font-bold text-3xl flex items-center justify-center mx-auto border-4 border-gov-500 shadow-lg">
-                    {patientInitials}
+                    {doctorInitials}
                   </div>
-                  <div className="text-white font-bold text-sm">{active?.patient || 'Patient'}</div>
+                  <div className="text-white font-bold text-sm">{appointment.doctor}</div>
                   <div className="text-xs text-ink-soft">
                     {call.status === 'connected'
-                      ? 'Camera is off on the patient’s side'
-                      : 'Waiting for the patient to join…'}
+                      ? 'Camera is off on the doctor’s side'
+                      : 'Waiting for the doctor to join…'}
                   </div>
                 </div>
               }
             />
 
+            {/* Overlays */}
             <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between z-10 pointer-events-none">
               <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs font-semibold flex items-center gap-2">
                 <span
@@ -262,11 +159,14 @@ export const DoctorTelemedicinePage: React.FC = () => {
                     call.status === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
                   }`}
                 />
-                <span>{active?.patient || 'Patient'}</span>
+                <span>{appointment.doctor}</span>
+              </div>
+              <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[11px] text-gov-200">
+                {appointment.specialty}
               </div>
             </div>
 
-            {/* Doctor self-preview */}
+            {/* Local self-preview */}
             <div className="absolute bottom-20 right-4 w-36 h-24 bg-sand-800 rounded-xl border border-sand-700 shadow-md overflow-hidden z-10">
               <VideoStreamTile
                 stream={call.localStream}
@@ -312,26 +212,12 @@ export const DoctorTelemedicinePage: React.FC = () => {
                 <button
                   onClick={handleEndCall}
                   className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
-                  title="End Teleconsultation"
+                  title="Leave Consultation"
                 >
                   <PhoneOff className="w-5 h-5" />
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Consultation notes */}
-          <div className="bg-surface rounded-2xl border border-line p-4 shadow-xs">
-            <h4 className="text-xs font-bold text-sand-700 uppercase tracking-wider mb-2">
-              Consultation Notes
-            </h4>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              placeholder="Record findings during the consultation…"
-              className="w-full text-xs border border-sand-300 rounded-lg px-3 py-2 focus:outline-none focus:border-gov-600 resize-y"
-            />
           </div>
         </div>
 
@@ -340,7 +226,7 @@ export const DoctorTelemedicinePage: React.FC = () => {
           <div className="flex-1 bg-surface rounded-2xl border border-line shadow-xs flex flex-col justify-between overflow-hidden">
             <div className="p-3 bg-sand-50 border-b border-line font-bold text-xs text-ink flex items-center gap-2">
               <MessageSquare className="w-3.5 h-3.5 text-gov-700" />
-              Live Consultation Chat
+              Consultation Chat
             </div>
 
             <div className="flex-1 p-3 overflow-y-auto space-y-2.5 bg-sand-50/30">
@@ -348,10 +234,10 @@ export const DoctorTelemedicinePage: React.FC = () => {
                 <p className="text-[11px] text-ink-soft text-center py-4">No messages yet.</p>
               )}
               {chatMessages.map((m, i) => (
-                <div key={i} className={`flex flex-col ${m.sender === 'doctor' ? 'items-end' : 'items-start'}`}>
+                <div key={i} className={`flex flex-col ${m.sender === 'patient' ? 'items-end' : 'items-start'}`}>
                   <div
                     className={`max-w-[85%] rounded-xl p-2.5 text-xs leading-relaxed ${
-                      m.sender === 'doctor'
+                      m.sender === 'patient'
                         ? 'bg-gov-700 text-white rounded-br-xs'
                         : 'bg-surface text-ink border border-line rounded-bl-xs'
                     }`}
