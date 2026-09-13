@@ -3,8 +3,10 @@ import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { BarChart3, Download, Printer, CheckCircle2, DollarSign, Calendar } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { useToast } from '../../hooks/useToast';
 
 export const AshaReportsPage: React.FC = () => {
+  const toast = useToast();
   const [selectedMonth, setSelectedMonth] = useState('August 2026');
 
   const performanceMetrics = [
@@ -60,7 +62,7 @@ export const AshaReportsPage: React.FC = () => {
             size="sm"
             variant="primary"
             leftIcon={<Download className="w-4 h-4" />}
-            onClick={() => alert('Downloading official Monthly Progress Report (MPR-MH-PUN-082026.csv)...')}
+            onClick={() => toast.info('Export not available in this build', 'Monthly Progress Report export is not implemented yet.')}
           >
             Export CSV
           </Button>

@@ -50,8 +50,7 @@ const AshaTasks = lazy(() => import('./pages/asha/Tasks').then(m => ({ default: 
 const AshaVillageMap = lazy(() => import('./pages/asha/VillageMap').then(m => ({ default: m.AshaVillageMapPage })));
 const AshaRegisterPatient = lazy(() => import('./pages/asha/RegisterPatient').then(m => ({ default: m.AshaRegisterPatientPage })));
 const AshaMyPatients = lazy(() => import('./pages/asha/MyPatients').then(m => ({ default: m.AshaMyPatientsPage })));
-const AshaVisitLog = lazy(() => import('./pages/asha/VisitLog').then(m => ({ default: m.AshaVisitLogPage })));
-const AshaHomeVisits = lazy(() => import('./pages/asha/HomeVisits').then(m => ({ default: m.AshaHomeVisitsPage })));
+const AshaHomeVisits = lazy(() => import('./pages/asha/HomeVisitsPage').then(m => ({ default: m.AshaHomeVisitsPage })));
 const AshaImmunization = lazy(() => import('./pages/asha/Immunization').then(m => ({ default: m.AshaImmunizationPage })));
 const AshaMaternalCare = lazy(() => import('./pages/asha/MaternalCare').then(m => ({ default: m.AshaMaternalCarePage })));
 const AshaNcdScreening = lazy(() => import('./pages/asha/NcdScreening').then(m => ({ default: m.AshaNcdScreeningPage })));
@@ -103,10 +102,10 @@ const PatientMedicineOrders = lazy(() => import('./pages/patient').then(m => ({ 
 const PatientLabReports = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientLabReports })));
 const PatientAppointments = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientAppointments })));
 const PatientReferralStatus = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientReferralStatus })));
-const PatientAudioPrescription = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientAudioPrescription })));
 const PatientVaccinations = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientVaccinations })));
 const PatientEmergency = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientEmergency })));
 const PatientFamilyMembers = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientFamilyMembers })));
+const PatientTeleconsult = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientTeleconsult })));
 
 // ─── Query Client ───────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -263,8 +262,10 @@ const router = createBrowserRouter([
               { path: '/asha/map', element: <Suspense fallback={<PageLoader />}><AshaVillageMap /></Suspense> },
               { path: '/asha/register-patient', element: <Suspense fallback={<PageLoader />}><AshaRegisterPatient /></Suspense> },
               { path: '/asha/patients', element: <Suspense fallback={<PageLoader />}><AshaMyPatients /></Suspense> },
-              { path: '/asha/visit-log', element: <Suspense fallback={<PageLoader />}><AshaVisitLog /></Suspense> },
               { path: '/asha/home-visits', element: <Suspense fallback={<PageLoader />}><AshaHomeVisits /></Suspense> },
+              // The visit log is now a tab of the home-visits page; the old
+              // path still resolves so existing links do not break.
+              { path: '/asha/visit-log', element: <Navigate to="/asha/home-visits?tab=history" replace /> },
               { path: '/asha/immunization', element: <Suspense fallback={<PageLoader />}><AshaImmunization /></Suspense> },
               { path: '/asha/maternal-care', element: <Suspense fallback={<PageLoader />}><AshaMaternalCare /></Suspense> },
               { path: '/asha/ncd-screening', element: <Suspense fallback={<PageLoader />}><AshaNcdScreening /></Suspense> },
@@ -289,6 +290,7 @@ const router = createBrowserRouter([
               { path: '/doctor/lab-orders', element: <Suspense fallback={<PageLoader />}><DoctorLabOrders /></Suspense> },
               { path: '/doctor/referrals', element: <Suspense fallback={<PageLoader />}><DoctorReferralCenter /></Suspense> },
               { path: '/doctor/telemedicine', element: <Suspense fallback={<PageLoader />}><DoctorTelemedicine /></Suspense> },
+              { path: '/doctor/telemedicine/:appointmentId', element: <Suspense fallback={<PageLoader />}><DoctorTelemedicine /></Suspense> },
               { path: '/doctor/inventory', element: <Suspense fallback={<PageLoader />}><DoctorDrugInventory /></Suspense> },
               { path: '/doctor/analytics', element: <Suspense fallback={<PageLoader />}><DoctorAnalytics /></Suspense> },
             ],
@@ -340,10 +342,13 @@ const router = createBrowserRouter([
               { path: '/patient/lab-reports', element: <Suspense fallback={<PageLoader />}><PatientLabReports /></Suspense> },
               { path: '/patient/appointments', element: <Suspense fallback={<PageLoader />}><PatientAppointments /></Suspense> },
               { path: '/patient/referrals', element: <Suspense fallback={<PageLoader />}><PatientReferralStatus /></Suspense> },
-              { path: '/patient/audio-prescription', element: <Suspense fallback={<PageLoader />}><PatientAudioPrescription /></Suspense> },
+              // The audio player is part of the prescription itself now; the
+              // old path still resolves so existing links do not break.
+              { path: '/patient/audio-prescription', element: <Navigate to="/patient/prescriptions" replace /> },
               { path: '/patient/vaccinations', element: <Suspense fallback={<PageLoader />}><PatientVaccinations /></Suspense> },
               { path: '/patient/emergency', element: <Suspense fallback={<PageLoader />}><PatientEmergency /></Suspense> },
               { path: '/patient/family', element: <Suspense fallback={<PageLoader />}><PatientFamilyMembers /></Suspense> },
+              { path: '/patient/teleconsult/:appointmentId', element: <Suspense fallback={<PageLoader />}><PatientTeleconsult /></Suspense> },
             ],
           },
         ],

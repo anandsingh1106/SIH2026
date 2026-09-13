@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Mail, Lock, Phone, User, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Shield, Mail, Lock, Phone, User, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { MAHARASHTRA_DISTRICTS } from '../../data/mockData';
 import { useAuth } from '../../services/auth/authContext';
 import { isSupabaseConfigured } from '@arogyasetu/shared/services/auth';
 import { UserRole } from '@arogyasetu/shared/types';
+import { validateAbhaIdentifier } from '@arogyasetu/shared/utils';
+import { AbhaConnectButton } from '../../components/auth/AbhaConnectButton';
 
 const ROLE_HOME: Record<string, string> = {
   asha: '/asha/dashboard',
@@ -41,19 +43,16 @@ export const RegisterPage: React.FC = () => {
     facilityName: '',
   });
 
-  const [isGeneratedAbha, setIsGeneratedAbha] = useState(false);
+  const [abhaError, setAbhaError] = useState('');
+
+  // A citizen account exists to hold that person's health record, and ABHA is
+  // the national identifier for it — so it is required here. Staff are
+  // identified by their HPR ID or employee number instead, and need not hold an
+  // ABHA of their own, so requiring one would only lock out real clinicians.
+  const abhaRequired = formData.role === 'patient';
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
-
-  const handleGenerateAbha = () => {
-    const abha =
-      '91-' + Math.floor(1000 + Math.random() * 9000) +
-      '-' + Math.floor(1000 + Math.random() * 9000) +
-      '-' + Math.floor(1000 + Math.random() * 9000);
-    setFormData({ ...formData, abhaNumber: abha });
-    setIsGeneratedAbha(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +67,23 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (abhaRequired && formData.abhaNumber.trim() === '') {
+      setAbhaError('Link your ABHA to create a citizen account.');
+      setError('An ABHA is required for a citizen account.');
+      return;
+    }
+
+    // The button only ever stores a validated value, but a stale one could
+    // survive a role change, so it is re-checked before it is sent.
+    if (formData.abhaNumber.trim() !== '') {
+      const abha = validateAbhaIdentifier(formData.abhaNumber);
+      if (!abha.valid) {
+        setAbhaError(abha.error ?? 'Check your ABHA identifier.');
+        setError('Please correct the ABHA identifier.');
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const { needsEmailConfirmation } = await signUp(formData.email, formData.password, {
@@ -77,7 +93,9 @@ export const RegisterPage: React.FC = () => {
         district: formData.district,
         taluka: formData.taluka,
         village: formData.village,
-        abhaId: formData.abhaNumber || undefined,
+        abhaId: formData.abhaNumber.trim()
+          ? validateAbhaIdentifier(formData.abhaNumber).normalized
+          : undefined,
         registrationNumber: formData.registrationNumber || undefined,
         facilityName: formData.facilityName || undefined,
       });
@@ -197,6 +215,49 @@ export const RegisterPage: React.FC = () => {
               </>
             )}
 
+            {/* ABHA is captured, never minted. An ABHA number is issued by the
+                National Health Authority; anything generated here would be a
+                number belonging to someone else or to nobody. Required for
+                citizens, whose health record it anchors; optional for staff,
+                who are identified by their HPR ID instead. */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <label className="block text-xs font-semibold text-sand-700">
+                  Ayushman Bharat Health Account (ABHA)
+                </label>
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5 border ${
+                    abhaRequired
+                      ? 'text-gov-800 bg-gov-50 border-gov-200'
+                      : 'text-ink-soft bg-sand-50 border-line'
+                  }`}
+                >
+                  {abhaRequired ? 'Required' : 'Optional'}
+                </span>
+              </div>
+
+              <AbhaConnectButton
+                value={formData.abhaNumber}
+                onChange={(normalized) => {
+                  setFormData({ ...formData, abhaNumber: normalized });
+                  setAbhaError('');
+                }}
+                required={abhaRequired}
+              />
+
+              {abhaError && (
+                <p className="text-xs text-red-600 font-semibold">{abhaError}</p>
+              )}
+            </div>
+
+            {/* An ABHA-first sign-up, the way a provider button leads the form
+                elsewhere: link the health account, then fill in the rest. */}
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-line" />
+              <span className="text-[11px] font-semibold text-ink-soft uppercase tracking-wide">or</span>
+              <span className="h-px flex-1 bg-line" />
+            </div>
+
             <Input
               label="Full Name"
               required
@@ -269,25 +330,6 @@ export const RegisterPage: React.FC = () => {
                 placeholder="e.g. Mulshi"
                 value={formData.taluka}
                 onChange={(e) => setFormData({ ...formData, taluka: e.target.value })}
-              />
-            </div>
-
-            <div className="bg-sand-50 p-3.5 rounded-xl border border-line space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-ink">Ayushman Bharat Health Account (ABHA)</span>
-                <button
-                  type="button"
-                  onClick={handleGenerateAbha}
-                  className="text-[11px] text-gov-700 font-bold hover:underline flex items-center gap-1"
-                >
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  {isGeneratedAbha ? 'Regenerate' : 'Generate ABHA ID'}
-                </button>
-              </div>
-              <Input
-                placeholder="14-digit ABHA (e.g. 91-4521-8890-1200)"
-                value={formData.abhaNumber}
-                onChange={(e) => setFormData({ ...formData, abhaNumber: e.target.value })}
               />
             </div>
 

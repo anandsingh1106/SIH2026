@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CLINICAL_GUIDELINES_DATA } from '../../data/mockData';
-import { BookOpen, Search, Bookmark, Download, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { BookOpen, Search, Bookmark, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -42,11 +42,17 @@ export const ClinicalGuidelinesPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Disclaimer */}
-        <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900 flex items-start gap-2">
-          <ShieldAlert className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+        {/* Disclaimer. This page is public and the summaries name real drugs,
+            thresholds and doses, so it has to say plainly that it is a
+            condensed reference and not the authority to dose from. */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
+          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <span>
-            <strong>Clinician Reference:</strong> These guidelines are intended for qualified healthcare practitioners to standardize diagnostic and therapeutic decisions across participating health facilities.
+            <strong>Summaries only — verify before acting.</strong> These are condensed reference
+            notes for qualified healthcare practitioners, not the official protocol documents. Any
+            drug, dose or threshold must be confirmed against the current Maharashtra State /
+            MoHFW protocol before it guides treatment. Not for use by the general public for
+            self-treatment.
           </span>
         </div>
 
@@ -111,14 +117,6 @@ export const ClinicalGuidelinesPage: React.FC = () => {
                     >
                       Read Protocol
                     </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      leftIcon={<Download className="w-3.5 h-3.5" />}
-                      onClick={() => alert(`Downloading official PDF for "${guide.title}"...`)}
-                    >
-                      PDF
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -132,11 +130,13 @@ export const ClinicalGuidelinesPage: React.FC = () => {
             isOpen={!!activeGuideline}
             onClose={() => setActiveGuideline(null)}
             title={activeGuideline.title}
-            description={`${activeGuideline.category} • Directorate of Health Services, Maharashtra`}
+            description={activeGuideline.category}
             size="xl"
             footer={
               <div className="flex justify-between items-center w-full">
-                <span className="text-[11px] text-ink-soft">Version 2.4 • Effective State-Wide</span>
+                <span className="text-[11px] text-ink-soft">
+                  Reference summary — confirm against the official protocol
+                </span>
                 <Button variant="primary" size="sm" onClick={() => setActiveGuideline(null)}>
                   Done Reading
                 </Button>
@@ -144,6 +144,12 @@ export const ClinicalGuidelinesPage: React.FC = () => {
             }
           >
             <div className="space-y-4 text-xs text-ink leading-relaxed">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-900">
+                <strong>Not the official document.</strong> A condensed summary for orientation.
+                Verify every drug, dose and threshold against the current Maharashtra State / MoHFW
+                protocol before acting on it.
+              </div>
+
               <div className="bg-sand-50 p-4 rounded-xl border border-line">
                 <h5 className="font-bold text-ink uppercase tracking-wider mb-1">Executive Summary:</h5>
                 <p>{activeGuideline.summary}</p>

@@ -207,34 +207,6 @@ export const DoctorDashboard: React.FC = () => {
             </Link>
           </div>
 
-          {/* Quick Doctor Modules */}
-          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-3">
-            <h4 className="font-display text-sm font-bold text-ink">
-              Clinical stations
-            </h4>
-            <div className="space-y-2 text-xs font-semibold">
-              <Link to="/doctor/patients" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-                <span>Longitudinal EHR Records</span>
-                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-              </Link>
-              <Link to="/doctor/prescriptions" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-                <span>E-Prescription Creator</span>
-                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-              </Link>
-              <Link to="/doctor/lab-orders" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-                <span>Diagnostic Lab Orders</span>
-                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-              </Link>
-              <Link to="/doctor/referrals" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-                <span>Specialist Referral Center</span>
-                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-              </Link>
-              <Link to="/doctor/analytics" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-                <span>Practice Analytics & Trends</span>
-                <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

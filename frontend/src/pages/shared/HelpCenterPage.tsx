@@ -4,8 +4,10 @@ import { HelpCircle, Search, BookOpen, FileText, Phone, MessageSquare, ChevronDo
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Button } from '../../components/ui/Button';
+import { useToast } from '../../hooks/useToast';
 
 export const HelpCenterPage: React.FC = () => {
+  const toast = useToast();
   const { currentRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -115,7 +117,7 @@ export const HelpCenterPage: React.FC = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => alert(`Downloading manual: ${g.title}`)}
+                    onClick={() => toast.info('Manual not available in this build', `"${g.title}" is not bundled as a downloadable file.`)}
                   >
                     Download PDF
                   </Button>

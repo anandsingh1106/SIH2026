@@ -67,6 +67,13 @@ export const env = {
   GEMINI_API_KEY: optional('GEMINI_API_KEY'),
   OPENAI_API_KEY: optional('OPENAI_API_KEY'),
 
+  // ABDM / ABHA. Issued by the National Health Authority after sandbox
+  // registration and M1 certification. Absent these, ABHA identifiers are
+  // recorded as entered and never reported as verified.
+  ABDM_CLIENT_ID: optional('ABDM_CLIENT_ID'),
+  ABDM_CLIENT_SECRET: optional('ABDM_CLIENT_SECRET'),
+  ABDM_ENV: optional('ABDM_ENV', 'sandbox'),
+
   SENDGRID_API_KEY: optional('SENDGRID_API_KEY'),
   SENDGRID_FROM_EMAIL: optional('SENDGRID_FROM_EMAIL'),
 

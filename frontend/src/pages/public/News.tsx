@@ -1,8 +1,10 @@
 import React from 'react';
 import { Newspaper, Calendar, ArrowRight, BellRing, Sparkles } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
+import { useToast } from '../../hooks/useToast';
 
 export const NewsPage: React.FC = () => {
+  const toast = useToast();
   const articles = [
     {
       id: 'news-1',
@@ -76,7 +78,7 @@ export const NewsPage: React.FC = () => {
             <div className="pt-2 flex items-center justify-between text-xs text-ink-soft border-t border-line">
               <span className="font-semibold">Source: {feat.source}</span>
               <button
-                onClick={() => alert(`Opening full bulletin: ${feat.title}`)}
+                onClick={() => toast.info('Full bulletin not available', 'This build carries headline summaries only.')}
                 className="font-bold text-gov-700 hover:underline flex items-center gap-1"
               >
                 Read Official Bulletin →
@@ -106,7 +108,7 @@ export const NewsPage: React.FC = () => {
               <div className="mt-5 pt-3 border-t border-line flex items-center justify-between text-xs">
                 <span className="text-[11px] text-ink-soft truncate max-w-[160px]">{art.source}</span>
                 <button
-                  onClick={() => alert(`Opening full report: ${art.title}`)}
+                  onClick={() => toast.info('Full report not available', 'This build carries headline summaries only.')}
                   className="font-bold text-gov-700 hover:underline"
                 >
                   Read More →

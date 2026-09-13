@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { paginationSchema } from './common.js';
+import { paginationSchema, abhaIdentifier } from './common.js';
 
 // The frontend sends lowercase roles; the database stores them uppercase.
 export const apiRoleSchema = z.enum(['patient', 'asha', 'doctor', 'specialist', 'admin']);
@@ -12,7 +12,7 @@ export const supabaseLoginSchema = z.object({
   district: z.string().trim().max(100).optional(),
   taluka: z.string().trim().max(100).optional(),
   village: z.string().trim().max(100).optional(),
-  abhaId: z.string().trim().max(50).optional(),
+  abhaId: abhaIdentifier.optional(),
 });
 
 /** Enrolment and step-up both prove themselves with a Supabase access token. */

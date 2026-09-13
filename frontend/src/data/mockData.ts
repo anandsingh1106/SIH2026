@@ -922,10 +922,20 @@ export interface OutbreakAlert {
   reportedDate: string;
 }
 
+/**
+ * Illustrative surveillance clusters for the demo.
+ *
+ * The villages and talukas are deliberately fictional. Attaching an invented
+ * cholera or malaria cluster to a real settlement would read as a genuine
+ * public-health alert the moment anyone screenshots the dashboard, which is a
+ * harm no disclaimer undoes. Districts stay real only because the choropleth
+ * aggregates by district, and a district-level total is not a claim about any
+ * identifiable community.
+ */
 export const OUTBREAK_ALERTS: OutbreakAlert[] = [
-  { id: 'ob-1', disease: 'Dengue', village: 'Paud Gaon', taluka: 'Mulshi', district: 'Pune', casesCount: 14, severity: 'high', reportedDate: '2026-08-21' },
-  { id: 'ob-2', disease: 'Cholera', village: 'Dhadgaon', taluka: 'Dhadgaon', district: 'Nandurbar', casesCount: 9, severity: 'high', reportedDate: '2026-08-22' },
-  { id: 'ob-3', disease: 'Chikungunya', village: 'Pirangut', taluka: 'Mulshi', district: 'Pune', casesCount: 6, severity: 'moderate', reportedDate: '2026-08-20' },
-  { id: 'ob-4', disease: 'Malaria (P. falciparum)', village: 'Bhamragad', taluka: 'Bhamragad', district: 'Gadchiroli', casesCount: 11, severity: 'high', reportedDate: '2026-08-19' },
+  { id: 'ob-1', disease: 'Dengue', village: 'Demo Wadi', taluka: 'Demo Taluka North', district: 'Pune', casesCount: 14, severity: 'high', reportedDate: '2026-08-21' },
+  { id: 'ob-2', disease: 'Cholera', village: 'Sample Gaon', taluka: 'Demo Taluka West', district: 'Nandurbar', casesCount: 9, severity: 'high', reportedDate: '2026-08-22' },
+  { id: 'ob-3', disease: 'Chikungunya', village: 'Demo Pada', taluka: 'Demo Taluka North', district: 'Pune', casesCount: 6, severity: 'moderate', reportedDate: '2026-08-20' },
+  { id: 'ob-4', disease: 'Malaria (P. falciparum)', village: 'Sample Tanda', taluka: 'Demo Taluka East', district: 'Gadchiroli', casesCount: 11, severity: 'high', reportedDate: '2026-08-19' },
 ];
 

@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
 import { PatientSummaryCard } from '../../components/healthcare/PatientSummaryCard';
 
-export const AshaHomeVisitsPage: React.FC = () => {
+export const AshaRecordVisitTab: React.FC = () => {
   const navigate = useNavigate();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('pat-102');
@@ -120,23 +120,6 @@ export const AshaHomeVisitsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <Breadcrumbs
-        items={[
-          { label: 'ASHA Workspace', href: '/asha/dashboard' },
-          { label: 'Record Patient Home Visit' },
-        ]}
-      />
-
-      <div>
-        <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
-          <Home className="w-6 h-6 text-gov-700" />
-          Grassroots Home Visit & Health Observation Station
-        </h1>
-        <p className="text-xs text-ink-soft mt-0.5">
-          Record longitudinal vital signs, maternal danger signs, and generate 1-click tele-referrals offline
-        </p>
-      </div>
-
       {saveError && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
           {saveError}

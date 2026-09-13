@@ -4,8 +4,10 @@ import { FileText, Download, Eye, BookOpen, Sparkles, CheckCircle2 } from 'lucid
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { useToast } from '../../hooks/useToast';
 
 export const AshaDocumentsPage: React.FC = () => {
+  const toast = useToast();
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
 
   const docs = [
@@ -86,7 +88,7 @@ export const AshaDocumentsPage: React.FC = () => {
                 size="sm"
                 variant="secondary"
                 leftIcon={<Download className="w-3.5 h-3.5" />}
-                onClick={() => alert(`Downloading offline cached document: ${doc.title}`)}
+                onClick={() => toast.info('Not available in this build', `"${doc.title}" is reference metadata — the document file is not bundled.`)}
               >
                 Save PDF
               </Button>

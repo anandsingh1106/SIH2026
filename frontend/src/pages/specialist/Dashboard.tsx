@@ -218,24 +218,6 @@ export const SpecialistDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Tertiary Links */}
-          <div className="bg-surface rounded-2xl border border-line p-5 shadow-xs space-y-2 text-xs font-semibold">
-            <h4 className="font-display text-sm font-bold text-ink mb-2">
-              Care stations
-            </h4>
-            <Link to="/specialist/treatment-plans" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-              <span>Multi-Week Treatment Pathways</span>
-              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-            </Link>
-            <Link to="/specialist/follow-ups" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-              <span>Grassroots Follow-Up Coordinator</span>
-              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-            </Link>
-            <Link to="/specialist/discharge" className="flex items-center justify-between p-2.5 bg-sand-50 hover:bg-sand-100 rounded-xl text-ink transition-colors">
-              <span>MJPJAY Discharge Summaries</span>
-              <ArrowRight className="w-3.5 h-3.5 text-ink-soft" />
-            </Link>
-          </div>
         </div>
       </div>
     </div>

@@ -93,6 +93,17 @@ export const en = {
     calendar: 'Schedule & Clinics',
     profile: 'My Profile',
     settings: 'Settings',
+    followUps: 'Follow-Ups',
+    // Sidebar section headings.
+    groupDaily: 'Daily Work',
+    groupProgrammes: 'Health Programmes',
+    groupRecords: 'Records & Reports',
+    groupTools: 'Tools',
+    groupClinical: 'Clinical',
+    groupCare: 'Patient Care',
+    groupOversight: 'Oversight',
+    groupMyHealth: 'My Health',
+    groupServices: 'Services',
   },
   public: {
     heroTitle: 'Connecting Maharashtra to Better Healthcare',

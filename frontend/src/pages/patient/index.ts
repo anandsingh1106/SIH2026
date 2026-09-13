@@ -9,3 +9,4 @@ export { PatientAudioPrescription } from './AudioPrescription';
 export { PatientVaccinations } from './Vaccinations';
 export { PatientEmergency } from './Emergency';
 export { PatientFamilyMembers } from './FamilyMembers';
+export { PatientTeleconsult } from './Teleconsult';

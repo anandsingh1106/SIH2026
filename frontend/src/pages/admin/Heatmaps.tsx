@@ -45,7 +45,7 @@ export const AdminHeatmaps: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ink">Epidemiological GIS Heatmaps & Outbreak Clusters</h1>
-            <p className="text-sm text-ink-soft">Real-time spatial clustering for vector-borne and water-borne communicable diseases</p>
+            <p className="text-sm text-ink-soft">Spatial clustering for vector-borne and water-borne communicable diseases</p>
           </div>
         </div>
 
@@ -64,6 +64,11 @@ export const AdminHeatmaps: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-900">
+        <strong>Demo data.</strong> These clusters are illustrative and use fictional village names —
+        they are not live surveillance reports.
       </div>
 
       {/* District choropleth — outbreak cases aggregated per district */}

@@ -55,6 +55,7 @@ export function toPublicAppointment(row) {
     date: row.appointment_date,
     time: row.appointment_time,
     doctor: row.doctor_name || row.doctor || '',
+    patient: row.patient_name || '',
     specialty: row.specialty || '',
     facility: row.facility_name || row.facility || '',
     type: apptTypeToApi(row.type),

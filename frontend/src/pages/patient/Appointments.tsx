@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Video, MapPin, Clock, X, RefreshCw, ChevronRight, Plus } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -23,6 +24,7 @@ const EMPTY_FORM = {
 
 export const PatientAppointments: React.FC = () => {
   const toast = useToast();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -207,7 +209,10 @@ export const PatientAppointments: React.FC = () => {
                 {apt.status === 'upcoming' && (
                   <div className="flex gap-2 mt-4 pt-4 border-t border-line">
                     {apt.type === 'telemedicine' && (
-                      <button className="flex items-center gap-2 px-4 py-2 bg-gov-600 text-white text-xs font-semibold rounded-lg hover:bg-gov-700 transition-colors">
+                      <button
+                        onClick={() => navigate(`/patient/teleconsult/${apt.id}`)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gov-600 text-white text-xs font-semibold rounded-lg hover:bg-gov-700 transition-colors"
+                      >
                         <Video className="w-4 h-4" />
                         Join Video Call
                       </button>

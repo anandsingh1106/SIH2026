@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
-import { User, Phone, Mail, MapPin, ShieldCheck, CheckCircle2, QrCode, Lock } from 'lucide-react';
+import { User, Phone, Mail, MapPin, ShieldAlert, CheckCircle2, QrCode, Lock } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { formatAbhaNumber } from '@arogyasetu/shared/utils';
 
 export const ProfilePage: React.FC = () => {
   const { currentUser, currentRole } = useAuth();
@@ -40,7 +41,7 @@ export const ProfilePage: React.FC = () => {
             Personal Profile & Government Credentials
           </h1>
           <p className="text-xs text-ink-soft mt-0.5">
-            Verified National Health Authority ABHA ID & Facility Credentials
+            ABHA identity and facility credentials
           </p>
         </div>
 
@@ -80,17 +81,26 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <h3 className="font-bold text-base text-white">{currentUser?.name}</h3>
                 <p className="text-xs text-gov-200 capitalize">{currentRole} Designation</p>
-                <div className="text-[11px] font-mono text-emerald-300 font-bold mt-1">
-                  ABHA: {currentUser?.abhaId || '91-1234-5678-9012'}
-                </div>
+                {currentUser?.abhaId ? (
+                  <div className="text-[11px] font-mono text-gov-100 font-bold mt-1">
+                    ABHA: {formatAbhaNumber(currentUser.abhaId)}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-gov-200 mt-1">No ABHA linked</div>
+                )}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-gov-700/60 text-[11px] text-gov-200 flex items-center justify-between">
+            {/* The badge reports what is actually true: an ABHA recorded here
+                has not been checked against ABDM, and saying "Verified" over an
+                unverified health identifier is exactly the claim not to make. */}
+            <div className="pt-2 border-t border-gov-700/60 text-[11px] text-gov-200 flex items-center justify-between gap-2">
               <span>Posting: {currentUser?.facilityName || currentUser?.district}</span>
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> Verified
-              </span>
+              {currentUser?.abhaId && (
+                <span className="text-amber-300 font-bold flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5" /> Unverified
+                </span>
+              )}
             </div>
           </div>
         </div>

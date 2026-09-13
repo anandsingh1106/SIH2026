@@ -93,6 +93,17 @@ export const mr = {
     calendar: 'वेळापत्रक व क्लिनिक्स',
     profile: 'माझे प्रोफाईल',
     settings: 'सेटिंग्ज',
+    followUps: 'फॉलो-अप',
+    // Sidebar section headings.
+    groupDaily: 'दैनंदिन कामे',
+    groupProgrammes: 'आरोग्य कार्यक्रम',
+    groupRecords: 'नोंदी आणि अहवाल',
+    groupTools: 'साधने',
+    groupClinical: 'वैद्यकीय',
+    groupCare: 'रुग्ण सेवा',
+    groupOversight: 'देखरेख',
+    groupMyHealth: 'माझे आरोग्य',
+    groupServices: 'सेवा',
   },
   public: {
     heroTitle: 'महाराष्ट्राला उत्तम आरोग्याशी जोडत आहोत',

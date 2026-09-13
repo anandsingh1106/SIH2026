@@ -186,49 +186,6 @@ export const AshaDashboard: React.FC = () => {
               ))}
             </div>
           </div>
-
-          {/* Rapid Action Modules */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Link
-              to="/asha/home-visits"
-              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
-            >
-              <div className="p-2.5 bg-gov-50 text-gov-700 rounded-xl w-fit mx-auto group-hover:bg-gov-700 group-hover:text-white transition-colors">
-                <Home className="w-5 h-5" />
-              </div>
-              <div className="font-bold text-xs text-ink">Record Home Visit</div>
-            </Link>
-
-            <Link
-              to="/asha/maternal-care"
-              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
-            >
-              <div className="p-2.5 bg-red-50 text-red-700 rounded-xl w-fit mx-auto group-hover:bg-red-600 group-hover:text-white transition-colors">
-                <Baby className="w-5 h-5" />
-              </div>
-              <div className="font-bold text-xs text-ink">Maternal ANC (HRP)</div>
-            </Link>
-
-            <Link
-              to="/asha/immunization"
-              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
-            >
-              <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl w-fit mx-auto group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                <Syringe className="w-5 h-5" />
-              </div>
-              <div className="font-bold text-xs text-ink">Immunization Due</div>
-            </Link>
-
-            <Link
-              to="/asha/ncd-screening"
-              className="p-4 bg-surface rounded-xl border border-line shadow-xs hover:border-gov-600 transition-all text-center space-y-2 group"
-            >
-              <div className="p-2.5 bg-purple-50 text-purple-700 rounded-xl w-fit mx-auto group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <Activity className="w-5 h-5" />
-              </div>
-              <div className="font-bold text-xs text-ink">NCD CBAC Form</div>
-            </Link>
-          </div>
         </div>
 
         {/* Right Col: Quick Village Status & Referral Watch */}

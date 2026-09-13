@@ -93,6 +93,17 @@ export const hi = {
     calendar: 'समय सारणी व क्लीनिक',
     profile: 'मेरी प्रोफ़ाइल',
     settings: 'सेटिंग्स',
+    followUps: 'फॉलो-अप',
+    // Sidebar section headings.
+    groupDaily: 'दैनिक कार्य',
+    groupProgrammes: 'स्वास्थ्य कार्यक्रम',
+    groupRecords: 'रिकॉर्ड और रिपोर्ट',
+    groupTools: 'उपकरण',
+    groupClinical: 'नैदानिक',
+    groupCare: 'रोगी देखभाल',
+    groupOversight: 'निगरानी',
+    groupMyHealth: 'मेरा स्वास्थ्य',
+    groupServices: 'सेवाएं',
   },
   public: {
     heroTitle: 'महाराष्ट्र को बेहतर स्वास्थ्य सेवा से जोड़ना',

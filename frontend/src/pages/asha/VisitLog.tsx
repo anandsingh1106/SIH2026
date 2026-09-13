@@ -33,7 +33,7 @@ interface LogEntry {
   retryCount?: number;
 }
 
-export const AshaVisitLogPage: React.FC = () => {
+export const AshaVisitHistoryTab: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -158,20 +158,9 @@ export const AshaVisitLogPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'ASHA Workspace', href: '/asha/dashboard' },
-          { label: 'Home Visit Log' },
-        ]}
-      />
-
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-gov-700" />
-            Home Visit Log
-          </h1>
-          <p className="text-xs text-ink-soft mt-0.5">
+          <p className="text-xs text-ink-soft">
             {isLoading
               ? 'Loading visits…'
               : `${entries.length} visit${entries.length === 1 ? '' : 's'} recorded` +
