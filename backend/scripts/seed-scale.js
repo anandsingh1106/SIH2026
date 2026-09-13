@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { getDb, transaction } from '../src/db/connection.js';
 
 /**
- * Scales the demo dataset up to a presentable size — roughly 100-150 rows for
+ * Scales the demo dataset up to a presentable size — roughly 50 rows for
  * each major entity, spread across several districts.
  *
  * Names are drawn from common Maharashtrian name lists and combined
@@ -18,7 +18,7 @@ const db = getDb();
 const uid = () => crypto.randomUUID();
 const pick = (arr, i) => arr[i % arr.length];
 
-const TARGET = 120;
+const TARGET = 50;
 
 const FIRST_M = ['Ramesh', 'Suresh', 'Ganesh', 'Mahesh', 'Vijay', 'Sanjay', 'Anil', 'Sunil',
   'Prakash', 'Dinesh', 'Nitin', 'Sachin', 'Amol', 'Rahul', 'Prasad', 'Nilesh',
