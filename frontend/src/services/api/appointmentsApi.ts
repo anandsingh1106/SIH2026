@@ -5,6 +5,8 @@ export interface Appointment {
   date: string;
   time: string;
   doctor: string;
+  /** Present when the caller is clinical staff; patients do not need it. */
+  patient?: string;
   specialty: string;
   facility: string;
   type: 'in-person' | 'telemedicine';
