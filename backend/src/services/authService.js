@@ -82,6 +82,24 @@ export async function supabaseLogin({ accessToken, profile, requestMeta }) {
   const claimedRole = roleFromApi(requestedRole);
   const isStaffClaim = claimedRole !== 'PATIENT';
 
+  /**
+   * A citizen account anchors that person's health record, so it must carry an
+   * ABHA. Enforced here as well as on the form, because the form is only the
+   * polite half of the rule.
+   *
+   * Staff claims are exempt: a clinician is identified by their HPR ID, need
+   * not hold an ABHA of their own, and is provisioned as a patient row only
+   * until an administrator reviews the claim. Requiring one would lock real
+   * clinicians out of registration entirely.
+   */
+  const abhaId = profile?.abhaId || hints.abhaId;
+  if (!isStaffClaim && !abhaId) {
+    throw new AppError('An ABHA number or ABHA address is required for a citizen account.', {
+      status: 400,
+      code: 'ABHA_REQUIRED',
+    });
+  }
+
   return transaction((db) => {
     const user = userRepository.create(
       {
@@ -95,7 +113,7 @@ export async function supabaseLogin({ accessToken, profile, requestMeta }) {
         district: profile?.district || hints.district,
         taluka: profile?.taluka || hints.taluka,
         village: profile?.village || hints.village,
-        abhaId: profile?.abhaId || hints.abhaId,
+        abhaId,
       },
       db
     );
