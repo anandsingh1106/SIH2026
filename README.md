@@ -1,9 +1,9 @@
 # MahaAarogya Sangam (ArogyaSetu)
 
 Digital public health platform for Maharashtra — React + TypeScript frontend,
-Express + SQLite backend, phone-OTP authentication via Firebase.
+Express + SQLite backend, email/password + TOTP authentication via Supabase.
 
-**42 database tables · 72 API operations · 162 passing tests**
+**45 database tables · 72 API operations · 409 passing tests**
 
 ---
 
@@ -20,12 +20,13 @@ incomplete**. What is true today:
 | Supabase client wrappers | ✅ Written |
 | **SQL executed against a real database** | ❌ **Never run — no Postgres available locally** |
 | **Running backend data layer** | ❌ **Still SQLite** |
-| **Auth** | ❌ **Still Firebase** (and Firebase keys were never supplied) |
+| **Auth** | ✅ **Supabase** (email/password + TOTP second factor) |
 | **Deployment model** | ❌ Still `app.listen()` — not Vercel-compatible |
 
 The running application is unchanged and fully working on SQLite + Express;
-all 162 tests pass. The Supabase files are **new, additive, and not yet wired
-in**. Nothing has been deleted.
+all 409 tests pass. The Supabase Postgres schema files are **written but not yet
+wired in**; Supabase Auth and Realtime, however, are live. Nothing has been
+deleted.
 
 **Blocker:** `node:sqlite` is synchronous, Supabase's client is async-only.
 Switching requires converting **243 call sites across 20 files** to `async`, and
@@ -122,7 +123,7 @@ Inside `backend/`:
 | `npm run db:migrate` | Applies pending migrations (safe to re-run) |
 | `npm run db:seed` | Inserts demo data (idempotent — never duplicates) |
 | `npm run db:reset` | Deletes the database, re-migrates and re-seeds |
-| `npm test` | Runs the full test suite (162 tests) |
+| `npm test` | Runs the full test suite (409 tests) |
 | `npm run test:watch` | Runs tests in watch mode |
 
 > `db:reset` fails with a clear message if the API server is running — stop it
@@ -364,7 +365,7 @@ ArogyaSetu/
 │   │   ├── validators/          # Zod schemas
 │   │   ├── routes/              # Endpoint wiring
 │   │   └── docs/openapi.js      # Swagger specification
-│   ├── tests/                   # Vitest + Supertest (162 tests)
+│   ├── tests/                   # Vitest + Supertest (350 tests)
 │   └── _legacy/                 # Superseded pre-rewrite files (not loaded)
 └── frontend/
     └── src/

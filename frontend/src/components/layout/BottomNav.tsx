@@ -57,7 +57,7 @@ export const BottomNav: React.FC = () => {
           { label: 'Home', to: '/patient/dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
           { label: 'Timeline', to: '/patient/timeline', icon: <Clock className="w-5 h-5" /> },
           { label: 'Medicines', to: '/patient/prescriptions', icon: <Pill className="w-5 h-5" /> },
-          { label: 'Audio Rx', to: '/patient/audio-prescription', icon: <Volume2 className="w-5 h-5" /> },
+          { label: 'Medicines', to: '/patient/prescriptions', icon: <Volume2 className="w-5 h-5" /> },
           { label: 'Referral', to: '/patient/referrals', icon: <ArrowRightLeft className="w-5 h-5" /> },
         ];
       default:

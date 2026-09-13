@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   CheckSquare,
   MapPin,
-  UserPlus,
   Home,
   Syringe,
   Baby,
@@ -29,7 +28,6 @@ import {
   Flame,
   ShieldCheck,
   Clock,
-  Volume2,
   PhoneCall,
   Calendar,
   Settings,
@@ -37,6 +35,20 @@ import {
   TrendingUp,
   ShoppingCart,
 } from 'lucide-react';
+
+interface NavItem {
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  /** Badge value; a zero or undefined count renders no pill. */
+  count?: number;
+}
+
+/** A heading-less group renders as a plain block, with no separator above it. */
+interface NavGroup {
+  heading?: string;
+  items: NavItem[];
+}
 
 export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
   isOpen = true,
@@ -76,82 +88,177 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
     });
   }, [loadCounts]);
 
-  const getNavItems = () => {
+  /**
+   * Navigation, grouped.
+   *
+   * A flat list of fourteen links (ASHA's) is hard to scan and scrolls on a
+   * laptop; headings let someone find the section first and the link second.
+   * Every role keeps Dashboard ungrouped at the top, because it is the one
+   * item people reach for without reading.
+   */
+  const getNavGroups = (): NavGroup[] => {
     switch (currentRole) {
       case 'asha':
         return [
-          { label: t.nav.dashboard, to: '/asha/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.tasks, to: '/asha/tasks', icon: <CheckSquare className="w-4 h-4" /> },
-          { label: t.nav.map, to: '/asha/map', icon: <MapPin className="w-4 h-4" /> },
-          { label: 'My Patients', to: '/asha/patients', icon: <Users className="w-4 h-4" /> },
-          { label: t.nav.registerPatient, to: '/asha/register-patient', icon: <UserPlus className="w-4 h-4" /> },
-          { label: t.nav.homeVisits, to: '/asha/home-visits', icon: <Home className="w-4 h-4" /> },
-          { label: 'Visit Log', to: '/asha/visit-log', icon: <FileCheck className="w-4 h-4" /> },
-          { label: t.nav.immunization, to: '/asha/immunization', icon: <Syringe className="w-4 h-4" /> },
-          { label: t.nav.maternalCare, to: '/asha/maternal-care', icon: <Baby className="w-4 h-4" /> },
-          { label: t.nav.ncdScreening, to: '/asha/ncd-screening', icon: <Activity className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/asha/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
-          { label: t.nav.offlineSync, to: '/asha/offline-sync', icon: <CloudOff className="w-4 h-4" /> },
-          { label: 'IEC Documents', to: '/asha/documents', icon: <FileText className="w-4 h-4" /> },
-          { label: t.nav.reports, to: '/asha/reports', icon: <BarChart3 className="w-4 h-4" /> },
+          {
+            items: [
+              { label: t.nav.dashboard, to: '/asha/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupDaily,
+            items: [
+              { label: t.nav.tasks, to: '/asha/tasks', icon: <CheckSquare className="w-4 h-4" /> },
+              { label: t.nav.map, to: '/asha/map', icon: <MapPin className="w-4 h-4" /> },
+              { label: 'My Patients', to: '/asha/patients', icon: <Users className="w-4 h-4" /> },
+              { label: t.nav.homeVisits, to: '/asha/home-visits', icon: <Home className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupProgrammes,
+            items: [
+              { label: t.nav.immunization, to: '/asha/immunization', icon: <Syringe className="w-4 h-4" /> },
+              { label: t.nav.maternalCare, to: '/asha/maternal-care', icon: <Baby className="w-4 h-4" /> },
+              { label: t.nav.ncdScreening, to: '/asha/ncd-screening', icon: <Activity className="w-4 h-4" /> },
+              { label: t.nav.referrals, to: '/asha/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupRecords,
+            items: [
+              { label: t.nav.reports, to: '/asha/reports', icon: <BarChart3 className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupTools,
+            items: [
+              { label: t.nav.offlineSync, to: '/asha/offline-sync', icon: <CloudOff className="w-4 h-4" /> },
+            ],
+          },
         ];
       case 'doctor':
         return [
-          { label: t.nav.dashboard, to: '/doctor/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.queue, to: '/doctor/queue', icon: <Users className="w-4 h-4" />, count: queueWaiting },
-          { label: t.nav.patients, to: '/doctor/patients', icon: <FileText className="w-4 h-4" /> },
-          { label: t.nav.consultation, to: '/doctor/consultation', icon: <Stethoscope className="w-4 h-4" /> },
-          { label: t.nav.aiTriage, to: '/doctor/ai-triage', icon: <Sparkles className="w-4 h-4" /> },
-          { label: t.nav.prescriptions, to: '/doctor/prescriptions', icon: <Pill className="w-4 h-4" /> },
-          { label: t.nav.labOrders, to: '/doctor/lab-orders', icon: <FlaskConical className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/doctor/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
-          { label: t.nav.telemedicine, to: '/doctor/telemedicine', icon: <Video className="w-4 h-4" /> },
-          { label: t.nav.inventory, to: '/doctor/inventory', icon: <Package className="w-4 h-4" /> },
-          { label: t.nav.analytics, to: '/doctor/analytics', icon: <TrendingUp className="w-4 h-4" /> },
+          {
+            items: [
+              { label: t.nav.dashboard, to: '/doctor/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupClinical,
+            items: [
+              { label: t.nav.queue, to: '/doctor/queue', icon: <Users className="w-4 h-4" />, count: queueWaiting },
+              { label: t.nav.consultation, to: '/doctor/consultation', icon: <Stethoscope className="w-4 h-4" /> },
+              { label: t.nav.telemedicine, to: '/doctor/telemedicine', icon: <Video className="w-4 h-4" /> },
+              { label: t.nav.aiTriage, to: '/doctor/ai-triage', icon: <Sparkles className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupRecords,
+            items: [
+              { label: t.nav.patients, to: '/doctor/patients', icon: <FileText className="w-4 h-4" /> },
+              { label: t.nav.prescriptions, to: '/doctor/prescriptions', icon: <Pill className="w-4 h-4" /> },
+              { label: t.nav.labOrders, to: '/doctor/lab-orders', icon: <FlaskConical className="w-4 h-4" /> },
+              { label: t.nav.referrals, to: '/doctor/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupTools,
+            items: [
+              { label: t.nav.analytics, to: '/doctor/analytics', icon: <TrendingUp className="w-4 h-4" /> },
+            ],
+          },
         ];
       case 'specialist':
         return [
-          { label: t.nav.dashboard, to: '/specialist/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/specialist/referrals', icon: <ArrowRightLeft className="w-4 h-4" />, count: openReferrals },
-          { label: t.nav.beds, to: '/specialist/beds', icon: <BedDouble className="w-4 h-4" /> },
-          { label: t.nav.consultation, to: '/specialist/consultations', icon: <Stethoscope className="w-4 h-4" /> },
-          { label: t.nav.treatmentPlans, to: '/specialist/treatment-plans', icon: <FileCheck className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/specialist/follow-ups', icon: <Activity className="w-4 h-4" /> },
-          { label: t.nav.discharge, to: '/specialist/discharge', icon: <FileText className="w-4 h-4" /> },
+          {
+            items: [
+              { label: t.nav.dashboard, to: '/specialist/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupCare,
+            items: [
+              { label: t.nav.referrals, to: '/specialist/referrals', icon: <ArrowRightLeft className="w-4 h-4" />, count: openReferrals },
+              { label: t.nav.consultation, to: '/specialist/consultations', icon: <Stethoscope className="w-4 h-4" /> },
+              { label: t.nav.treatmentPlans, to: '/specialist/treatment-plans', icon: <FileCheck className="w-4 h-4" /> },
+              // Previously mislabelled as "Referrals", which put the same name
+              // on two different destinations.
+              { label: t.nav.followUps, to: '/specialist/follow-ups', icon: <Activity className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupRecords,
+            items: [
+              { label: t.nav.beds, to: '/specialist/beds', icon: <BedDouble className="w-4 h-4" /> },
+              { label: t.nav.discharge, to: '/specialist/discharge', icon: <FileText className="w-4 h-4" /> },
+            ],
+          },
         ];
       case 'admin':
         return [
-          { label: t.nav.dashboard, to: '/admin/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.stateAnalytics, to: '/admin/state-analytics', icon: <BarChart3 className="w-4 h-4" /> },
-          { label: t.nav.districtAnalytics, to: '/admin/district-analytics', icon: <Building2 className="w-4 h-4" /> },
-          { label: t.nav.facilityManagement, to: '/admin/facilities', icon: <Building2 className="w-4 h-4" /> },
-          { label: t.nav.inventory, to: '/admin/inventory', icon: <Package className="w-4 h-4" /> },
-          { label: t.nav.staffManagement, to: '/admin/staff', icon: <Users className="w-4 h-4" /> },
-          { label: t.nav.heatmaps, to: '/admin/heatmaps', icon: <Flame className="w-4 h-4" /> },
-          { label: t.nav.auditLogs, to: '/admin/audit-logs', icon: <ShieldCheck className="w-4 h-4" /> },
-          { label: t.nav.reports, to: '/admin/reports', icon: <FileText className="w-4 h-4" /> },
-          { label: t.nav.aiInsights, to: '/admin/ai-insights', icon: <Sparkles className="w-4 h-4" /> },
+          {
+            items: [
+              { label: t.nav.dashboard, to: '/admin/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupOversight,
+            items: [
+              { label: t.nav.stateAnalytics, to: '/admin/state-analytics', icon: <BarChart3 className="w-4 h-4" /> },
+              { label: t.nav.districtAnalytics, to: '/admin/district-analytics', icon: <Building2 className="w-4 h-4" /> },
+              { label: t.nav.heatmaps, to: '/admin/heatmaps', icon: <Flame className="w-4 h-4" /> },
+              { label: t.nav.aiInsights, to: '/admin/ai-insights', icon: <Sparkles className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupRecords,
+            items: [
+              { label: t.nav.facilityManagement, to: '/admin/facilities', icon: <Building2 className="w-4 h-4" /> },
+              { label: t.nav.staffManagement, to: '/admin/staff', icon: <Users className="w-4 h-4" /> },
+              { label: t.nav.inventory, to: '/admin/inventory', icon: <Package className="w-4 h-4" /> },
+              { label: t.nav.reports, to: '/admin/reports', icon: <FileText className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupTools,
+            items: [
+              { label: t.nav.auditLogs, to: '/admin/audit-logs', icon: <ShieldCheck className="w-4 h-4" /> },
+            ],
+          },
         ];
       case 'patient':
         return [
-          { label: t.nav.dashboard, to: '/patient/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
-          { label: t.nav.timeline, to: '/patient/timeline', icon: <Clock className="w-4 h-4" /> },
-          { label: t.nav.prescriptions, to: '/patient/prescriptions', icon: <Pill className="w-4 h-4" /> },
-          { label: t.nav.orderMedicines, to: '/patient/medicine-orders', icon: <ShoppingCart className="w-4 h-4" /> },
-          { label: t.nav.labOrders, to: '/patient/lab-reports', icon: <FlaskConical className="w-4 h-4" /> },
-          { label: t.nav.calendar, to: '/patient/appointments', icon: <Calendar className="w-4 h-4" /> },
-          { label: t.nav.referrals, to: '/patient/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
-          { label: t.nav.audioPrescription, to: '/patient/audio-prescription', icon: <Volume2 className="w-4 h-4" /> },
-          { label: t.nav.immunization, to: '/patient/vaccinations', icon: <Syringe className="w-4 h-4" /> },
-          { label: t.common.emergency, to: '/patient/emergency', icon: <PhoneCall className="w-4 h-4 text-red-500" /> },
-          { label: t.nav.family, to: '/patient/family', icon: <Users className="w-4 h-4" /> },
+          {
+            items: [
+              { label: t.nav.dashboard, to: '/patient/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+              { label: t.common.emergency, to: '/patient/emergency', icon: <PhoneCall className="w-4 h-4 text-red-500" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupMyHealth,
+            items: [
+              { label: t.nav.timeline, to: '/patient/timeline', icon: <Clock className="w-4 h-4" /> },
+              { label: t.nav.prescriptions, to: '/patient/prescriptions', icon: <Pill className="w-4 h-4" /> },
+              { label: t.nav.labOrders, to: '/patient/lab-reports', icon: <FlaskConical className="w-4 h-4" /> },
+              { label: t.nav.immunization, to: '/patient/vaccinations', icon: <Syringe className="w-4 h-4" /> },
+              { label: t.nav.referrals, to: '/patient/referrals', icon: <ArrowRightLeft className="w-4 h-4" /> },
+            ],
+          },
+          {
+            heading: t.nav.groupServices,
+            items: [
+              { label: t.nav.calendar, to: '/patient/appointments', icon: <Calendar className="w-4 h-4" /> },
+              { label: t.nav.orderMedicines, to: '/patient/medicine-orders', icon: <ShoppingCart className="w-4 h-4" /> },
+              { label: t.nav.family, to: '/patient/family', icon: <Users className="w-4 h-4" /> },
+            ],
+          },
         ];
       default:
         return [];
     }
   };
 
-  const navItems = getNavItems();
+  const navGroups = getNavGroups();
 
   const roleLabel = t.roles[currentRole as keyof typeof t.roles] || currentRole;
 
@@ -178,40 +285,50 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       </div>
 
       {/* Nav List */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-white/45 px-3 pb-2">
-          {roleLabel}
-        </div>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={onClose}
-            className={({ isActive }) =>
-              `group relative flex items-center justify-between pl-3.5 pr-3 py-2.5 rounded-xl text-sm font-medium 
-               transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] 
-               before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:rounded-full 
-               before:bg-gov-300 before:transition-all before:duration-200 ${
-                isActive
-                  ? 'bg-gov-600 text-white font-bold shadow-soft before:h-6'
-                  : 'text-white/70 hover:text-white hover:bg-white/10 hover:translate-x-0.5 before:h-0'
-              }`
-            }
-          >
-            <div className="flex items-center gap-2.5 truncate">
-              <span className="shrink-0 transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-            </div>
-            {/* A zero badge is noise, so an empty queue shows no pill at all. */}
-            {item.count !== undefined && item.count > 0 && (
-              <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-gov-500 text-white tabular-nums">
-                {item.count}
-              </span>
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {navGroups.map((group, groupIndex) => (
+          <div key={group.heading ?? `group-${groupIndex}`} className={groupIndex > 0 ? 'mt-5' : ''}>
+            {group.heading && (
+              <div className="text-[10px] font-bold uppercase tracking-wider text-white/40 px-3 pb-1.5">
+                {group.heading}
+              </div>
             )}
-          </NavLink>
+            <div className="space-y-1">
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `group relative flex items-center justify-between pl-3.5 pr-3 py-2.5 rounded-xl text-sm font-medium
+                     transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]
+                     before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:rounded-full
+                     before:bg-gov-300 before:transition-all before:duration-200 ${
+                      isActive
+                        ? 'bg-gov-600 text-white font-bold shadow-soft before:h-6'
+                        : 'text-white/70 hover:text-white hover:bg-white/10 hover:translate-x-0.5 before:h-0'
+                    }`
+                  }
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <span className="shrink-0 transition-transform duration-200 group-hover:scale-110">
+                      {item.icon}
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  {/* A zero badge is noise, so an empty queue shows no pill at all. */}
+                  {item.count !== undefined && item.count > 0 && (
+                    <span className="px-1.5 py-0.5 text-[10px] rounded-full font-bold bg-gov-500 text-white tabular-nums">
+                      {item.count}
+                    </span>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
 
-        <div className="pt-4 mt-4 border-t border-white/10">
+        <div className="pt-4 mt-5 border-t border-white/10">
           <div className="text-[10px] font-bold uppercase tracking-wider text-white/45 px-3 pb-2">
             {t.nav.settings}
           </div>

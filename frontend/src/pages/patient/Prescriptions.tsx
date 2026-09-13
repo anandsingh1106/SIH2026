@@ -4,15 +4,22 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { PrintablePrescription } from '../../components/healthcare/PrintablePrescription';
+import { AudioPrescriptionPlayer } from '../../components/healthcare/AudioPrescriptionPlayer';
 import { printDocument } from '../../utils/printDocument';
 import { Prescription } from '@arogyasetu/shared/types';
 import { dataService } from '../../services/api/dataService';
+import { useAuth } from '../../services/auth/authContext';
 
 export const PatientPrescriptions: React.FC = () => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [printTarget, setPrintTarget] = useState<Prescription | null>(null);
+  // Which prescription is currently reading itself aloud. The player used to
+  // live on a separate page, which meant leaving the prescription to hear it
+  // explained; it belongs beside the medicines it is describing.
+  const [audioFor, setAudioFor] = useState<string | null>(null);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -197,14 +204,34 @@ export const PatientPrescriptions: React.FC = () => {
                     <Printer className="w-4 h-4" />
                     Print
                   </button>
-                  <a
-                    href="/patient/audio-prescription"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                  <button
+                    onClick={() => setAudioFor(audioFor === pres.id ? null : pres.id)}
+                    aria-expanded={audioFor === pres.id}
+                    className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border transition-colors ${
+                      audioFor === pres.id
+                        ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+                        : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                    }`}
                   >
                     <Volume2 className="w-4 h-4" />
-                    Audio Explanation
-                  </a>
+                    {audioFor === pres.id ? 'Hide audio' : 'Audio Explanation'}
+                  </button>
                 </div>
+
+                {audioFor === pres.id && (
+                  <div className="pt-2">
+                    <AudioPrescriptionPlayer
+                      patientName={currentUser?.name || 'Patient'}
+                      doctorName={pres.doctorName}
+                      facilityName={pres.facilityName}
+                      date={pres.date}
+                      medicines={pres.medicines}
+                      generalAdvice={pres.generalAdvice}
+                      generalAdviceMr={pres.generalAdviceMr}
+                      generalAdviceHi={pres.generalAdviceHi}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </Card>
