@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { formatAbhaNumber } from '@arogyasetu/shared/utils';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { dataService } from '../../services/api/dataService';
 import type { Appointment, LabOrder, Patient, Prescription, Referral, Vaccination } from '@arogyasetu/shared/types';
@@ -119,10 +120,15 @@ export const PatientDashboard: React.FC = () => {
               <h1 className="font-display text-2xl font-extrabold text-ink mt-0.5 truncate">
                 {patient.name}
               </h1>
-              <p className="text-sm text-ink-muted mt-1 tabular-nums">ABHA ID: {patient.abhaId}</p>
+              <p className="text-sm text-ink-muted mt-1 tabular-nums">
+                ABHA ID: {patient.abhaId ? formatAbhaNumber(patient.abhaId) : 'not linked'}
+              </p>
             </div>
           </div>
-          <Badge variant="success" className="shrink-0">Verified</Badge>
+          {/* An ABHA recorded at sign-up has not been checked against ABDM. */}
+          {patient.abhaId && (
+            <Badge variant="warning" className="shrink-0">Unverified</Badge>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-line">
@@ -268,7 +274,7 @@ export const PatientDashboard: React.FC = () => {
             ))}
           </div>
           <Link
-            to="/patient/audio-prescription"
+            to="/patient/prescriptions"
             className="mt-3 w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold py-2.5 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
           >
             <Activity className="w-4 h-4" />

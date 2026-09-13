@@ -31,11 +31,11 @@ export const AdminDashboard: React.FC = () => {
         eyebrow={
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Live across 33 rural districts
+            Demo dataset · Maharashtra’s 33 rural districts
           </>
         }
         title="Health Network"
-        subtitle="Real-time operations, disease surveillance and facility readiness"
+        subtitle="Operations, disease surveillance and facility readiness"
         actions={
           <>
             <a
@@ -54,7 +54,13 @@ export const AdminDashboard: React.FC = () => {
         }
       />
 
-      {/* Top Stat Cards */}
+      {/* Top Stat Cards. These are published statewide reference figures, not
+          this platform's own throughput — labelled so the two are not read as
+          one. */}
+      <p className="text-[11px] text-ink-soft">
+        Statewide reference figures published by NHM, NHSRC, ABDM and SRS — context for the network,
+        not activity recorded by this platform.
+      </p>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-surface border-line">
           <div className="flex items-center justify-between">
@@ -118,7 +124,11 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-rose-900 text-sm">State Epidemiological Surveillance Alerts</span>
                 <Badge variant="danger" className="text-[10px]">{outbreaks.length} Active Hotspots</Badge>
+                <Badge variant="warning" className="text-[10px] uppercase">Demo data</Badge>
               </div>
+              <p className="text-[11px] text-rose-800/80 mt-1">
+                Illustrative clusters with fictional village names — not live surveillance.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                 {outbreaks.map(o => (
                   <div key={o.id} className="p-3 bg-surface rounded-xl border border-rose-100 space-y-1">

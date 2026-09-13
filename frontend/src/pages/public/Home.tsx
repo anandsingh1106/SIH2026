@@ -243,8 +243,8 @@ export const HomePage: React.FC = () => {
       a: 'For patients with limited literacy or visual impairment, prescriptions can be read out loud in Marathi, Hindi, or English using voice synthesis, explaining dosage timings (सकाळ/दुपार/रात्र) and food instructions clearly.',
     },
     {
-      q: 'Which government health insurance schemes are integrated?',
-      a: 'The platform integrates Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY), Ayushman Bharat PM-JAY, Janani Shishu Suraksha Karyakram (JSSK), and Navsanjivani Yojana with dedicated eligibility checkers.',
+      q: 'Which government health schemes does the platform cover?',
+      a: 'The platform carries reference information — eligibility criteria, required documents and benefits — for Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY), Ayushman Bharat PM-JAY, Janani Shishu Suraksha Karyakram (JSSK) and Navsanjivani Yojana. Enrolment and claims are still handled through each scheme’s own channels.',
     },
   ];
 
@@ -335,11 +335,7 @@ export const HomePage: React.FC = () => {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  ABHA Integrated
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  MJPJAY Cashless Support
+                  ABHA ID Capture
                 </span>
               </div>
             </div>
