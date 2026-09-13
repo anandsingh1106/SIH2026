@@ -257,7 +257,7 @@ export const HomePage: React.FC = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Copy */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gov-50 text-gov-800 rounded-full text-xs font-bold border border-gov-200 shadow-subtle animate-fade-up">
                 <Shield className="w-3.5 h-3.5 text-gov-700" />
                 Unified Digital Public Health Platform
@@ -342,10 +342,10 @@ export const HomePage: React.FC = () => {
 
             {/* Right: the consultation this platform exists to support — a
                 health worker, a mother, and her child over a shared record. */}
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-6">
               <div className="relative animate-fade-up [animation-delay:120ms]">
-                <div className="rounded-3xl overflow-hidden shadow-premium border border-line bg-raised">
-                  <HeroIllustration className="w-full h-[280px] sm:h-[340px] lg:h-[420px]" />
+                <div className="relative aspect-[3/2]">
+                  <HeroIllustration className="absolute inset-0 w-full h-full" />
                 </div>
 
                 {/* One live figure, floated on the image: proof the platform is
