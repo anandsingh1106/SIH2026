@@ -1,10 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { openApiSpec } from './docs/openapi.js';
 
-import { env, isProduction } from './config/env.js';
+import { env, isProduction, BACKEND_ROOT } from './config/env.js';
 import { apiLimiter } from './config/rateLimits.js';
 import { requestId, requestLogger } from './middleware/requestContext.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -102,6 +103,19 @@ export function createApp() {
   app.use('/api/staff-access', staffAccessRoutes);
   app.use('/api/public', publicRoutes);
   app.use('/api/stream', streamRoutes);
+
+  // In production the frontend is built to frontend/dist and served by this
+  // same process, so the browser's relative /api/... calls are same-origin
+  // and no separate static host or CORS config is needed. Any /api path that
+  // reaches here is a genuine 404 and must stay JSON, not fall through to the
+  // SPA — so this is registered after every /api router above.
+  if (isProduction) {
+    const frontendDist = path.join(BACKEND_ROOT, '..', 'frontend', 'dist');
+    app.use(express.static(frontendDist));
+    app.get(/^\/(?!api).*/, (_req, res) => {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  }
 
   app.use(notFoundHandler);
   app.use(errorHandler);

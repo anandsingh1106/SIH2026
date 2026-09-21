@@ -1,0 +1,62 @@
+services:
+  - type: web
+    name: arogyasetu
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    buildCommand: npm install --workspaces --include-workspace-root && npm run build
+    startCommand: npm run server
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: arogyasetu-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        value: /var/data/arogyasetu.sqlite
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ENABLE_API_DOCS
+        value: "false"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_MODEL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ABDM_CLIENT_ID
+        sync: false
+      - key: ABDM_CLIENT_SECRET
+        sync: false
+      - key: ABDM_ENV
+        value: sandbox
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: SENDGRID_FROM_EMAIL
+        sync: false
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: DEMO_PASSWORD
+        sync: false
