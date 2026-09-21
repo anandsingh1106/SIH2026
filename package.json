@@ -8,9 +8,6 @@
     "shared",
     "mobile"
   ],
-  "engines": {
-    "node": ">=22.5.0"
-  },
   "scripts": {
     "dev": "npm --prefix frontend run dev",
     "server": "npm --prefix backend run start",
