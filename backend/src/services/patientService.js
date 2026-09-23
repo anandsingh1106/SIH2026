@@ -29,6 +29,11 @@ export function getPatient(user, id, requestMeta = {}) {
     allergies: patientRepository.listAllergies(id, db),
     chronicConditions: patientRepository.listChronicConditions(id, db),
     familyMembers: patientRepository.listFamilyMembers(id, db),
+    // The patient's first contact in an emergency, shown on their SOS card.
+    assignedAsha: patient.assigned_asha_id
+      ? db.prepare("SELECT name, phone, village FROM users WHERE id = ? AND status = 'ACTIVE'")
+        .get(patient.assigned_asha_id) ?? null
+      : null,
   };
 }
 

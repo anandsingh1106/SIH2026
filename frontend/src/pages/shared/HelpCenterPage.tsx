@@ -4,6 +4,8 @@ import { HelpCircle, Search, BookOpen, FileText, Phone, MessageSquare, ChevronDo
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { Button } from '../../components/ui/Button';
+import { Modal } from '../../components/ui/Modal';
+import { Link } from 'react-router-dom';
 import { useToast } from '../../hooks/useToast';
 
 export const HelpCenterPage: React.FC = () => {
@@ -19,7 +21,7 @@ export const HelpCenterPage: React.FC = () => {
     },
     {
       q: 'How do Doctors track referrals to tertiary hospitals?',
-      a: 'In the Doctor Referral Center, every outward referral displays a live 9-stage stepper (Created → Accepted → In Transit → Arrived → Consultation → Treatment → Follow-up → Closed) alongside reserved bed tokens at receiving medical colleges.',
+      a: 'In the Doctor Referral Center every referral shows its current stage (Sent → Accepted → In Transit → Arrived → In Consultation → Completed) with the history of who moved it and when. The receiving specialist can allocate a bed when accepting.',
     },
     {
       q: 'How can Patients listen to voice prescriptions in Marathi?',
@@ -31,12 +33,57 @@ export const HelpCenterPage: React.FC = () => {
     },
   ];
 
+  // Short how-to guides for this app, written from its actual screens.
   const guides = [
-    { title: 'ASHA Field Manual: Maternal Danger Signs (Marathi/English)', role: 'ASHA', pages: '14 Pages PDF' },
-    { title: 'Medical Officer ICD-11 & E-Prescription Standard Workflow', role: 'Doctor', pages: '8 Pages PDF' },
-    { title: 'Tertiary Bed Management & Discharge Summary Protocol', role: 'Specialist', pages: '10 Pages PDF' },
-    { title: 'State Epidemiological Anomaly & Heatmap User Guide', role: 'Admin', pages: '18 Pages PDF' },
+    { title: 'ASHA: registering a pregnancy and recording ANC visits', role: 'ASHA', steps: [
+      'Open Maternal Care and press "Register Pregnancy". Enter the woman\'s details, LMP date and any risk factors.',
+      'At each check-up press "ANC Visit" on her card and record BP, weight and haemoglobin.',
+      'Hb below 7 g/dL or systolic BP of 140 or more flags the pregnancy as high risk and alerts the PHC.',
+      'Without network the record is saved on the phone and sent automatically once you are back online (Offline Sync).',
+    ] },
+    { title: 'Doctor: consultation and e-prescription', role: 'Doctor', steps: [
+      'Call the next token from the OPD Queue, or open Consultation and choose the patient.',
+      'Fill in complaints, vitals, diagnosis and ICD code, then add medicines with dose, frequency and quantity.',
+      'Allergy warnings appear above the form if a medicine clashes with the patient\'s record.',
+      'Press "Sign & Issue E-Prescription". The patient sees it, with audio instructions, in their portal.',
+    ] },
+    { title: 'Specialist: referrals, consultations and treatment plans', role: 'Specialist', steps: [
+      'Accept incoming referrals from the Referral Queue and allocate a bed if the patient needs admission.',
+      'In Consultations mark the patient as arrived, start the consultation and complete it with your advice.',
+      'Write a Treatment Plan with phases and target dates. The PHC doctor ticks phases off; Follow-ups lists the next step of each plan.',
+    ] },
+    { title: 'Admin: facilities, stock and reports', role: 'Admin', steps: [
+      'Register or edit facilities in Facility Management; beds and staff counts come from the live records.',
+      'Health Signals lists referral delays, stock-outs and maternal risks found in the data, each with its evidence.',
+      'Reports builds CSV exports from current records. Every export is written to the audit log.',
+    ] },
+    { title: 'Patient: appointments, prescriptions and SOS', role: 'Patient', steps: [
+      'Book an appointment by choosing a facility and one of its doctors.',
+      'Prescriptions shows every e-prescription, and the audio player reads it out in Marathi, Hindi or English.',
+      'In an emergency call 108 from the Emergency page; "Alert my ASHA" pages your ASHA worker with your location.',
+    ] },
   ];
+
+  const [openGuide, setOpenGuide] = useState<(typeof guides)[number] | null>(null);
+  const term = searchQuery.trim().toLowerCase();
+  const matches = (text: string) => !term || text.toLowerCase().includes(term);
+  const shownFaqs = faqs.filter((f) => matches(f.q) || matches(f.a));
+  const shownGuides = guides.filter((g) => matches(g.title) || g.steps.some(matches));
+
+  const printGuide = (g: (typeof guides)[number]) => {
+    const win = window.open('', '_blank', 'width=760,height=800');
+    if (!win) {
+      toast.error('Pop-up blocked', 'Allow pop-ups for this site to print the guide.');
+      return;
+    }
+    const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(g.title)}</title>
+      <style>body{font-family:system-ui,sans-serif;margin:32px;line-height:1.6}h1{font-size:20px}</style></head>
+      <body><h1>${esc(g.title)}</h1><ol>${g.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +118,8 @@ export const HelpCenterPage: React.FC = () => {
           </h3>
 
           <div className="space-y-2">
-            {faqs.map((faq, idx) => (
+            {shownFaqs.length === 0 && <p className="text-xs text-ink-soft">No questions match "{searchQuery}".</p>}
+            {shownFaqs.map((faq, idx) => (
               <div
                 key={idx}
                 className="border border-line rounded-xl overflow-hidden text-xs"
@@ -101,25 +149,22 @@ export const HelpCenterPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
-              Official SOPs & Training Manuals
+              How-to Guides
             </h3>
 
             <div className="space-y-2.5">
-              {guides.map((g, idx) => (
+              {shownGuides.length === 0 && <p className="text-xs text-ink-soft">No guides match "{searchQuery}".</p>}
+              {shownGuides.map((g) => (
                 <div
-                  key={idx}
-                  className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between text-xs"
+                  key={g.title}
+                  className="p-3 bg-sand-50 border border-line rounded-xl flex items-center justify-between gap-3 text-xs"
                 >
                   <div>
                     <h5 className="font-bold text-ink">{g.title}</h5>
-                    <span className="text-[11px] text-ink-soft">{g.role} • {g.pages}</span>
+                    <span className="text-[11px] text-ink-soft">{g.role} • {g.steps.length} steps</span>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => toast.info('Manual not available in this build', `"${g.title}" is not bundled as a downloadable file.`)}
-                  >
-                    Download PDF
+                  <Button size="sm" variant="outline" onClick={() => setOpenGuide(g)}>
+                    Read
                   </Button>
                 </div>
               ))}
@@ -127,15 +172,29 @@ export const HelpCenterPage: React.FC = () => {
           </div>
 
           <div className="bg-gov-900 text-white rounded-2xl p-6 shadow-lg space-y-3">
-            <h3 className="font-bold text-sm text-white">Need Technical Support / Issue Escalation?</h3>
+            <h3 className="font-bold text-sm text-white">Need help with the app?</h3>
             <p className="text-xs text-gov-200 leading-relaxed">
-              Our 24x7 State Health IT Helpdesk assists with offline sync errors, ABHA authentication failures, and portal access.
+              Message your PHC or district administrator from Messages. For medical advice call the 104 health
+              helpline, and for an emergency call 108.
             </p>
-            <div className="text-xs pt-1 flex items-center justify-between">
-              <span className="font-bold">📞 Toll-Free: 1800 233 2200</span>
-              <span className="text-gov-300">helpdesk.arogya@maharashtra.gov.in</span>
+            <div className="text-xs pt-1 flex items-center justify-between gap-3 flex-wrap">
+              <Link to="/messages" className="font-bold underline">Open Messages</Link>
+              <span className="font-bold">📞 <a href="tel:104" className="underline">104</a> • <a href="tel:108" className="underline">108</a></span>
             </div>
           </div>
+
+          <Modal isOpen={!!openGuide} onClose={() => setOpenGuide(null)} title={openGuide?.title ?? ''} size="md">
+            {openGuide && (
+              <div className="space-y-4 text-xs text-ink leading-relaxed">
+                <ol className="list-decimal pl-5 space-y-2">
+                  {openGuide.steps.map((s) => <li key={s}>{s}</li>)}
+                </ol>
+                <Button size="sm" variant="outline" onClick={() => printGuide(openGuide)}>
+                  Print or save as PDF
+                </Button>
+              </div>
+            )}
+          </Modal>
         </div>
       </div>
     </div>

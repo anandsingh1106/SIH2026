@@ -8,13 +8,16 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
-import { appointmentsApi, Appointment } from '../../services/api/appointmentsApi';
-import { INITIAL_FACILITIES } from '../../data/mockData';
+import { appointmentsApi, Appointment, BookableDoctor } from '../../services/api/appointmentsApi';
+import { backendApi, type FacilityRecord } from '@arogyasetu/shared/services/api';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useToast } from '../../hooks/useToast';
 
+// Booked by id: a typed-in facility or doctor name matched no record, so the
+// appointment reached nobody's queue.
 const EMPTY_FORM = {
-  facility: INITIAL_FACILITIES[0]?.name || '',
-  doctor: '',
+  facilityId: '',
+  doctorId: '',
   specialty: '',
   date: '',
   time: '',
@@ -38,6 +41,39 @@ export const PatientAppointments: React.FC = () => {
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [bookForm, setBookForm] = useState(EMPTY_FORM);
   const [bookError, setBookError] = useState('');
+  const [facilities, setFacilities] = useState<FacilityRecord[]>([]);
+  const [doctors, setDoctors] = useState<BookableDoctor[]>([]);
+
+  // Facilities that have a bookable doctor, loaded when the form first opens.
+  useEffect(() => {
+    if (!bookModalOpen || facilities.length) return;
+    Promise.all([backendApi.getPublicFacilities(), appointmentsApi.doctors()])
+      .then(([facilityPage, allDoctors]) => {
+        const staffed = new Set(allDoctors.map((d) => d.facilityId));
+        const list = facilityPage.items.filter((f) => staffed.has(f.id));
+        setFacilities(list);
+        setBookForm((f) => (f.facilityId ? f : { ...f, facilityId: list[0]?.id ?? '' }));
+      })
+      .catch((err) => setBookError(err instanceof Error ? err.message : 'Could not load facilities.'));
+  }, [bookModalOpen, facilities.length]);
+
+  useEffect(() => {
+    if (!bookForm.facilityId) { setDoctors([]); return; }
+    let cancelled = false;
+    appointmentsApi
+      .doctors(bookForm.facilityId)
+      .then((list) => {
+        if (cancelled) return;
+        setDoctors(list);
+        setBookForm((f) => {
+          const doctorId = list.some((d) => d.id === f.doctorId) ? f.doctorId : list[0]?.id ?? '';
+          const doctor = list.find((d) => d.id === doctorId);
+          return { ...f, doctorId, specialty: f.specialty || (doctor?.role === 'DOCTOR' ? 'General Medicine' : '') };
+        });
+      })
+      .catch(() => { if (!cancelled) setDoctors([]); });
+    return () => { cancelled = true; };
+  }, [bookForm.facilityId]);
 
   const loadAppointments = async () => {
     setIsLoading(true);
@@ -64,14 +100,22 @@ export const PatientAppointments: React.FC = () => {
     e.preventDefault();
     setBookError('');
 
-    if (!bookForm.doctor || !bookForm.specialty || !bookForm.facility || !bookForm.date || !bookForm.time) {
-      setBookError('Please fill in all required fields.');
+    if (!bookForm.facilityId || !bookForm.doctorId || !bookForm.date || !bookForm.time) {
+      setBookError('Please choose a facility, a doctor, a date and a time.');
+      return;
+    }
+    if (bookForm.date < localDateString()) {
+      setBookError('Choose today or a later date.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await appointmentsApi.create(bookForm);
+      await appointmentsApi.create({
+        ...bookForm,
+        specialty: bookForm.specialty.trim() || undefined,
+        reason: bookForm.reason.trim() || undefined,
+      });
       setBookModalOpen(false);
       setBookForm(EMPTY_FORM);
       toast.success('Appointment booked');
@@ -236,7 +280,10 @@ export const PatientAppointments: React.FC = () => {
 
                 {apt.status === 'completed' && (
                   <div className="flex gap-2 mt-4 pt-4 border-t border-line">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-sand-50 text-sand-700 text-xs font-semibold rounded-lg border border-line hover:bg-sand-100 transition-colors">
+                    <button
+                      onClick={() => navigate('/patient/timeline')}
+                      className="flex items-center gap-2 px-4 py-2 bg-sand-50 text-sand-700 text-xs font-semibold rounded-lg border border-line hover:bg-sand-100 transition-colors"
+                    >
                       <ChevronRight className="w-3.5 h-3.5" />
                       View Consultation Summary
                     </button>
@@ -268,22 +315,29 @@ export const PatientAppointments: React.FC = () => {
           <Select
             label="Facility"
             required
-            value={bookForm.facility}
-            onChange={(e) => setBookForm({ ...bookForm, facility: e.target.value })}
-            options={INITIAL_FACILITIES.map((f) => ({ value: f.name, label: f.name }))}
+            value={bookForm.facilityId}
+            onChange={(e) => setBookForm({ ...bookForm, facilityId: e.target.value, doctorId: '', specialty: '' })}
+            options={
+              facilities.length
+                ? facilities.map((f) => ({ value: f.id, label: `${f.name}${f.taluka ? `, ${f.taluka}` : ''}` }))
+                : [{ value: '', label: 'Loading facilities…' }]
+            }
+          />
+
+          <Select
+            label="Doctor"
+            required
+            value={bookForm.doctorId}
+            onChange={(e) => setBookForm({ ...bookForm, doctorId: e.target.value })}
+            options={
+              doctors.length
+                ? doctors.map((d) => ({ value: d.id, label: `${d.name} (${d.role === 'SPECIALIST' ? 'Specialist' : 'Medical Officer'})` }))
+                : [{ value: '', label: bookForm.facilityId ? 'No doctor listed here' : 'Choose a facility first' }]
+            }
           />
 
           <Input
-            label="Doctor Name"
-            required
-            placeholder="e.g. Dr. Rajesh Deshmukh"
-            value={bookForm.doctor}
-            onChange={(e) => setBookForm({ ...bookForm, doctor: e.target.value })}
-          />
-
-          <Input
-            label="Specialty"
-            required
+            label="Specialty (optional)"
             placeholder="e.g. General Medicine"
             value={bookForm.specialty}
             onChange={(e) => setBookForm({ ...bookForm, specialty: e.target.value })}
@@ -294,6 +348,7 @@ export const PatientAppointments: React.FC = () => {
               label="Date"
               type="date"
               required
+              min={localDateString()}
               value={bookForm.date}
               onChange={(e) => setBookForm({ ...bookForm, date: e.target.value })}
             />

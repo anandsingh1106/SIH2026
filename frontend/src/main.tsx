@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import './styles/globals.css';
+import { applyPreferences } from './utils/preferences';
 // Side-effect import: registers this platform's Supabase client provider
 // with the shared supabaseAuth module before anything calls it.
 import './lib/supabase/client';
@@ -16,6 +17,9 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       .catch((err) => console.warn('[SW] Registration failed:', err));
   });
 }
+
+// Before the first paint, so high contrast does not flash off on load.
+applyPreferences();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -108,7 +108,16 @@ export function getConversations(req, res, next) {
       id: c.id, subject: c.subject || undefined, patientId: c.patient_id || undefined,
       lastMessage: c.last_message || undefined, unreadCount: c.unread_count,
       updatedAt: c.updated_at,
+      members: c.members.map((m) => ({ id: m.id, name: m.name, role: String(m.role).toLowerCase() })),
     })), { page, limit, total });
+  } catch (err) { next(err); }
+}
+
+export function getMessagingContacts(req, res, next) {
+  try {
+    return sendSuccess(res, messaging.messagingContacts(req.user).map((c) => ({
+      ...c, role: String(c.role).toLowerCase(),
+    })));
   } catch (err) { next(err); }
 }
 
@@ -177,6 +186,18 @@ export function getAnalytics(scope) {
 export function getHeatmap(req, res, next) {
   try {
     return sendSuccess(res, analytics.heatmapData(req.user, req.validatedQuery));
+  } catch (err) { next(err); }
+}
+
+export function getAshaMonthlyReport(req, res, next) {
+  try {
+    return sendSuccess(res, analytics.ashaMonthlyReport(req.user, req.validatedQuery.month));
+  } catch (err) { next(err); }
+}
+
+export function getAshaHouseholds(req, res, next) {
+  try {
+    return sendSuccess(res, analytics.ashaHouseholds(req.user));
   } catch (err) { next(err); }
 }
 

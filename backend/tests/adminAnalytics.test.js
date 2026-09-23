@@ -145,3 +145,64 @@ describe('doctor practice analytics', () => {
     expect(data.teleconsultations).toBe(1);
   });
 });
+
+describe('ASHA monthly progress report', () => {
+  it('counts only the ASHA\'s own work in the chosen month', async () => {
+    const asha = createUser({ role: 'ASHA', name: 'Sunita' });
+    getDb().prepare('UPDATE patients SET assigned_asha_id = ? WHERE id = ?').run(asha.id, patient.id);
+    const visit = (date, risk = 'LOW') => insert('home_visits', { id: crypto.randomUUID(), asha_id: asha.id,
+      patient_id: patient.id, visit_date: date, risk_level: risk, created_at: ts(), updated_at: ts() });
+    visit('2026-08-03', 'HIGH');
+    visit('2026-08-20');
+    visit('2026-09-01');
+    insert('vaccinations', { id: crypto.randomUUID(), patient_id: patient.id, vaccine_name: 'BCG', status: 'GIVEN',
+      administered_date: '2026-08-10', created_at: ts(), updated_at: ts() });
+
+    const res = await request(app).get('/api/analytics/asha/monthly?month=2026-08').set('Cookie', authCookie(asha));
+    expect(res.status).toBe(200);
+    const value = (key) => res.body.data.rows.find((r) => r.key === key).value;
+    expect(value('homeVisits')).toBe(2);
+    expect(value('highRiskVisits')).toBe(1);
+    expect(value('vaccinesGiven')).toBe(1);
+    expect(res.body.data.assignedPatients).toBe(1);
+  });
+
+  it('is for ASHA workers only and checks the month format', async () => {
+    expect((await request(app).get('/api/analytics/asha/monthly').set('Cookie', authCookie(doctor))).status).toBe(403);
+    const asha = createUser({ role: 'ASHA', name: 'Sunita' });
+    expect((await request(app).get('/api/analytics/asha/monthly?month=2026-13').set('Cookie', authCookie(asha))).status).toBe(400);
+  });
+});
+
+describe('ASHA village health grid', () => {
+  it('ranks each assigned patient by the risk in their records', async () => {
+    const asha = createUser({ role: 'ASHA', name: 'Sunita' });
+    const mother = createPatient({ name: 'Kavita', district: 'Pune', assignedAshaId: asha.id });
+    const child = createPatient({ name: 'Aarav', district: 'Pune', assignedAshaId: asha.id });
+    const well = createPatient({ name: 'Sita', district: 'Pune', assignedAshaId: asha.id });
+    createPatient({ name: 'Someone else', district: 'Pune' });
+
+    const recordId = crypto.randomUUID();
+    insert('maternal_records', { id: recordId, patient_id: mother.id, asha_id: asha.id, high_risk: 1,
+      outcome: 'ONGOING', created_at: ts(), updated_at: ts() });
+    insert('anc_visits', { id: crypto.randomUUID(), maternal_record_id: recordId, visit_number: 1,
+      visit_date: ts().slice(0, 10), hemoglobin: 6.5, created_at: ts() });
+    insert('vaccinations', { id: crypto.randomUUID(), patient_id: child.id, vaccine_name: 'MR-1', status: 'OVERDUE',
+      created_at: ts(), updated_at: ts() });
+    insert('home_visits', { id: crypto.randomUUID(), asha_id: asha.id, patient_id: well.id,
+      visit_date: ts().slice(0, 10), risk_level: 'LOW', created_at: ts(), updated_at: ts() });
+
+    const res = await request(app).get('/api/analytics/asha/households').set('Cookie', authCookie(asha));
+    expect(res.status).toBe(200);
+    const byName = Object.fromEntries(res.body.data.map((r) => [r.name, r]));
+    expect(Object.keys(byName).sort()).toEqual(['Aarav', 'Kavita', 'Sita']);
+    expect(byName.Kavita.status).toBe('critical');
+    expect(byName.Kavita.alerts).toContain('Severe anaemia in pregnancy (Hb 6.5 g/dL)');
+    expect(byName.Aarav.status).toBe('high_risk');
+    expect(byName.Sita.status).toBe('routine');
+  });
+
+  it('is for ASHA workers only', async () => {
+    expect((await request(app).get('/api/analytics/asha/households').set('Cookie', authCookie(doctor))).status).toBe(403);
+  });
+});

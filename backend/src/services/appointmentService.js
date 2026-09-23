@@ -46,6 +46,31 @@ export function listAppointments(user, filters = {}) {
   return appointmentRepository.list(query, db);
 }
 
+/**
+ * Doctors and specialists a patient can book with, optionally at one facility.
+ * Names and roles only: the booking form needs nothing more.
+ */
+export function listBookableDoctors({ facilityId } = {}) {
+  const db = getDb();
+  const where = ["u.role IN ('DOCTOR','SPECIALIST')", "u.status = 'ACTIVE'", 'u.facility_id IS NOT NULL'];
+  const params = [];
+  if (facilityId) { where.push('u.facility_id = ?'); params.push(facilityId); }
+  return db
+    .prepare(`
+      SELECT u.id, u.name, u.role, u.facility_id, f.name AS facility_name
+      FROM users u JOIN facilities f ON f.id = u.facility_id AND f.active = 1
+      WHERE ${where.join(' AND ')} ORDER BY u.role, u.name
+    `)
+    .all(...params)
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role,
+      facilityId: r.facility_id,
+      facilityName: r.facility_name,
+    }));
+}
+
 export function getAppointment(user, id) {
   const db = getDb();
   const appointment = appointmentRepository.findById(id, db);
@@ -98,6 +123,23 @@ export function createAppointment(user, input, requestMeta = {}) {
     }
 
     const type = apptTypeFromApi(input.type);
+
+    // An id that matches nothing would store an appointment no clinician ever
+    // sees, so both are checked, and the facility follows from the doctor.
+    if (input.facilityId &&
+        !db.prepare('SELECT 1 FROM facilities WHERE id = ? AND active = 1').get(input.facilityId)) {
+      throw new NotFoundError('Facility');
+    }
+    if (input.doctorId) {
+      const doctor = db
+        .prepare("SELECT facility_id FROM users WHERE id = ? AND role IN ('DOCTOR','SPECIALIST') AND status = 'ACTIVE'")
+        .get(input.doctorId);
+      if (!doctor) throw new NotFoundError('Doctor');
+      if (input.facilityId && doctor.facility_id && doctor.facility_id !== input.facilityId) {
+        throw new ValidationError('That doctor does not work at the selected facility.');
+      }
+      input = { ...input, facilityId: input.facilityId ?? doctor.facility_id ?? undefined };
+    }
 
     if (input.doctorId &&
         appointmentRepository.isSlotTaken(

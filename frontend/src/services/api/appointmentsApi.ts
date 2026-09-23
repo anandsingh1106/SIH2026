@@ -27,6 +27,14 @@ export interface NewAppointmentInput {
   reason?: string;
 }
 
+export interface BookableDoctor {
+  id: string;
+  name: string;
+  role: 'DOCTOR' | 'SPECIALIST';
+  facilityId: string;
+  facilityName: string;
+}
+
 export interface ListAppointmentsParams {
   page?: number;
   limit?: number;
@@ -41,6 +49,10 @@ export const appointmentsApi = {
     }),
 
   get: (id: string) => api.get<Appointment>(`/api/appointments/${id}`),
+
+  /** Doctors and specialists who can be booked, optionally at one facility. */
+  doctors: (facilityId?: string) =>
+    api.get<BookableDoctor[]>('/api/appointments/doctors', { query: { facilityId } }),
 
   create: (input: NewAppointmentInput) => api.post<Appointment>('/api/appointments', input),
 

@@ -46,6 +46,125 @@ export function ashaAnalytics(user) {
   };
 }
 
+/**
+ * An ASHA's own activity in one calendar month (YYYY-MM), for the monthly
+ * progress report. Every figure is a count of records the ASHA created or of
+ * events among their assigned patients in that month.
+ */
+export function ashaMonthlyReport(user, month) {
+  if (user.role !== 'ASHA') {
+    throw new AuthorizationError('The monthly progress report is for ASHA workers.');
+  }
+  const db = getDb();
+  const patientIds = patientRepository.idsForAsha(user.id, db);
+  const inList = patientIds.length ? patientIds.map(() => '?').join(',') : "''";
+  const m = `${month}%`;
+  const ofPatients = (sql, ...extra) =>
+    patientIds.length ? count(db, sql.replace('__PATIENTS__', inList), [...extra, ...patientIds]) : 0;
+
+  const rows = [
+    { key: 'homeVisits', indicator: 'Home visits made',
+      value: count(db, 'SELECT COUNT(*) c FROM home_visits WHERE asha_id = ? AND visit_date LIKE ?', [user.id, m]) },
+    { key: 'highRiskVisits', indicator: 'Home visits that found high or critical risk',
+      value: count(db, "SELECT COUNT(*) c FROM home_visits WHERE asha_id = ? AND visit_date LIKE ? AND risk_level IN ('HIGH','CRITICAL')", [user.id, m]) },
+    { key: 'ancRegistrations', indicator: 'Pregnancies registered',
+      value: count(db, 'SELECT COUNT(*) c FROM maternal_records WHERE asha_id = ? AND created_at LIKE ?', [user.id, m]) },
+    { key: 'ancVisits', indicator: 'ANC check-ups recorded',
+      value: count(db, `SELECT COUNT(*) c FROM anc_visits a JOIN maternal_records r ON r.id = a.maternal_record_id
+        WHERE r.asha_id = ? AND a.visit_date LIKE ?`, [user.id, m]) },
+    { key: 'vaccinesGiven', indicator: 'Vaccine doses given to your patients',
+      value: ofPatients("SELECT COUNT(*) c FROM vaccinations WHERE status = 'GIVEN' AND administered_date LIKE ? AND patient_id IN (__PATIENTS__)", m) },
+    { key: 'ncdScreenings', indicator: 'NCD (CBAC) screenings done',
+      value: count(db, 'SELECT COUNT(*) c FROM ncd_screenings WHERE screened_by = ? AND screening_date LIKE ?', [user.id, m]) },
+    { key: 'referrals', indicator: 'Referrals raised for your patients',
+      value: ofPatients('SELECT COUNT(*) c FROM referrals WHERE created_at LIKE ? AND patient_id IN (__PATIENTS__)', m) },
+    { key: 'tasksCompleted', indicator: 'Tasks completed',
+      value: count(db, "SELECT COUNT(*) c FROM tasks WHERE assigned_to = ? AND status = 'COMPLETED' AND COALESCE(completed_at, updated_at) LIKE ?", [user.id, m]) },
+  ];
+
+  return {
+    month,
+    assignedPatients: patientIds.length,
+    rows,
+    // Open work carried into the next month, whatever month is selected.
+    pending: {
+      vaccinesDue: ofPatients("SELECT COUNT(*) c FROM vaccinations WHERE status IN ('DUE','OVERDUE') AND patient_id IN (__PATIENTS__)"),
+      highRiskPregnancies: count(db, "SELECT COUNT(*) c FROM maternal_records WHERE asha_id = ? AND high_risk = 1 AND COALESCE(outcome, 'ONGOING') = 'ONGOING'", [user.id]),
+      openTasks: count(db, "SELECT COUNT(*) c FROM tasks WHERE assigned_to = ? AND status IN ('TODO','IN_PROGRESS')", [user.id]),
+    },
+  };
+}
+
+/**
+ * One row per patient assigned to this ASHA, with the risks their records
+ * show, for the village health grid. Status, most urgent first:
+ * critical (severe anaemia in pregnancy, or last visit found critical risk),
+ * high_risk (high-risk pregnancy, high-risk NCD screen or an overdue vaccine),
+ * due (a task due today or earlier, or no visit in 30 days), routine.
+ */
+export function ashaHouseholds(user) {
+  if (user.role !== 'ASHA') {
+    throw new AuthorizationError('The village health grid is for ASHA workers.');
+  }
+  const db = getDb();
+  const today = isoDay(new Date());
+  const monthAgo = isoDay(new Date(Date.now() - 30 * 86400000));
+
+  const rows = db.prepare(`
+    SELECT p.id, p.name, p.gender, p.date_of_birth, p.phone, p.village, p.taluka, p.district, p.address,
+      (SELECT MAX(visit_date) FROM home_visits h WHERE h.patient_id = p.id) AS last_visit,
+      (SELECT h.risk_level FROM home_visits h WHERE h.patient_id = p.id ORDER BY h.visit_date DESC LIMIT 1) AS last_risk,
+      (SELECT h.household_id FROM home_visits h WHERE h.patient_id = p.id AND h.household_id IS NOT NULL
+         ORDER BY h.visit_date DESC LIMIT 1) AS household_id,
+      (SELECT COUNT(*) FROM maternal_records m WHERE m.patient_id = p.id AND m.high_risk = 1
+         AND COALESCE(m.outcome, 'ONGOING') = 'ONGOING') AS high_risk_pregnancy,
+      (SELECT a.hemoglobin FROM anc_visits a JOIN maternal_records m ON m.id = a.maternal_record_id
+         WHERE m.patient_id = p.id AND COALESCE(m.outcome, 'ONGOING') = 'ONGOING'
+         ORDER BY a.visit_date DESC LIMIT 1) AS latest_hb,
+      (SELECT COUNT(*) FROM ncd_screenings n WHERE n.patient_id = p.id AND n.risk_category = 'HIGH') AS ncd_high,
+      (SELECT COUNT(*) FROM vaccinations v WHERE v.patient_id = p.id AND v.status = 'OVERDUE') AS vaccines_overdue,
+      (SELECT COUNT(*) FROM vaccinations v WHERE v.patient_id = p.id AND v.status = 'DUE') AS vaccines_due,
+      (SELECT COUNT(*) FROM tasks t WHERE t.patient_id = p.id AND t.assigned_to = ?
+         AND t.status IN ('TODO','IN_PROGRESS') AND t.due_date IS NOT NULL AND substr(t.due_date, 1, 10) <= ?) AS tasks_due
+    FROM patients p WHERE p.assigned_asha_id = ?
+    ORDER BY p.village, p.name
+  `).all(user.id, today, user.id);
+
+  return rows.map((r) => {
+    const severeAnaemia = r.latest_hb != null && r.latest_hb < 7;
+    const alerts = [];
+    if (severeAnaemia) alerts.push(`Severe anaemia in pregnancy (Hb ${r.latest_hb} g/dL)`);
+    if (r.last_risk === 'CRITICAL') alerts.push('Last home visit found critical risk');
+    if (r.high_risk_pregnancy) alerts.push('High-risk pregnancy');
+    if (r.ncd_high) alerts.push('High-risk NCD screen');
+    if (r.vaccines_overdue) alerts.push(`${r.vaccines_overdue} vaccine dose${r.vaccines_overdue > 1 ? 's' : ''} overdue`);
+    if (r.tasks_due) alerts.push(`${r.tasks_due} task${r.tasks_due > 1 ? 's' : ''} due`);
+    if (!r.last_visit || r.last_visit < monthAgo) alerts.push(r.last_visit ? 'No visit in 30 days' : 'Never visited');
+
+    const status = severeAnaemia || r.last_risk === 'CRITICAL' ? 'critical'
+      : r.high_risk_pregnancy || r.ncd_high || r.vaccines_overdue ? 'high_risk'
+      : r.tasks_due || !r.last_visit || r.last_visit < monthAgo ? 'due'
+      : 'routine';
+
+    return {
+      patientId: r.id,
+      name: r.name,
+      gender: r.gender ? r.gender.toLowerCase() : undefined,
+      dateOfBirth: r.date_of_birth || undefined,
+      phone: r.phone || undefined,
+      village: r.village || undefined,
+      taluka: r.taluka || undefined,
+      district: r.district || undefined,
+      address: r.address || undefined,
+      householdId: r.household_id || undefined,
+      lastVisit: r.last_visit || undefined,
+      vaccinesDue: r.vaccines_due,
+      status,
+      alerts,
+    };
+  });
+}
+
 // Matched against the dispensing label, which carries the brand or generic
 // name, so this covers the antibiotics on the essential medicines list.
 const ANTIBIOTIC_NAMES = [

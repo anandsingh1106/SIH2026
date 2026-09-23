@@ -42,10 +42,11 @@ function loadPhases(planIds, db) {
 
 const PLAN_SELECT = `
   SELECT tp.*, p.name AS patient_name, p.abha_id AS patient_abha_id, p.village AS patient_village,
-         u.name AS author_name, r.referral_code
+         u.name AS author_name, r.referral_code, asha.name AS asha_name
   FROM treatment_plans tp
   JOIN patients p ON p.id = tp.patient_id
   LEFT JOIN users u ON u.id = tp.created_by
+  LEFT JOIN users asha ON asha.id = p.assigned_asha_id
   LEFT JOIN referrals r ON r.id = tp.referral_id
 `;
 
