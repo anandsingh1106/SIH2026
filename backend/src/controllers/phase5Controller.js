@@ -2,6 +2,7 @@ import * as inventory from '../services/inventoryService.js';
 import * as messaging from '../services/messagingService.js';
 import * as sync from '../services/syncService.js';
 import * as analytics from '../services/analyticsService.js';
+import * as adminReports from '../services/adminReportsService.js';
 import * as queue from '../services/queueService.js';
 import { assessTriage, assistantReply } from '../services/ai/triageService.js';
 import { checkInteractions } from '../services/ai/drugInteractionService.js';
@@ -176,6 +177,30 @@ export function getAnalytics(scope) {
 export function getHeatmap(req, res, next) {
   try {
     return sendSuccess(res, analytics.heatmapData(req.user, req.validatedQuery));
+  } catch (err) { next(err); }
+}
+
+export function getDistrictAnalytics(req, res, next) {
+  try {
+    return sendSuccess(res, adminReports.districtAnalytics(req.user));
+  } catch (err) { next(err); }
+}
+
+export function getHealthSignals(req, res, next) {
+  try {
+    return sendSuccess(res, adminReports.healthSignals(req.user));
+  } catch (err) { next(err); }
+}
+
+export function getReportCatalogue(req, res, next) {
+  try {
+    return sendSuccess(res, adminReports.reportCatalogue(req.user));
+  } catch (err) { next(err); }
+}
+
+export function getReport(req, res, next) {
+  try {
+    return sendSuccess(res, adminReports.buildReport(req.user, req.params.type, meta(req)));
   } catch (err) { next(err); }
 }
 

@@ -1,141 +1,153 @@
-import React, { useMemo, useState } from 'react';
-import { MapPin, AlertTriangle, Flame, ShieldAlert, Filter, Layers, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Flame, Layers } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { OUTBREAK_ALERTS } from '../../data/mockData';
-import { MaharashtraChoropleth, type ChoroplethDatum } from '../../components/maps/MaharashtraChoropleth';
+import { backendApi, type HeatmapMetric } from '@arogyasetu/shared/services/api';
+import { MaharashtraChoropleth, type ChoroplethDatum, type RampName } from '../../components/maps/MaharashtraChoropleth';
+
+const METRICS: { id: HeatmapMetric; label: string; unit: string; ramp: RampName }[] = [
+  { id: 'maternal_high_risk', label: 'High-risk pregnancies', unit: 'high-risk pregnancies', ramp: 'severity' },
+  { id: 'severe_anaemia', label: 'Severe anaemia in pregnancy', unit: 'pregnancies with Hb below 7', ramp: 'severity' },
+  { id: 'ncd_high_risk', label: 'High-risk NCD screens', unit: 'high-risk NCD screens', ramp: 'severity' },
+  { id: 'vaccinations_overdue', label: 'Overdue vaccines', unit: 'overdue vaccine doses', ramp: 'saffron' },
+  { id: 'referrals', label: 'Referrals', unit: 'referrals', ramp: 'teal' },
+  { id: 'patients', label: 'Registered patients', unit: 'registered patients', ramp: 'teal' },
+];
+
+type Point = { district: string; taluka?: string; value: number };
 
 export const AdminHeatmaps: React.FC = () => {
-  const [selectedDisease, setSelectedDisease] = useState<string>('all');
+  const [metric, setMetric] = useState<HeatmapMetric>('maternal_high_risk');
+  const [points, setPoints] = useState<Point[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [focusedDistrict, setFocusedDistrict] = useState<string | undefined>();
-  const outbreaks = OUTBREAK_ALERTS;
 
-  const filtered = selectedDisease === 'all'
-    ? outbreaks
-    : outbreaks.filter(o => o.disease.toLowerCase().includes(selectedDisease.toLowerCase()));
+  const active = METRICS.find((m) => m.id === metric)!;
 
-  // Several outbreaks can share a district, so cases are summed per district
-  // and the clusters behind each total are listed in the tooltip.
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError('');
+    backendApi
+      .getHeatmap(metric)
+      .then((data) => { if (!cancelled) setPoints(data.points); })
+      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load the map data.'); })
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
+  }, [metric]);
+
+  // The API reports talukas; the map is shaded per district with the talukas
+  // behind each total listed in its tooltip.
   const mapData = useMemo(() => {
     const out: Record<string, ChoroplethDatum> = {};
-    for (const o of filtered) {
-      const existing = out[o.district];
-      if (existing) {
-        existing.value += o.casesCount;
-        existing.detail?.push({ label: o.disease, value: `${o.casesCount} in ${o.village}` });
-      } else {
-        out[o.district] = {
-          value: o.casesCount,
-          detail: [{ label: o.disease, value: `${o.casesCount} in ${o.village}` }],
-        };
-      }
+    for (const p of points) {
+      const entry = out[p.district] ?? (out[p.district] = { value: 0, detail: [] });
+      entry.value += p.value;
+      entry.detail?.push({ label: p.taluka ?? 'Taluka not recorded', value: String(p.value) });
     }
     return out;
-  }, [filtered]);
+  }, [points]);
+
+  const talukas = [...points].sort((a, b) => b.value - a.value);
+  const total = points.reduce((sum, p) => sum + p.value, 0);
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: 'Admin Command Center' }, { label: 'Epidemic Geographic Surveillance' }]} />
+      <Breadcrumbs items={[{ label: 'Admin Command Center' }, { label: 'Geographic Risk Heatmaps' }]} />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
             <Flame className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-ink">Epidemiological GIS Heatmaps & Outbreak Clusters</h1>
-            <p className="text-sm text-ink-soft">Spatial clustering for vector-borne and water-borne communicable diseases</p>
+            <h1 className="text-xl font-bold text-ink">Geographic Risk Heatmaps</h1>
+            <p className="text-sm text-ink-soft">Where open clinical risk sits, by district and taluka, from platform records</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {['all', 'dengue', 'cholera', 'chikungunya'].map(dis => (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {METRICS.map(m => (
             <button
-              key={dis}
-              onClick={() => setSelectedDisease(dis)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
-                selectedDisease === dis
+              key={m.id}
+              onClick={() => setMetric(m.id)}
+              aria-pressed={metric === m.id}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                metric === m.id
                   ? 'bg-rose-600 text-white shadow-sm'
                   : 'bg-surface border border-line text-ink-muted hover:bg-sand-50'
               }`}
             >
-              {dis}
+              {m.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-900">
-        <strong>Demo data.</strong> These clusters are illustrative and use fictional village names —
-        they are not live surveillance reports.
-      </div>
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">{error}</div>
+      )}
 
-      {/* District choropleth — outbreak cases aggregated per district */}
       <Card className="overflow-hidden border-rose-200 shadow-md">
-        <div className="bg-sand-900 text-white p-4 flex items-center justify-between">
+        <div className="bg-sand-900 text-white p-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-rose-400" />
-            <span className="font-bold text-xs">Maharashtra State GIS Disease Spatial Vector Layer</span>
+            <span className="font-bold text-xs">{active.label} by district</span>
           </div>
-          <span className="text-[10px] text-sand-300 font-mono">IDSP Integrated System v4.2</span>
+          <span className="text-[10px] text-sand-300">
+            {isLoading ? 'Loading…' : `${total} in ${Object.keys(mapData).length} districts`}
+          </span>
         </div>
 
         <div className="bg-raised p-4 sm:p-5">
           <MaharashtraChoropleth
             data={mapData}
-            metricLabel="reported outbreak cases"
-            ramp="severity"
+            metricLabel={active.unit}
+            ramp={active.ramp}
             selected={focusedDistrict}
             onSelect={(d) => setFocusedDistrict((prev) => (prev === d ? undefined : d))}
           />
-
-          {Object.keys(mapData).length === 0 && (
-            <p className="text-center text-sm text-ink-soft italic py-4">
-              No active clusters reported for this filter.
-            </p>
-          )}
+          <p className="text-[11px] text-ink-soft mt-2">
+            Unshaded districts have no records on the platform yet, which is not the same as zero cases.
+          </p>
         </div>
       </Card>
 
-      {/* Cluster Table */}
       <Card className="p-5 space-y-4">
-        <h2 className="font-bold text-ink text-sm">Active Epidemiological Clusters & Interventions</h2>
+        <h2 className="font-bold text-ink text-sm">Talukas ranked by {active.label.toLowerCase()}</h2>
 
-        <div className="space-y-3">
-          {filtered.map(outbreak => (
-            <div
-              key={outbreak.id}
-              onMouseEnter={() => setFocusedDistrict(outbreak.district)}
-              onMouseLeave={() => setFocusedDistrict(undefined)}
-              className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors cursor-default ${
-                focusedDistrict === outbreak.district
-                  ? 'bg-saffron-50 border-saffron-200'
-                  : 'bg-raised border-line'
-              }`}
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-ink text-sm">{outbreak.disease} Hotspot Cluster</span>
-                  <Badge variant={outbreak.severity === 'high' ? 'danger' : 'warning'} className="uppercase text-[10px]">
-                    {outbreak.severity} Risk
-                  </Badge>
-                  <span className="text-xs font-semibold text-rose-700">{outbreak.casesCount} Affected Citizens</span>
+        {!isLoading && talukas.length === 0 ? (
+          <p className="text-xs text-ink-soft">No {active.unit} recorded.</p>
+        ) : (
+          <div className="space-y-2">
+            {talukas.map(t => {
+              const share = total > 0 ? Math.round((t.value / total) * 100) : 0;
+              return (
+                <div
+                  key={`${t.district}-${t.taluka}`}
+                  onMouseEnter={() => setFocusedDistrict(t.district)}
+                  onMouseLeave={() => setFocusedDistrict(undefined)}
+                  className={`p-3 rounded-xl border text-xs transition-colors ${
+                    focusedDistrict === t.district ? 'bg-saffron-50 border-saffron-200' : 'bg-raised border-line'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-bold text-ink">
+                      {t.taluka ?? 'Taluka not recorded'} <span className="font-normal text-ink-soft">• {t.district}</span>
+                    </span>
+                    <span className="font-bold text-rose-700 shrink-0">{t.value} ({share}%)</span>
+                  </div>
+                  <div className="w-full bg-sand-100 h-1.5 rounded-full overflow-hidden mt-2">
+                    <div className="h-full bg-rose-500 rounded-full" style={{ width: `${share}%` }} />
+                  </div>
                 </div>
-                <p className="text-xs text-ink-muted">
-                  Location: <strong>{outbreak.village}</strong>, {outbreak.taluka} Taluka, <strong>{outbreak.district}</strong> District
-                </p>
-                <p className="text-xs text-ink-soft">First Detected: {outbreak.reportedDate} • Surveillance Protocol: Active Daily Door-to-Door</p>
-              </div>
+              );
+            })}
+          </div>
+        )}
 
-              <div className="flex items-center gap-2 self-end md:self-auto">
-                <button className="px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition-colors">
-                  Dispatch Rapid Response Team
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="text-[11px] text-ink-soft">Aggregated counts only. No patient-identifiable data is shown.</p>
       </Card>
     </div>
   );

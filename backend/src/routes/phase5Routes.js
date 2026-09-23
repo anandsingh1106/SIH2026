@@ -7,7 +7,7 @@ import { aiLimiter } from '../config/rateLimits.js';
 import {
   listInventorySchema, createInventorySchema, adjustStockSchema, transferStockSchema,
   createConversationSchema, sendMessageSchema, syncBatchSchema,
-  analyticsQuerySchema, heatmapQuerySchema,
+  analyticsQuerySchema, heatmapQuerySchema, reportParamSchema,
   medicineOrderSchema,
   issueTokenSchema, queueParamSchema, tokenParamSchema,
   triageSchema, assistantSchema, drugInteractionSchema, listAuditSchema,
@@ -51,6 +51,10 @@ analyticsRouter.get('/doctor', ctrl.getAnalytics('doctor'));
 analyticsRouter.get('/specialist', ctrl.getAnalytics('specialist'));
 analyticsRouter.get('/admin', requireRole('ADMIN'), validate({ query: analyticsQuerySchema }), ctrl.getAnalytics('admin'));
 analyticsRouter.get('/heatmap', requireRole('ADMIN'), validate({ query: heatmapQuerySchema }), ctrl.getHeatmap);
+analyticsRouter.get('/districts', requireRole('ADMIN'), ctrl.getDistrictAnalytics);
+analyticsRouter.get('/insights', requireRole('ADMIN'), ctrl.getHealthSignals);
+analyticsRouter.get('/reports', requireRole('ADMIN'), ctrl.getReportCatalogue);
+analyticsRouter.get('/reports/:type', requireRole('ADMIN'), validate({ params: reportParamSchema }), ctrl.getReport);
 
 export const queueRouter = Router();
 queueRouter.use(requireAuth);
