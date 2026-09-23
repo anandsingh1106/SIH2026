@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, TextInput, StyleSheet, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -60,7 +61,7 @@ export function HomeVisitsScreen({ navigation }: Props) {
       ashaId: 'usr-asha-1',
       patientId: selectedPatient.id,
       patientName: selectedPatient.name,
-      date: new Date().toISOString().slice(0, 10),
+      date: localDateString(),
       vitals,
       observations: observations || 'Conducted standard maternal & vital monitoring.',
       dangerSignsIdentified: selectedDangerSigns,

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { backendApi, PatientSummary } from '@arogyasetu/shared/services/api';
@@ -74,7 +75,7 @@ export function MyPatientsScreen({ navigation }: Props) {
         patientId: p.id,
         type: 'home_visit',
         priority: 'medium',
-        dueDate: new Date().toISOString().slice(0, 10),
+        dueDate: localDateString(),
       } as never);
     } catch {
       // Surfaced via the error banner path on next load; the request itself

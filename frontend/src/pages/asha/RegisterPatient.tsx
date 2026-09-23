@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient } from '@arogyasetu/shared/types';
@@ -76,7 +77,7 @@ export const AshaRegisterPatientPage: React.FC = () => {
       vitals: formData.vitals,
       riskCategory: formData.riskCategory || 'normal',
       assignedAshaId: 'usr-asha-1',
-      registeredDate: new Date().toISOString().substring(0, 10),
+      registeredDate: localDateString(),
     };
 
     await dataService.savePatient(newPatient);

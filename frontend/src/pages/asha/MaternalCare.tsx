@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Baby, AlertTriangle, Phone, Plus, RefreshCcw } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -9,7 +10,7 @@ import { backendApi, type MaternalRecord } from '@arogyasetu/shared/services/api
 import { useToast } from '../../hooks/useToast';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDateString();
 
 function weeksSince(date?: string): number | null {
   if (!date) return null;
@@ -27,7 +28,7 @@ function ageFrom(dateOfBirth?: string): number | null {
 function approximateDateOfBirth(age: number): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - age);
-  return d.toISOString().slice(0, 10);
+  return localDateString(d);
 }
 
 const OUTCOME_LABEL: Record<string, string> = {

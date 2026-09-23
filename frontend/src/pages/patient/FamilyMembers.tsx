@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { Users, Plus, RefreshCcw } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -23,7 +24,7 @@ function ageFrom(dateOfBirth?: string): number | null {
 function approximateDateOfBirth(age: number): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - age);
-  return d.toISOString().slice(0, 10);
+  return localDateString(d);
 }
 
 const capitalise = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '');

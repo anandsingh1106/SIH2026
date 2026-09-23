@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -87,7 +88,10 @@ export const Modal: React.FC<ModalProps> = ({
     full: 'max-w-[95vw] h-[90vh]',
   };
 
-  return (
+  // Rendered into <body>: pages sit inside an animated wrapper whose transform
+  // would otherwise make this `fixed` layer relative to the page, leaving the
+  // sticky header on top of the dialog.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div
         className="fixed inset-0 bg-sand-900/50 backdrop-blur-sm animate-fade-in"
@@ -137,6 +141,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

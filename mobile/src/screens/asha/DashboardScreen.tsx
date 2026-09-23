@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { dataService } from '../../services/api/dataService';
@@ -49,7 +50,14 @@ export function DashboardScreen({ navigation }: Props) {
     setRefreshing(false);
   }, [load]);
 
-  const pendingTasks = tasks.filter((t) => t.status === 'pending');
+  // The API reports TODO / IN_PROGRESS / COMPLETED / CANCELLED, lowercased by
+  // the shared mapping, so 'pending' never matches. Today's work is anything
+  // still open that is due today (local date) or already late.
+  const today = localDateString();
+  const pendingTasks = tasks.filter((t) => {
+    const due = (t.dueDate ?? '').slice(0, 10);
+    return !['completed', 'cancelled'].includes(String(t.status).toLowerCase()) && due !== '' && due <= today;
+  });
   const criticalReferrals = referrals.filter((r) => r.priority === 'critical' || r.status === 'in_transit');
 
   return (
@@ -108,7 +116,9 @@ export function DashboardScreen({ navigation }: Props) {
             </View>
             <Text style={styles.taskDescription}>{task.description}</Text>
             <Text style={styles.taskMeta}>
-              {task.patientName} · {task.village} ({task.householdNumber}) · Due {task.dueTime}
+              {[task.patientName, `Due ${(task.dueDate ?? '').slice(0, 10) < today ? (task.dueDate ?? '').slice(0, 10) : 'today'}`]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           </Pressable>
         ))}

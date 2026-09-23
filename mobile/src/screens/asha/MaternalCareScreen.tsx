@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, TextInput, Linking, ActivityIndicator } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { backendApi, MaternalRecord } from '@arogyasetu/shared/services/api';
@@ -101,7 +102,7 @@ export function MaternalCareScreen(_props: Props) {
 
   const openVisitModal = (record: MaternalRecord) => {
     setVisitModalFor(record);
-    setVisitDate(new Date().toISOString().slice(0, 10));
+    setVisitDate(localDateString());
     setVisitBp('');
     setVisitHb('');
     setVisitWeight('');
