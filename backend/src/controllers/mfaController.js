@@ -192,7 +192,7 @@ export async function postRecovery(req, res, next) {
 /**
  * Accepts the fixed DEMO_MFA_CODE as the second factor for a demo account.
  *
- * Off unless DEMO_MFA_CODE is set, and never available to any account outside
+ * Disabled with DEMO_MFA_CODE=off, and never available to any account outside
  * DEMO_ACCOUNT_EMAILS, so real staff always need their authenticator.
  */
 export function postDemoCode(req, res, next) {

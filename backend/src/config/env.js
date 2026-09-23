@@ -44,8 +44,11 @@ export const env = {
   ENABLE_API_DOCS: bool('ENABLE_API_DOCS', process.env.NODE_ENV !== 'production'),
 
   // A fixed 6-digit second factor accepted for the demo accounts only, so a
-  // presentation does not need an authenticator app. Unset means disabled.
-  DEMO_MFA_CODE: optional('DEMO_MFA_CODE'),
+  // presentation does not need an authenticator app. Set to "off" to disable.
+  DEMO_MFA_CODE: (() => {
+    const value = optional('DEMO_MFA_CODE', '123456').trim();
+    return value.toLowerCase() === 'off' ? '' : value;
+  })(),
 
   // Sessions are long-lived for field workers on poor connectivity; shorten
   // this for deployments handling higher-sensitivity data.

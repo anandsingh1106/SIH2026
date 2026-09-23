@@ -452,12 +452,18 @@ describe('MFA endpoints', () => {
 });
 
 describe('demo second factor', () => {
+  const configured = env.DEMO_MFA_CODE;
   const setDemoCode = (value) => { env.DEMO_MFA_CODE = value; };
-  afterEach(() => setDemoCode(''));
+  afterEach(() => setDemoCode(configured));
 
   const demoDoctor = () => createUser({ role: 'DOCTOR', email: 'demo.doctor@arogyasetu.test' });
 
-  it('is disabled unless DEMO_MFA_CODE is set', async () => {
+  it('defaults to 123456 when DEMO_MFA_CODE is not set', () => {
+    expect(configured).toBe('123456');
+  });
+
+  it('is disabled when DEMO_MFA_CODE is off', async () => {
+    setDemoCode('');
     const res = await request(app)
       .post('/api/auth/mfa/demo')
       .set('Cookie', passwordOnlyCookie(demoDoctor()))
