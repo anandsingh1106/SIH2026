@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { env } from '../src/config/env.js';
 import { createApp } from '../src/app.js';
 import {
   resetTestDb, createUser, createPatient, authCookie, passwordOnlyCookie,
@@ -447,5 +448,74 @@ describe('MFA endpoints', () => {
       const res = await request(app).get(path);
       expect([401, 404]).toContain(res.status);
     }
+  });
+});
+
+describe('demo second factor', () => {
+  const setDemoCode = (value) => { env.DEMO_MFA_CODE = value; };
+  afterEach(() => setDemoCode(''));
+
+  const demoDoctor = () => createUser({ role: 'DOCTOR', email: 'demo.doctor@arogyasetu.test' });
+
+  it('is disabled unless DEMO_MFA_CODE is set', async () => {
+    const res = await request(app)
+      .post('/api/auth/mfa/demo')
+      .set('Cookie', passwordOnlyCookie(demoDoctor()))
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('MFA_DEMO_DISABLED');
+  });
+
+  it('refuses every account that is not a named demo account', async () => {
+    setDemoCode('123456');
+    // Same domain as the demo accounts, so a domain match alone must not pass.
+    const doctor = createUser({ role: 'DOCTOR', email: 'someone@arogyasetu.test' });
+
+    const res = await request(app)
+      .post('/api/auth/mfa/demo')
+      .set('Cookie', passwordOnlyCookie(doctor))
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('MFA_DEMO_NOT_ALLOWED');
+  });
+
+  it('rejects the wrong code', async () => {
+    setDemoCode('123456');
+
+    const res = await request(app)
+      .post('/api/auth/mfa/demo')
+      .set('Cookie', passwordOnlyCookie(demoDoctor()))
+      .send({ code: '654321' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('MFA_NOT_VERIFIED');
+  });
+
+  it('requires a signed-in user', async () => {
+    setDemoCode('123456');
+    const res = await request(app).post('/api/auth/mfa/demo').send({ code: '123456' });
+    expect(res.status).toBe(401);
+  });
+
+  it('upgrades a demo account to aal2 and unlocks patient data', async () => {
+    setDemoCode('123456');
+    const doctor = demoDoctor();
+
+    const blocked = await request(app).get('/api/patients').set('Cookie', passwordOnlyCookie(doctor));
+    expect(blocked.status).toBe(403);
+
+    const res = await request(app)
+      .post('/api/auth/mfa/demo')
+      .set('Cookie', passwordOnlyCookie(doctor))
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(200);
+    const token = res.headers['set-cookie'].join(';').match(/token=([^;]+)/)[1];
+    expect(verifyToken(token).aal).toBe('aal2');
+
+    const allowed = await request(app).get('/api/patients').set('Cookie', `token=${token}`);
+    expect(allowed.status).toBe(200);
   });
 });
