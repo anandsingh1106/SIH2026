@@ -260,7 +260,8 @@ export const MaharashtraChoropleth: React.FC<MaharashtraChoroplethProps> = ({
                     ? `up to ${format(thresholds[0] ?? max)}`
                     : i === colors.length - 1
                     ? `${format(thresholds[i - 1] ?? min)} and above`
-                    : `${format(thresholds[i - 1])} – ${format(thresholds[i])}`
+                    : // No thresholds while data loads or when nothing is recorded.
+                      `${format(thresholds[i - 1] ?? min)} to ${format(thresholds[i] ?? max)}`
                 }
               />
             ))}
