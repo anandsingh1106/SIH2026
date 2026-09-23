@@ -35,6 +35,8 @@ export const env = {
   FRONTEND_URL: optional('FRONTEND_URL', 'http://localhost:3000'),
   // Comma-separated origin allowlist; falls back to FRONTEND_URL.
   CORS_ORIGINS: optional('CORS_ORIGINS'),
+  // How many reverse proxies sit in front of the API.
+  TRUST_PROXY: Number(optional('TRUST_PROXY', '1')),
 
   JWT_SECRET: required('JWT_SECRET'),
 
