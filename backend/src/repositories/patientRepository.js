@@ -125,10 +125,12 @@ export const patientRepository = {
   listFamilyMembers(patientId, db = getDb()) {
     return db
       .prepare(`
-        SELECT fm.*, p.name AS related_name, p.date_of_birth AS related_dob, p.gender AS related_gender
+        SELECT fm.*, p.name AS related_name, p.date_of_birth AS related_dob, p.gender AS related_gender,
+               p.abha_id AS related_abha_id, p.blood_group AS related_blood_group
         FROM family_members fm
         LEFT JOIN patients p ON p.id = fm.related_patient_id
         WHERE fm.patient_id = ?
+        ORDER BY fm.created_at
       `)
       .all(patientId);
   },
@@ -136,10 +138,12 @@ export const patientRepository = {
   addFamilyMember(patientId, data, db = getDb()) {
     const id = crypto.randomUUID();
     db.prepare(`
-      INSERT INTO family_members (id, patient_id, related_patient_id, name, relationship, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO family_members (id, patient_id, related_patient_id, name, relationship,
+                                  date_of_birth, gender, abha_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(id, patientId, data.relatedPatientId ?? null, data.name ?? null,
-           data.relationship, new Date().toISOString());
+           data.relationship, data.dateOfBirth ?? null, data.gender ?? null,
+           data.abhaId ?? null, new Date().toISOString());
     return db.prepare('SELECT * FROM family_members WHERE id = ?').get(id);
   },
 

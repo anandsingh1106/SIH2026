@@ -28,12 +28,21 @@ export interface FamilyMemberRecord {
   relationship: string;
   dateOfBirth?: string;
   gender?: string;
+  abhaId?: string;
+  bloodGroup?: string;
 }
 
 export interface MaternalRecord {
   id: string;
   patientId: string;
   patientName?: string;
+  /** List responses only. */
+  patientPhone?: string;
+  patientVillage?: string;
+  patientDateOfBirth?: string;
+  ancVisitCount?: number;
+  latestHemoglobin?: number;
+  latestBp?: string;
   lmpDate?: string;
   eddDate?: string;
   gravida?: number;
@@ -43,6 +52,23 @@ export interface MaternalRecord {
   jsskRegistered: boolean;
   pmsmaRegistered: boolean;
   outcome?: 'ONGOING' | 'DELIVERED' | 'ABORTED' | 'REFERRED';
+}
+
+export interface InventoryRecord {
+  id: string;
+  medicineId: string;
+  name?: string;
+  genericName?: string;
+  strength?: string;
+  facilityId: string;
+  facilityName?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  stock: number;
+  reorderLevel: number;
+  isLow: boolean;
+  unitPrice?: number;
+  supplier?: string;
 }
 
 export interface AncVisitRecord {
@@ -194,7 +220,14 @@ export const backendApi = {
     api.post<VitalsRecord>(`/api/patients/${patientId}/vitals`, body),
   getFamilyMembers: (patientId: string) =>
     api.get<FamilyMemberRecord[]>(`/api/patients/${patientId}/family`),
-  addFamilyMember: (patientId: string, body: { relatedPatientId?: string; name?: string; relationship: string }) =>
+  addFamilyMember: (patientId: string, body: {
+    relatedPatientId?: string;
+    name?: string;
+    relationship: string;
+    dateOfBirth?: string;
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    abhaId?: string;
+  }) =>
     api.post<FamilyMemberRecord>(`/api/patients/${patientId}/family`, body),
 
   // Clinical
@@ -265,8 +298,13 @@ export const backendApi = {
   releaseBed: (bedId: string) => api.post<BedRecord>(`/api/beds/${bedId}/release`),
 
   // Inventory
-  getInventory: (params: { facilityId?: string; lowStock?: boolean } = {}) =>
-    api.get<Paginated<Record<string, unknown>>>('/api/inventory', { query: page(params) as never }),
+  getInventory: (params: { facilityId?: string; lowStock?: boolean; limit?: number } = {}) =>
+    api.get<Paginated<InventoryRecord>>('/api/inventory', { query: page(params) as never }),
+  adjustStock: (inventoryId: string, body: {
+    type: 'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT' | 'EXPIRED';
+    quantity: number;
+    reason?: string;
+  }) => api.post<InventoryRecord>(`/api/inventory/${inventoryId}/adjust`, body),
 
   // Notifications
   getNotifications: (params: { unreadOnly?: boolean } = {}) =>

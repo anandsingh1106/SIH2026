@@ -1,101 +1,129 @@
-import React, { useState } from 'react';
-import { Users, Plus, UserCheck, ShieldCheck, Heart, ArrowRight, CheckCircle2 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Users, Plus, RefreshCcw } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
-import { INITIAL_PATIENTS } from '../../data/mockData';
+import {
+  backendApi,
+  type FamilyMemberRecord,
+  type PatientSummary,
+} from '@arogyasetu/shared/services/api';
+import { useToast } from '../../hooks/useToast';
 
-interface FamilyMember {
-  id: string;
-  name: string;
-  relation: string;
-  age: number;
-  gender: string;
-  abhaId: string;
-  isHead: boolean;
-  bloodGroup: string;
-  activeConditions: string[];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function ageFrom(dateOfBirth?: string): number | null {
+  if (!dateOfBirth) return null;
+  const years = (Date.now() - new Date(dateOfBirth).getTime()) / (365.25 * DAY_MS);
+  return Number.isFinite(years) && years >= 0 ? Math.floor(years) : null;
 }
 
-const MOCK_FAMILY: FamilyMember[] = [
-  {
-    id: 'pat-1',
-    name: 'Anandi Devi Patil',
-    relation: 'Self',
-    age: 58,
-    gender: 'Female',
-    abhaId: '91-8273-1928-4491',
-    isHead: false,
-    bloodGroup: 'O +ve',
-    activeConditions: ['Hypertension', 'Type 2 Diabetes'],
-  },
-  {
-    id: 'pat-2',
-    name: 'Dnyaneshwar Patil',
-    relation: 'Spouse',
-    age: 62,
-    gender: 'Male',
-    abhaId: '91-1029-4829-1102',
-    isHead: true,
-    bloodGroup: 'B +ve',
-    activeConditions: ['Osteoarthritis'],
-  },
-  {
-    id: 'pat-3',
-    name: 'Ramesh Patil',
-    relation: 'Son',
-    age: 32,
-    gender: 'Male',
-    abhaId: '91-9923-1182-5501',
-    isHead: false,
-    bloodGroup: 'O +ve',
-    activeConditions: [],
-  },
-  {
-    id: 'pat-4',
-    name: 'Aarohi Patil',
-    relation: 'Granddaughter',
-    age: 4,
-    gender: 'Female',
-    abhaId: '91-7712-4019-3329',
-    isHead: false,
-    bloodGroup: 'A +ve',
-    activeConditions: ['Child Immunization Track'],
-  },
-];
+/** Only the age is asked, so the stored birth date is approximate. */
+function approximateDateOfBirth(age: number): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - age);
+  return d.toISOString().slice(0, 10);
+}
+
+const capitalise = (s?: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '');
+
+const EMPTY_MEMBER = { name: '', relation: 'Child', age: '', gender: 'FEMALE', abhaId: '' };
+
+interface MemberCardProps {
+  name: string;
+  relation: string;
+  dateOfBirth?: string;
+  gender?: string;
+  abhaId?: string;
+  bloodGroup?: string;
+  isSelf?: boolean;
+}
+
+const MemberCard: React.FC<MemberCardProps> = ({ name, relation, dateOfBirth, gender, abhaId, bloodGroup, isSelf }) => {
+  const age = ageFrom(dateOfBirth);
+  const details = [relation, age !== null ? `${age} yrs` : null, capitalise(gender) || null].filter(Boolean);
+  return (
+    <Card className={`p-5 ${isSelf ? 'ring-2 ring-purple-600 border-transparent shadow-md' : ''}`}>
+      <div className="flex items-center gap-2">
+        <h3 className="font-bold text-ink text-base">{name}</h3>
+        {isSelf && <Badge variant="info" className="text-[10px]">You</Badge>}
+      </div>
+      <p className="text-xs font-semibold text-ink-soft mt-0.5">{details.join(' • ')}</p>
+
+      <div className="mt-4 pt-3 border-t border-line space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-ink-soft">ABHA Address / ID:</span>
+          <span className="font-mono font-medium text-sand-700">{abhaId ?? 'Not linked'}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-ink-soft">Blood Group:</span>
+          <span className="font-semibold text-ink">{bloodGroup ?? 'Not recorded'}</span>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 export const PatientFamilyMembers: React.FC = () => {
-  const [family, setFamily] = useState<FamilyMember[]>(MOCK_FAMILY);
-  const [selectedMember, setSelectedMember] = useState<string>('pat-1');
+  const toast = useToast();
+
+  const [me, setMe] = useState<PatientSummary | null>(null);
+  const [family, setFamily] = useState<FamilyMemberRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMember, setNewMember] = useState({
-    name: '',
-    relation: 'Child',
-    age: '',
-    gender: 'Female',
-    abhaId: '',
-  });
+  const [newMember, setNewMember] = useState(EMPTY_MEMBER);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleAddMember = (e: React.FormEvent) => {
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      // A patient's own record is the only one the API returns to them.
+      const { items } = await backendApi.getPatients({ limit: 1 });
+      const own = items[0];
+      if (!own) {
+        setMe(null);
+        setError('No health record is linked to this account yet.');
+        return;
+      }
+      setMe(own);
+      setFamily(await backendApi.getFamilyMembers(own.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load your family folder.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMember.name) return;
-
-    const member: FamilyMember = {
-      id: `pat-${Date.now()}`,
-      name: newMember.name,
-      relation: newMember.relation,
-      age: parseInt(newMember.age) || 10,
-      gender: newMember.gender,
-      abhaId: newMember.abhaId || `91-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}-1010`,
-      isHead: false,
-      bloodGroup: 'Unknown',
-      activeConditions: [],
-    };
-
-    setFamily(prev => [...prev, member]);
-    setShowAddModal(false);
-    setNewMember({ name: '', relation: 'Child', age: '', gender: 'Female', abhaId: '' });
+    if (!me || !newMember.name.trim()) return;
+    setIsSaving(true);
+    try {
+      const age = parseInt(newMember.age, 10);
+      await backendApi.addFamilyMember(me.id, {
+        name: newMember.name.trim(),
+        relationship: newMember.relation,
+        gender: newMember.gender as 'MALE' | 'FEMALE' | 'OTHER',
+        dateOfBirth: Number.isFinite(age) ? approximateDateOfBirth(age) : undefined,
+        abhaId: newMember.abhaId.trim() || undefined,
+      });
+      toast.success('Family member added', `${newMember.name.trim()} is now in your family folder.`);
+      setShowAddModal(false);
+      setNewMember(EMPTY_MEMBER);
+      await load();
+    } catch (err) {
+      toast.error('Could not add the member', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -109,98 +137,69 @@ export const PatientFamilyMembers: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ink">Family Health Folder & ABHA Linking</h1>
-            <p className="text-sm text-ink-soft">Manage health records, appointments, and consents for all household members</p>
+            <p className="text-sm text-ink-soft">Keep your household members and their ABHA IDs in one place</p>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-xl hover:bg-gov-700 shadow-sm transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Link Family Member ABHA
-        </button>
-      </div>
-
-      {/* Active Profile Banner */}
-      <Card className="p-4 bg-purple-50 border-purple-200 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-            {family.find(f => f.id === selectedMember)?.name.charAt(0) || 'A'}
-          </div>
-          <div>
-            <p className="text-xs text-purple-700 font-semibold">Active Portal Profile</p>
-            <p className="text-sm font-bold text-purple-950">
-              {family.find(f => f.id === selectedMember)?.name} ({family.find(f => f.id === selectedMember)?.relation})
-            </p>
-          </div>
-        </div>
-        <Badge variant="success" className="bg-purple-100 text-purple-800 border-purple-300">
-          Ration Card ID: MH-PUN-MUL-99201
-        </Badge>
-      </Card>
-
-      {/* Family Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
-        {family.map(mem => (
-          <Card
-            key={mem.id}
-            className={`p-5 transition-all cursor-pointer ${
-              selectedMember === mem.id
-                ? 'ring-2 ring-purple-600 border-transparent shadow-md'
-                : 'hover:border-purple-300'
-            }`}
-            onClick={() => setSelectedMember(mem.id)}
+        <div className="flex gap-2 self-start md:self-auto">
+          <button
+            onClick={() => void load()}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3 py-2.5 border border-line text-sm font-semibold rounded-xl hover:bg-sand-50 disabled:opacity-50"
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-ink text-base">{mem.name}</h3>
-                  {mem.isHead && <Badge variant="warning" className="text-[10px]">Head of Family</Badge>}
-                </div>
-                <p className="text-xs font-semibold text-ink-soft mt-0.5">
-                  {mem.relation} • {mem.age} yrs • {mem.gender}
-                </p>
-              </div>
-              <div className="w-6 h-6 rounded-full border border-sand-300 flex items-center justify-center">
-                {selectedMember === mem.id && <CheckCircle2 className="w-5 h-5 text-purple-600" />}
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-line space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-ink-soft">ABHA Address / ID:</span>
-                <span className="font-mono font-medium text-sand-700">{mem.abhaId}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-ink-soft">Blood Group:</span>
-                <span className="font-semibold text-ink">{mem.bloodGroup}</span>
-              </div>
-              {mem.activeConditions.length > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-soft">Care Program:</span>
-                  <span className="font-medium text-purple-700">{mem.activeConditions.join(', ')}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between">
-              <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
-                <ShieldCheck className="w-3.5 h-3.5" /> ABDM Consent Active
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedMember(mem.id);
-                }}
-                className="text-xs font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1"
-              >
-                Switch Profile <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </Card>
-        ))}
+            <RefreshCcw className="w-4 h-4" />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            disabled={!me}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-xl hover:bg-gov-700 shadow-sm transition-all disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" />
+            Link Family Member ABHA
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="p-12 text-center text-xs text-ink-soft">Loading your family folder…</div>
+      ) : me ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
+            <MemberCard
+              name={me.name}
+              relation="Self"
+              dateOfBirth={me.dateOfBirth}
+              gender={me.gender}
+              abhaId={me.abhaId}
+              bloodGroup={me.bloodGroup}
+              isSelf
+            />
+            {family.map((mem) => (
+              <MemberCard
+                key={mem.id}
+                name={mem.name ?? 'Unnamed member'}
+                relation={mem.relationship}
+                dateOfBirth={mem.dateOfBirth}
+                gender={mem.gender}
+                abhaId={mem.abhaId}
+                bloodGroup={mem.bloodGroup}
+              />
+            ))}
+          </div>
+          {family.length === 0 && (
+            <p className="text-xs text-ink-soft text-center">
+              No family members added yet. Use “Link Family Member ABHA” to add your household.
+            </p>
+          )}
+        </>
+      ) : null}
 
       {/* Add Modal */}
       <Modal
@@ -214,6 +213,7 @@ export const PatientFamilyMembers: React.FC = () => {
             <input
               type="text"
               required
+              minLength={2}
               placeholder="e.g. Rohini Patil"
               value={newMember.name}
               onChange={e => setNewMember({ ...newMember, name: e.target.value })}
@@ -221,7 +221,7 @@ export const PatientFamilyMembers: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-sand-700 mb-1">Relationship</label>
               <select
@@ -241,32 +241,47 @@ export const PatientFamilyMembers: React.FC = () => {
               <label className="block text-xs font-bold text-sand-700 mb-1">Age</label>
               <input
                 type="number"
+                min={0}
+                max={120}
                 placeholder="Years"
                 value={newMember.age}
                 onChange={e => setNewMember({ ...newMember, age: e.target.value })}
                 className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Gender</label>
+              <select
+                value={newMember.gender}
+                onChange={e => setNewMember({ ...newMember, gender: e.target.value })}
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
+              >
+                <option value="FEMALE">Female</option>
+                <option value="MALE">Male</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-sand-700 mb-1">14-Digit ABHA ID (Optional)</label>
+            <label className="block text-xs font-bold text-sand-700 mb-1">14-Digit ABHA ID or ABHA Address (Optional)</label>
             <input
               type="text"
-              placeholder="91-XXXX-XXXX-XXXX"
+              placeholder="91-XXXX-XXXX-XXXX or name@abdm"
               value={newMember.abhaId}
               onChange={e => setNewMember({ ...newMember, abhaId: e.target.value })}
               className="w-full px-3 py-2 border border-line rounded-lg text-sm font-mono"
             />
-            <p className="text-[11px] text-ink-soft mt-1">If not available, can be generated via Aadhaar OTP later.</p>
+            <p className="text-[11px] text-ink-soft mt-1">If not available, it can be added later.</p>
           </div>
 
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700"
+              disabled={isSaving}
+              className="flex-1 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 disabled:opacity-60"
             >
-              Verify & Link Member
+              {isSaving ? 'Saving…' : 'Add Member'}
             </button>
             <button
               type="button"
@@ -283,4 +298,3 @@ export const PatientFamilyMembers: React.FC = () => {
 };
 
 export default PatientFamilyMembers;
-

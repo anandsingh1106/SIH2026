@@ -229,4 +229,27 @@ describe('family members', () => {
       .send({ relatedPatientId: 'nope', relationship: 'Cousin' });
     expect(res.status).toBe(404);
   });
+
+  it('keeps the details of a member who is not a registered patient', async () => {
+    const post = await request(app)
+      .post(`/api/patients/${ownPatient.id}/family`)
+      .set('Cookie', authCookie(patientUser))
+      .send({ name: 'Aarohi Patil', relationship: 'Grandchild', dateOfBirth: '2022-03-14', gender: 'FEMALE' });
+    expect(post.status).toBe(201);
+
+    const list = await request(app)
+      .get(`/api/patients/${ownPatient.id}/family`)
+      .set('Cookie', authCookie(patientUser));
+    expect(list.body.data[0]).toMatchObject({
+      name: 'Aarohi Patil', relationship: 'Grandchild', dateOfBirth: '2022-03-14', gender: 'female',
+    });
+  });
+
+  it('refuses a member with neither a name nor a linked record', async () => {
+    const res = await request(app)
+      .post(`/api/patients/${ownPatient.id}/family`)
+      .set('Cookie', authCookie(patientUser))
+      .send({ relationship: 'Child' });
+    expect(res.status).toBe(400);
+  });
 });
