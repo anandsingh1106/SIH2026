@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { localDateString } from '@arogyasetu/shared/utils';
+import { backendApi, type AshaAnalytics } from '@arogyasetu/shared/services/api';
+import { useAuth } from '../../services/auth/authContext';
 import { dataService } from '../../services/api/dataService';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
 import { Task, Referral, Patient } from '@arogyasetu/shared/types';
@@ -34,6 +36,8 @@ const PRIORITY_RANK: Record<string, number> = { urgent: 0, critical: 0, high: 1,
 
 export const AshaDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [analytics, setAnalytics] = useState<AshaAnalytics | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -49,6 +53,8 @@ export const AshaDashboard: React.FC = () => {
       setTasks(tList);
       setReferrals(rList);
       setPatients(pList);
+      // The counts are a convenience; the rest of the dashboard still works without them.
+      backendApi.getAshaAnalytics().then(setAnalytics).catch(() => setAnalytics(null));
     };
     load();
 
@@ -82,11 +88,19 @@ export const AshaDashboard: React.FC = () => {
         eyebrow={
           <>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Paud Village • Mulshi Block (Pune)
+            {[
+              currentUser?.village && `${currentUser.village} Village`,
+              currentUser?.taluka && `${currentUser.taluka} Block`,
+              currentUser?.district,
+            ].filter(Boolean).join(' • ') || 'ASHA Field Workspace'}
           </>
         }
-        title="Namaskar, Sunita Gaikwad"
-        subtitle="Village population 1,420 • 284 households covered • Subcenter Paud"
+        title={`Namaskar, ${currentUser?.name ?? 'ASHA worker'}`}
+        subtitle={[
+          analytics && `${analytics.assignedPatients} patients assigned`,
+          analytics && `${analytics.homeVisits} home visits recorded`,
+          currentUser?.facilityName,
+        ].filter(Boolean).join(' • ') || undefined}
         actions={
           <>
             <Link to="/asha/register-patient">
@@ -133,17 +147,19 @@ export const AshaDashboard: React.FC = () => {
         />
         <MetricCard
           title="High-Risk Maternal (ANC)"
-          value="3 Cases"
-          subtitle="1 referred to Sassoon"
+          value={analytics ? `${analytics.highRiskMaternal} ${analytics.highRiskMaternal === 1 ? 'Case' : 'Cases'}` : '-'}
+          subtitle="Pregnancies flagged high risk"
           variant="red"
           icon={<Baby className="w-5 h-5 text-red-600" />}
+          onClick={() => navigate('/asha/maternal-care')}
         />
         <MetricCard
-          title="Vaccines Due (0-2 Yrs)"
-          value="8 Due"
-          subtitle="Anganwadi session today"
+          title="Vaccines Due / Overdue"
+          value={analytics ? `${analytics.vaccinationsDue} Due` : '-'}
+          subtitle="Across your assigned patients"
           variant="amber"
           icon={<Syringe className="w-5 h-5 text-amber-600" />}
+          onClick={() => navigate('/asha/immunization')}
         />
         <MetricCard
           title="Offline Sync Queue"
