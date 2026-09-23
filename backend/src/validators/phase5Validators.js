@@ -84,8 +84,14 @@ export const analyticsQuerySchema = z.object({
 });
 
 export const heatmapQuerySchema = z.object({
-  metric: z.enum(['patients', 'ncd_high_risk', 'maternal_high_risk', 'referrals']).default('patients'),
+  metric: z.enum([
+    'patients', 'ncd_high_risk', 'maternal_high_risk', 'referrals', 'vaccinations_overdue', 'severe_anaemia',
+  ]).default('patients'),
   district: z.string().trim().max(100).optional(),
+});
+
+export const reportParamSchema = z.object({
+  type: z.enum(['maternal-child', 'ncd', 'immunization', 'referrals', 'inventory', 'facilities']),
 });
 
 // ─── Queue ──────────────────────────────────────────────────────────────────

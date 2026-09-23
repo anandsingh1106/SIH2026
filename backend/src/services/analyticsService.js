@@ -46,17 +46,123 @@ export function ashaAnalytics(user) {
   };
 }
 
+// Matched against the dispensing label, which carries the brand or generic
+// name, so this covers the antibiotics on the essential medicines list.
+const ANTIBIOTIC_NAMES = [
+  'amoxicillin', 'amoxiclav', 'ampicillin', 'azithromycin', 'cefixime', 'cefalexin', 'cephalexin',
+  'ceftriaxone', 'cefuroxime', 'ciprofloxacin', 'clarithromycin', 'cloxacillin', 'cotrimoxazole',
+  'co-trimoxazole', 'doxycycline', 'erythromycin', 'gentamicin', 'levofloxacin', 'metronidazole',
+  'nitrofurantoin', 'norfloxacin', 'ofloxacin', 'penicillin', 'tinidazole',
+];
+
+const isoDay = (d) => d.toISOString().slice(0, 10);
+
+/** The last `months` calendar months as YYYY-MM keys with a short label, oldest first. */
+function recentMonths(months) {
+  const now = new Date();
+  const out = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      month: d.toLocaleString('en-US', { month: 'short' }),
+    });
+  }
+  return out;
+}
+
 export function doctorAnalytics(user) {
   const db = getDb();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoDay(new Date());
+
+  // Consultations in each of the last eight weeks, in person and remote. Weeks
+  // rather than days, since a single week at a small PHC is often empty.
+  const WEEKS = 8;
+  const weeks = [];
+  for (let i = WEEKS - 1; i >= 0; i--) {
+    const start = new Date();
+    start.setDate(start.getDate() - (i * 7 + 6));
+    const end = new Date();
+    end.setDate(end.getDate() - i * 7);
+    // Labelled in UTC, like the stored timestamps, so the label matches `from`.
+    weeks.push({
+      from: isoDay(start),
+      to: isoDay(end),
+      label: start.toLocaleString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+    });
+  }
+  const recent = db.prepare(`
+    SELECT substr(created_at, 1, 10) AS d, is_telemedicine AS tele
+    FROM consultations WHERE doctor_id = ? AND substr(created_at, 1, 10) >= ?
+  `).all(user.id, weeks[0].from);
+
+  const consultations = count(db, 'SELECT COUNT(*) c FROM consultations WHERE doctor_id = ?', [user.id]);
+  const diagnoses = db.prepare(`
+    SELECT diagnosis, COUNT(*) AS count FROM consultations
+    WHERE doctor_id = ? AND diagnosis IS NOT NULL AND trim(diagnosis) != ''
+    GROUP BY diagnosis ORDER BY count DESC, diagnosis ASC LIMIT 6
+  `).all(user.id);
+  const diagnosed = count(db, "SELECT COUNT(*) c FROM consultations WHERE doctor_id = ? AND diagnosis IS NOT NULL AND trim(diagnosis) != ''", [user.id]);
+
+  // Share of prescriptions that include at least one antibiotic.
+  const items = db.prepare(`
+    SELECT pi.prescription_id, lower(pi.medicine_name) AS name, lower(COALESCE(m.category, '')) AS category
+    FROM prescription_items pi
+    JOIN prescriptions p ON p.id = pi.prescription_id
+    LEFT JOIN medicines m ON m.id = pi.medicine_id
+    WHERE p.doctor_id = ?
+  `).all(user.id);
+  const withItems = new Set(items.map((i) => i.prescription_id));
+  const withAntibiotic = new Set(
+    items
+      .filter((i) => i.category === 'antibiotic' || ANTIBIOTIC_NAMES.some((n) => i.name.includes(n)))
+      .map((i) => i.prescription_id)
+  );
+
+  // A follow-up counts as kept when the patient was seen again afterwards.
+  const followUps = db.prepare(`
+    SELECT COUNT(*) AS due,
+      SUM(CASE WHEN EXISTS (
+        SELECT 1 FROM consultations c2 WHERE c2.patient_id = c.patient_id AND c2.created_at > c.created_at
+      ) OR EXISTS (
+        SELECT 1 FROM appointments a WHERE a.patient_id = c.patient_id AND a.status = 'COMPLETED'
+          AND a.appointment_date > substr(c.created_at, 1, 10)
+      ) THEN 1 ELSE 0 END) AS kept
+    FROM consultations c
+    WHERE c.doctor_id = ? AND c.follow_up_date IS NOT NULL AND c.follow_up_date <= ?
+  `).get(user.id, today);
 
   return {
     todaysAppointments: count(db, "SELECT COUNT(*) c FROM appointments WHERE doctor_id = ? AND appointment_date = ? AND status NOT IN ('CANCELLED','NO_SHOW')", [user.id, today]),
-    consultations: count(db, 'SELECT COUNT(*) c FROM consultations WHERE doctor_id = ?', [user.id]),
+    consultations,
+    teleconsultations: count(db, 'SELECT COUNT(*) c FROM consultations WHERE doctor_id = ? AND is_telemedicine = 1', [user.id]),
     prescriptionsIssued: count(db, 'SELECT COUNT(*) c FROM prescriptions WHERE doctor_id = ?', [user.id]),
     pendingLabResults: count(db, "SELECT COUNT(*) c FROM lab_orders WHERE doctor_id = ? AND status != 'COMPLETED'", [user.id]),
     referralsMade: count(db, 'SELECT COUNT(*) c FROM referrals WHERE referred_by = ?', [user.id]),
     openTasks: count(db, "SELECT COUNT(*) c FROM tasks WHERE assigned_to = ? AND status IN ('TODO','IN_PROGRESS')", [user.id]),
+    weekly: weeks.map(({ from, to, label }) => {
+      const inWeek = recent.filter((r) => r.d >= from && r.d <= to);
+      return {
+        from, to, week: label,
+        opd: inWeek.filter((r) => !r.tele).length,
+        tele: inWeek.filter((r) => r.tele).length,
+      };
+    }),
+    topDiagnoses: diagnoses.map((d) => ({
+      diagnosis: d.diagnosis,
+      count: d.count,
+      percent: diagnosed > 0 ? Number(((d.count / diagnosed) * 100).toFixed(1)) : 0,
+    })),
+    antibiotic: {
+      prescriptions: withItems.size,
+      withAntibiotic: withAntibiotic.size,
+      rate: withItems.size > 0 ? Number(((withAntibiotic.size / withItems.size) * 100).toFixed(1)) : 0,
+    },
+    followUps: {
+      due: followUps?.due ?? 0,
+      kept: followUps?.kept ?? 0,
+      rate: followUps?.due > 0 ? Number(((followUps.kept / followUps.due) * 100).toFixed(1)) : 0,
+    },
   };
 }
 
@@ -165,7 +271,97 @@ export function adminAnalytics(user, { district, facilityId, from, to } = {}) {
         WHERE district IS NOT NULL GROUP BY district ORDER BY patients DESC LIMIT 40
       `)
       .all(),
+    trends: monthlyTrends(db, 6),
+    topDiagnoses: db
+      .prepare(`
+        SELECT diagnosis, COUNT(*) AS count FROM consultations
+        WHERE diagnosis IS NOT NULL AND trim(diagnosis) != ''
+        GROUP BY diagnosis ORDER BY count DESC, diagnosis ASC LIMIT 8
+      `)
+      .all(),
+    referralTurnaroundHours: (() => {
+      const avg = db
+        .prepare(`
+          SELECT AVG((julianday(accepted_at) - julianday(created_at)) * 24) AS h
+          FROM referrals WHERE accepted_at IS NOT NULL AND accepted_at >= created_at
+        `)
+        .get()?.h;
+      return avg == null ? null : Number(avg.toFixed(1));
+    })(),
+    hotspots: villageHotspots(db),
   };
+}
+
+/** Monthly activity counts for the last `months` months, zero-filled. */
+function monthlyTrends(db, months) {
+  const byMonth = (sql) =>
+    Object.fromEntries(db.prepare(sql).all().map((r) => [r.m, r.c]));
+
+  const series = {
+    registrations: byMonth('SELECT substr(created_at, 1, 7) m, COUNT(*) c FROM patients GROUP BY m'),
+    consultations: byMonth('SELECT substr(created_at, 1, 7) m, COUNT(*) c FROM consultations GROUP BY m'),
+    referrals: byMonth('SELECT substr(created_at, 1, 7) m, COUNT(*) c FROM referrals GROUP BY m'),
+    screenings: byMonth('SELECT substr(screening_date, 1, 7) m, COUNT(*) c FROM ncd_screenings GROUP BY m'),
+    ancVisits: byMonth('SELECT substr(visit_date, 1, 7) m, COUNT(*) c FROM anc_visits GROUP BY m'),
+    vaccinesGiven: byMonth(
+      "SELECT substr(administered_date, 1, 7) m, COUNT(*) c FROM vaccinations WHERE status = 'GIVEN' GROUP BY m"
+    ),
+  };
+
+  return recentMonths(months).map(({ key, month }) => ({
+    key,
+    month,
+    ...Object.fromEntries(Object.entries(series).map(([name, counts]) => [name, counts[key] ?? 0])),
+  }));
+}
+
+/**
+ * Villages carrying the most open clinical risk: high-risk pregnancies, severe
+ * anaemia in pregnancy, high-risk NCD screens and overdue vaccines. Counts
+ * only, never a patient reference (§35).
+ */
+export function villageHotspots(db, limit = 8) {
+  const place = "p.district || '|' || COALESCE(p.taluka, '') || '|' || p.village";
+  const tally = (sql) => db.prepare(sql).all();
+
+  const sources = {
+    highRiskMaternal: tally(`
+      SELECT ${place} AS k, COUNT(*) AS c FROM maternal_records m JOIN patients p ON p.id = m.patient_id
+      WHERE m.high_risk = 1 AND COALESCE(m.outcome, 'ONGOING') = 'ONGOING' AND p.village IS NOT NULL GROUP BY k`),
+    severeAnaemia: tally(`
+      SELECT ${place} AS k, COUNT(DISTINCT m.id) AS c FROM anc_visits a
+      JOIN maternal_records m ON m.id = a.maternal_record_id JOIN patients p ON p.id = m.patient_id
+      WHERE a.hemoglobin IS NOT NULL AND a.hemoglobin < 7 AND p.village IS NOT NULL GROUP BY k`),
+    ncdHighRisk: tally(`
+      SELECT ${place} AS k, COUNT(DISTINCT n.patient_id) AS c FROM ncd_screenings n JOIN patients p ON p.id = n.patient_id
+      WHERE n.risk_category = 'HIGH' AND p.village IS NOT NULL GROUP BY k`),
+    overdueVaccines: tally(`
+      SELECT ${place} AS k, COUNT(*) AS c FROM vaccinations v JOIN patients p ON p.id = v.patient_id
+      WHERE v.status = 'OVERDUE' AND p.village IS NOT NULL GROUP BY k`),
+  };
+
+  // Weighted so a pregnancy at risk outranks a late vaccine dose.
+  const WEIGHTS = { highRiskMaternal: 3, severeAnaemia: 3, ncdHighRisk: 2, overdueVaccines: 1 };
+  const places = new Map();
+  for (const [name, rows] of Object.entries(sources)) {
+    for (const { k, c } of rows) {
+      if (!places.has(k)) {
+        const [district, taluka, village] = k.split('|');
+        places.set(k, {
+          district, taluka: taluka || undefined, village,
+          highRiskMaternal: 0, severeAnaemia: 0, ncdHighRisk: 0, overdueVaccines: 0, score: 0,
+        });
+      }
+      const entry = places.get(k);
+      entry[name] = c;
+      entry.score += c * WEIGHTS[name];
+    }
+  }
+
+  return [...places.values()]
+    .filter((p) => p.score >= MIN_CELL_SIZE)
+    .sort((a, b) => b.score - a.score || a.village.localeCompare(b.village))
+    .slice(0, limit);
 }
 
 /**
@@ -201,6 +397,17 @@ export function heatmapData(user, { metric = 'patients', district } = {}) {
       SELECT p.district, p.taluka, COUNT(*) AS value
       FROM referrals r JOIN patients p ON p.id = r.patient_id
       WHERE p.district IS NOT NULL ${districtSql}
+      GROUP BY p.district, p.taluka`,
+    vaccinations_overdue: `
+      SELECT p.district, p.taluka, COUNT(*) AS value
+      FROM vaccinations v JOIN patients p ON p.id = v.patient_id
+      WHERE v.status = 'OVERDUE' AND p.district IS NOT NULL ${districtSql}
+      GROUP BY p.district, p.taluka`,
+    severe_anaemia: `
+      SELECT p.district, p.taluka, COUNT(DISTINCT m.id) AS value
+      FROM anc_visits a JOIN maternal_records m ON m.id = a.maternal_record_id
+      JOIN patients p ON p.id = m.patient_id
+      WHERE a.hemoglobin IS NOT NULL AND a.hemoglobin < 7 AND p.district IS NOT NULL ${districtSql}
       GROUP BY p.district, p.taluka`,
   };
 

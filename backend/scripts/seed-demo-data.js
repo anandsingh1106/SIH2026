@@ -286,6 +286,58 @@ seed('referrals', 'SELECT COUNT(*) c FROM referrals', () => {
   return cases.length;
 });
 
+// ─── Treatment plans ────────────────────────────────────────────────────────
+seed('treatment plans', 'SELECT COUNT(*) c FROM treatment_plans', () => {
+  if (!specialistUser) return 0;
+  const referralFor = (patientId) =>
+    db.prepare('SELECT id FROM referrals WHERE patient_id = ? ORDER BY created_at LIMIT 1').get(patientId)?.id ?? null;
+
+  const insP = db.prepare(`
+    INSERT INTO treatment_plans (id, patient_id, referral_id, created_by, title, specialty,
+      directives, status, start_date, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+  const insPh = db.prepare(`
+    INSERT INTO treatment_plan_phases (id, plan_id, position, title, description, target_date,
+      completed_at, completed_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+
+  // [title, description, days from today, done]
+  const plans = [
+    { p: ownPatient, spec: 'Cardiology', status: 'ACTIVE', start: -12,
+      title: 'Uncontrolled hypertension with early hypertensive nephropathy',
+      directives: 'Salt below 3 g a day. Hold telmisartan and call if BP falls below 100/60 or '
+        + 'serum potassium is above 5.5. ASHA to check weekly for ankle swelling.',
+      phases: [
+        ['Baseline renal workup', 'Serum creatinine, potassium and urine albumin at the PHC', -10, true],
+        ['Switch to telmisartan 40 mg with chlorthalidone 12.5 mg', 'Stop amlodipine once the new tablets start', -7, true],
+        ['Weekly BP readings at home', 'ASHA records BP every week for four weeks', 14, false],
+        ['Repeat creatinine and potassium', 'At four weeks on the new combination', 21, false],
+      ] },
+    { p: patients[2] ?? ownPatient, spec: 'General Surgery', status: 'REVIEW_REQUIRED', start: -20,
+      title: 'Recovery after right inguinal hernia repair',
+      directives: 'No lifting over 5 kg for six weeks. Refer back at once for fever, wound '
+        + 'discharge or a new swelling in the groin.',
+      phases: [
+        ['Open mesh repair', 'Done at the medical college', -18, true],
+        ['Wound check and suture removal', 'At the PHC on day 10', -8, true],
+        ['Six-week review', 'Confirm return to normal work', 22, false],
+      ] },
+  ];
+
+  for (const plan of plans) {
+    const id = uid();
+    const ts = now();
+    insP.run(id, plan.p.id, referralFor(plan.p.id), specialistUser.id, plan.title, plan.spec,
+             plan.directives, plan.status, dayOffset(plan.start), ts, ts);
+    plan.phases.forEach(([title, description, days, done], i) => {
+      insPh.run(uid(), id, i + 1, title, description, dayOffset(days),
+                done ? new Date(Date.now() + days * 86400000).toISOString() : null,
+                done ? specialistUser.id : null);
+    });
+  }
+  return plans.length;
+});
+
 // ─── ASHA field work ────────────────────────────────────────────────────────
 seed('tasks', 'SELECT COUNT(*) c FROM tasks', () => {
   const ins = db.prepare(`

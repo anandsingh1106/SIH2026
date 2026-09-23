@@ -37,6 +37,7 @@ const USER_REFS = [
   ['opd_tokens', 'doctor_id'],
   ['bed_allocations', 'allocated_by'],
   ['allergies', 'recorded_by'], ['chronic_conditions', 'recorded_by'],
+  ['treatment_plans', 'created_by'], ['treatment_plan_phases', 'completed_by'],
   ['notifications', 'user_id'],
   ['audit_logs', 'actor_id'],
 ];

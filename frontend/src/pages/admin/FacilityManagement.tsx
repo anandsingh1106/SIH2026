@@ -1,70 +1,184 @@
-import React, { useState } from 'react';
-import { Building2, Plus, Search, Filter, MapPin, Phone, Bed, CheckCircle2, ShieldCheck } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Building2, Plus, Search, MapPin, RefreshCw } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Modal } from '../../components/ui/Modal';
-import { INITIAL_FACILITIES } from '../../data/mockData';
-import { Facility } from '@arogyasetu/shared/types';
+import {
+  backendApi,
+  type AdminFacilityRecord,
+  type FacilityInput,
+  type FacilityType,
+} from '@arogyasetu/shared/services/api';
+import { useToast } from '../../hooks/useToast';
+
+const TYPE_LABELS: Record<FacilityType, string> = {
+  SUB_CENTER: 'Sub-Centre',
+  PHC: 'PHC',
+  CHC: 'CHC',
+  DISTRICT_HOSPITAL: 'District Hospital',
+  SPECIALIST_HOSPITAL: 'Specialist Hospital',
+  MEDICAL_COLLEGE: 'Medical College',
+};
+
+const TYPE_OPTIONS: { value: FacilityType; label: string }[] = [
+  { value: 'SUB_CENTER', label: 'Sub-Centre' },
+  { value: 'PHC', label: 'PHC (Primary Health Centre)' },
+  { value: 'CHC', label: 'CHC (Community Health Centre)' },
+  { value: 'DISTRICT_HOSPITAL', label: 'District Hospital' },
+  { value: 'SPECIALIST_HOSPITAL', label: 'Specialist Hospital' },
+  { value: 'MEDICAL_COLLEGE', label: 'Medical College' },
+];
+
+type FormState = Required<Omit<FacilityInput, 'emergencyAvailable'>> & { emergencyAvailable: boolean };
+
+const EMPTY_FORM: FormState = {
+  name: '',
+  type: 'PHC',
+  district: 'Pune',
+  taluka: '',
+  village: '',
+  address: '',
+  phone: '',
+  email: '',
+  emergencyAvailable: false,
+};
+
+const toForm = (f: AdminFacilityRecord): FormState => ({
+  name: f.name,
+  type: f.type,
+  district: f.district,
+  taluka: f.taluka ?? '',
+  village: f.village ?? '',
+  address: f.address ?? '',
+  phone: f.phone ?? '',
+  email: f.email ?? '',
+  emergencyAvailable: f.emergencyAvailable,
+});
+
+// Blank optional fields are left out of a new facility rather than sent as ''.
+const toInput = (form: FormState): FacilityInput => ({
+  name: form.name.trim(),
+  type: form.type,
+  district: form.district.trim(),
+  taluka: form.taluka.trim() || undefined,
+  village: form.village.trim() || undefined,
+  address: form.address.trim() || undefined,
+  phone: form.phone.trim() || undefined,
+  email: form.email.trim() || undefined,
+  emergencyAvailable: form.emergencyAvailable,
+});
 
 export const AdminFacilityManagement: React.FC = () => {
-  const [facilities, setFacilities] = useState<Facility[]>(INITIAL_FACILITIES);
+  const toast = useToast();
+
+  const [facilities, setFacilities] = useState<AdminFacilityRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newFacility, setNewFacility] = useState<{
-    name: string;
-    type: Facility['type'];
-    district: string;
-    taluka: string;
-    phone: string;
-    totalBeds: number;
-  }>({
-    name: '',
-    type: 'PHC',
-    district: 'Pune',
-    taluka: 'Mulshi',
-    phone: '',
-    totalBeds: 10,
+  const [typeFilter, setTypeFilter] = useState<'all' | FacilityType>('all');
+
+  // null = closed, 'new' = registering, otherwise the facility being edited.
+  const [editing, setEditing] = useState<AdminFacilityRecord | 'new' | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const { items } = await backendApi.getFacilities({ includeInactive: true, limit: 100 });
+      setFacilities(items);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load the facility registry.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const term = search.trim().toLowerCase();
+  const filtered = facilities.filter((f) => {
+    const matchesSearch =
+      !term ||
+      f.name.toLowerCase().includes(term) ||
+      f.district.toLowerCase().includes(term) ||
+      (f.taluka ?? '').toLowerCase().includes(term);
+    return matchesSearch && (typeFilter === 'all' || f.type === typeFilter);
   });
 
-  const filtered = facilities.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.district.toLowerCase().includes(search.toLowerCase());
-    const matchesType = typeFilter === 'all' || f.type.toLowerCase() === typeFilter.toLowerCase();
-    return matchesSearch && matchesType;
-  });
+  const active = facilities.filter((f) => f.active);
+  const bedsTotal = active.reduce((sum, f) => sum + f.beds.total, 0);
+  const bedsFree = active.reduce((sum, f) => sum + f.beds.available, 0);
+  const emergencyReady = active.filter((f) => f.emergencyAvailable).length;
+  const presentTypes = TYPE_OPTIONS.filter((t) => facilities.some((f) => f.type === t.value));
 
-  const handleAddFacility = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newFacility.name) return;
-
-    const fac: Facility = {
-      id: `fac-${Date.now()}`,
-      name: newFacility.name,
-      type: newFacility.type as Facility['type'],
-      district: newFacility.district,
-      taluka: newFacility.taluka,
-      address: `${newFacility.name}, ${newFacility.taluka}, ${newFacility.district}`,
-      phone: newFacility.phone || '020-22923011',
-      latitude: 18.5304,
-      longitude: 73.5356,
-      totalBeds: Number(newFacility.totalBeds) || 10,
-      availableBeds: Math.round(Number(newFacility.totalBeds) * 0.4),
-      icuBeds: newFacility.type === 'District Hospital' ? 20 : 0,
-      availableIcuBeds: newFacility.type === 'District Hospital' ? 5 : 0,
-      ventilators: newFacility.type === 'District Hospital' ? 10 : 0,
-      availableVentilators: newFacility.type === 'District Hospital' ? 2 : 0,
-      emergencyReady: true,
-      bloodBankAvailable: newFacility.type === 'District Hospital',
-      oxygenAvailable: true,
-      services: ['OPD', '24x7 Emergency', 'Immunization', 'Tele-Consultation'],
-      doctorsCount: 4,
-    };
-
-    setFacilities(prev => [fac, ...prev]);
-    setShowAddModal(false);
-    setNewFacility({ name: '', type: 'PHC', district: 'Pune', taluka: 'Mulshi', phone: '', totalBeds: 10 });
+  const openNew = () => {
+    setForm(EMPTY_FORM);
+    setEditing('new');
   };
+
+  const openEdit = (facility: AdminFacilityRecord) => {
+    setForm(toForm(facility));
+    setEditing(facility);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    setIsSaving(true);
+    try {
+      if (editing === 'new') {
+        const created = await backendApi.createFacility(toInput(form));
+        toast.success('Facility registered', `${created.name} is now listed in the directory.`);
+      } else {
+        // Sent as '' so a cleared field is actually cleared on the server.
+        const input = toInput(form);
+        const updated = await backendApi.updateFacility(editing.id, {
+          ...input,
+          taluka: form.taluka.trim(),
+          village: form.village.trim(),
+          address: form.address.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+        });
+        toast.success('Facility updated', `${updated.name} has been saved.`);
+      }
+      setEditing(null);
+      await load();
+    } catch (err) {
+      toast.error('Could not save the facility', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleActive = async (facility: AdminFacilityRecord) => {
+    setIsSaving(true);
+    try {
+      await backendApi.updateFacility(facility.id, { active: !facility.active });
+      toast.success(
+        facility.active ? 'Facility closed' : 'Facility reopened',
+        facility.active
+          ? `${facility.name} is hidden from the public directory.`
+          : `${facility.name} is listed in the directory again.`
+      );
+      setEditing(null);
+      await load();
+    } catch (err) {
+      toast.error('Could not change the facility status', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const field = (key: keyof FormState) => ({
+    value: form[key] as string,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: e.target.value }),
+  });
 
   return (
     <div className="space-y-6">
@@ -77,16 +191,46 @@ export const AdminFacilityManagement: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-ink">Healthcare Facility Registry & Management</h1>
-            <p className="text-sm text-ink-soft">Directory of PHCs, CHCs, Subcenters, and District Hospitals across Maharashtra</p>
+            <p className="text-sm text-ink-soft">Sub-centres, PHCs, CHCs and hospitals registered on the platform</p>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-xl hover:bg-gov-700 shadow-sm transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Register New Facility
-        </button>
+        <div className="flex gap-2 self-start md:self-auto">
+          <button
+            onClick={() => void load()}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3 py-2.5 border border-line text-sm font-semibold rounded-xl hover:bg-sand-50 disabled:opacity-50"
+          >
+            <RefreshCw className="w-4 h-4" /> Refresh
+          </button>
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-xl hover:bg-gov-700 shadow-sm transition-all"
+          >
+            <Plus className="w-4 h-4" /> Register New Facility
+          </button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <span className="text-xs font-bold text-blue-800 uppercase">Active Facilities</span>
+          <p className="text-2xl font-bold text-blue-950 mt-1">{isLoading ? '…' : active.length}</p>
+          <p className="text-xs text-blue-700 mt-1">
+            {isLoading ? '' : `${facilities.length - active.length} closed`}
+          </p>
+        </Card>
+        <Card className="p-4 bg-emerald-50 border-emerald-200">
+          <span className="text-xs font-bold text-emerald-800 uppercase">Beds Free Now</span>
+          <p className="text-2xl font-bold text-emerald-950 mt-1">{isLoading ? '…' : `${bedsFree} / ${bedsTotal}`}</p>
+          <p className="text-xs text-emerald-700 mt-1">From the live bed register</p>
+        </Card>
+        <Card className="p-4 bg-rose-50 border-rose-200">
+          <span className="text-xs font-bold text-rose-800 uppercase">24/7 Emergency Ready</span>
+          <p className="text-2xl font-bold text-rose-950 mt-1">{isLoading ? '…' : emergencyReady}</p>
+          <p className="text-xs text-rose-700 mt-1">Active facilities with emergency care</p>
+        </Card>
       </div>
 
       {/* Search & Filter */}
@@ -103,87 +247,111 @@ export const AdminFacilityManagement: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
-          {['all', 'PHC', 'CHC', 'Sub-District Hospital', 'District Hospital'].map(tf => (
+          {[{ value: 'all' as const, label: 'All' }, ...presentTypes.map((t) => ({ value: t.value, label: TYPE_LABELS[t.value] }))].map(tf => (
             <button
-              key={tf}
-              onClick={() => setTypeFilter(tf)}
+              key={tf.value}
+              onClick={() => setTypeFilter(tf.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase transition-all shrink-0 ${
-                typeFilter === tf
+                typeFilter === tf.value
                   ? 'bg-gov-600 text-white shadow-sm'
                   : 'bg-sand-100 text-sand-700 hover:bg-sand-200'
               }`}
             >
-              {tf}
+              {tf.label}
             </button>
           ))}
         </div>
       </Card>
 
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">
+          {error}
+        </div>
+      )}
+
       {/* Facilities Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
-        {filtered.map(fac => (
-          <Card key={fac.id} className="p-5 space-y-4">
-            <div className="flex items-start justify-between gap-2">
+      {isLoading ? (
+        <Card className="p-8 text-center text-xs text-ink-soft">Loading facilities…</Card>
+      ) : filtered.length === 0 ? (
+        <Card className="p-8 text-center text-xs text-ink-soft">
+          {facilities.length === 0 ? 'No facilities are registered yet.' : 'No facilities match this search or filter.'}
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 stagger">
+          {filtered.map(fac => (
+            <Card key={fac.id} className={`p-5 space-y-4 ${fac.active ? '' : 'opacity-70'}`}>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-bold text-ink text-base">{fac.name}</h3>
-                  <Badge variant="info" className="uppercase text-[10px]">{fac.type}</Badge>
-                  <Badge variant="success" className="text-[10px] capitalize">
-                    Active
+                  <Badge variant="info" className="uppercase text-[10px]">{TYPE_LABELS[fac.type] ?? fac.type}</Badge>
+                  <Badge variant={fac.active ? 'success' : 'default'} className="text-[10px]">
+                    {fac.active ? 'Active' : 'Closed'}
                   </Badge>
                 </div>
                 <p className="text-xs text-ink-soft mt-1 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-ink-soft" /> {fac.taluka}, {fac.district}
+                  <MapPin className="w-3.5 h-3.5 text-ink-soft" />
+                  {[fac.village, fac.taluka, fac.district].filter(Boolean).join(', ')}
                 </p>
               </div>
-            </div>
 
-            {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-2 p-3 bg-sand-50 rounded-xl border border-line text-center text-xs">
-              <div>
-                <span className="text-ink-soft">Total Beds</span>
-                <p className="font-bold text-ink mt-0.5">{fac.totalBeds} ({fac.availableBeds} free)</p>
+              {/* Quick Metrics */}
+              <div className="grid grid-cols-3 gap-2 p-3 bg-sand-50 rounded-xl border border-line text-center text-xs">
+                <div>
+                  <span className="text-ink-soft">Beds</span>
+                  <p className="font-bold text-ink mt-0.5">
+                    {fac.beds.total === 0 ? 'None listed' : `${fac.beds.total} (${fac.beds.available} free)`}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-ink-soft">Staff</span>
+                  <p className="font-bold text-ink mt-0.5">
+                    {fac.doctors} Dr • {fac.ashaWorkers} ASHA
+                  </p>
+                </div>
+                <div>
+                  <span className="text-ink-soft">ICU / Vent</span>
+                  <p className="font-bold text-ink mt-0.5">{fac.beds.icuTotal} / {fac.beds.ventilators}</p>
+                </div>
               </div>
-              <div>
-                <span className="text-ink-soft">Doctors</span>
-                <p className="font-bold text-ink mt-0.5">{fac.doctorsCount} Doctors</p>
+
+              <div className="flex gap-1.5 flex-wrap text-[10px]">
+                {fac.emergencyAvailable && (
+                  <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded border border-rose-200 font-semibold">24/7 Emergency</span>
+                )}
+                {fac.beds.icuTotal > 0 && (
+                  <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200 font-semibold">
+                    {fac.beds.icuAvailable} ICU free
+                  </span>
+                )}
               </div>
-              <div>
-                <span className="text-ink-soft">ICU / Vent</span>
-                <p className="font-bold text-ink mt-0.5">{fac.icuBeds} / {fac.ventilators}</p>
+
+              <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft">
+                <span>Helpline: <strong>{fac.phone ?? 'Not set'}</strong></span>
+                <button onClick={() => openEdit(fac)} className="text-gov-600 font-bold hover:underline">
+                  Edit Details →
+                </button>
               </div>
-            </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
-            {/* Capabilities badges */}
-            <div className="flex gap-1.5 flex-wrap text-[10px]">
-              {fac.emergencyReady && <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded border border-rose-200 font-semibold">24/7 Emergency</span>}
-              {fac.oxygenAvailable && <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200 font-semibold">Oxygen Pipeline</span>}
-              {fac.bloodBankAvailable && <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200 font-semibold">Blood Bank Hub</span>}
-            </div>
-
-            <div className="pt-2 border-t border-line flex items-center justify-between text-xs text-ink-soft">
-              <span>Helpline: <strong>{fac.phone}</strong></span>
-              <button className="text-gov-600 font-bold hover:underline">Edit Configuration →</button>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Add Modal */}
+      {/* Register / Edit Modal */}
       <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Register New Healthcare Facility"
+        isOpen={editing !== null}
+        onClose={() => setEditing(null)}
+        title={editing === 'new' ? 'Register New Healthcare Facility' : 'Edit Facility Details'}
       >
-        <form onSubmit={handleAddFacility} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-sand-700 mb-1">Facility Name</label>
             <input
               type="text"
               required
+              minLength={3}
+              maxLength={160}
               placeholder="e.g. Primary Health Centre Pirangut"
-              value={newFacility.name}
-              onChange={e => setNewFacility({ ...newFacility, name: e.target.value })}
+              {...field('name')}
               className="w-full px-3 py-2 border border-line rounded-lg text-sm"
             />
           </div>
@@ -192,58 +360,98 @@ export const AdminFacilityManagement: React.FC = () => {
             <div>
               <label className="block text-xs font-bold text-sand-700 mb-1">Facility Type</label>
               <select
-                value={newFacility.type}
-                onChange={e => setNewFacility({ ...newFacility, type: e.target.value as any })}
+                value={form.type}
+                onChange={e => setForm({ ...form, type: e.target.value as FacilityType })}
                 className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-surface"
               >
-                <option value="PHC">PHC (Primary Health Centre)</option>
-                <option value="CHC">CHC (Community Health Centre)</option>
-                <option value="District Hospital">District Hospital</option>
-                <option value="Sub-District Hospital">Sub-District Hospital</option>
+                {TYPE_OPTIONS.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-sand-700 mb-1">Total Inpatient Beds</label>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Helpline</label>
               <input
-                type="number"
-                value={newFacility.totalBeds}
-                onChange={e => setNewFacility({ ...newFacility, totalBeds: parseInt(e.target.value) || 0 })}
+                type="tel"
+                maxLength={20}
+                pattern="[0-9+\-\s]{6,20}"
+                placeholder="e.g. 020-22923011"
+                {...field('phone')}
                 className="w-full px-3 py-2 border border-line rounded-lg text-sm"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold text-sand-700 mb-1">District</label>
-              <input
-                type="text"
-                value={newFacility.district}
-                onChange={e => setNewFacility({ ...newFacility, district: e.target.value })}
-                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
-              />
+              <input type="text" required minLength={2} maxLength={100} {...field('district')}
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
             </div>
             <div>
               <label className="block text-xs font-bold text-sand-700 mb-1">Taluka</label>
-              <input
-                type="text"
-                value={newFacility.taluka}
-                onChange={e => setNewFacility({ ...newFacility, taluka: e.target.value })}
-                className="w-full px-3 py-2 border border-line rounded-lg text-sm"
-              />
+              <input type="text" maxLength={100} {...field('taluka')}
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-sand-700 mb-1">Village</label>
+              <input type="text" maxLength={100} {...field('village')}
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
             </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Address (optional)</label>
+            <input type="text" maxLength={300} {...field('address')}
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-sand-700 mb-1">Email (optional)</label>
+            <input type="email" maxLength={160} {...field('email')}
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm" />
+          </div>
+
+          <label className="flex items-center gap-2 text-xs font-semibold text-ink">
+            <input
+              type="checkbox"
+              checked={form.emergencyAvailable}
+              onChange={e => setForm({ ...form, emergencyAvailable: e.target.checked })}
+            />
+            Provides 24/7 emergency care
+          </label>
+
+          {editing !== 'new' && editing && (
+            <p className="text-[11px] text-ink-soft">
+              Beds are managed from the bed register and staff from Staff Management, so they are not edited here.
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-lg hover:bg-gov-700"
+              disabled={isSaving}
+              className="flex-1 px-4 py-2.5 bg-gov-600 text-white text-sm font-semibold rounded-lg hover:bg-gov-700 disabled:opacity-60"
             >
-              Authorize & Add Facility
+              {isSaving ? 'Saving…' : editing === 'new' ? 'Register Facility' : 'Save Changes'}
             </button>
+            {editing && editing !== 'new' && (
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => void toggleActive(editing)}
+                className={`px-4 py-2.5 border text-sm font-semibold rounded-lg disabled:opacity-60 ${
+                  editing.active
+                    ? 'border-rose-200 text-rose-700 hover:bg-rose-50'
+                    : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                }`}
+              >
+                {editing.active ? 'Close Facility' : 'Reopen Facility'}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setShowAddModal(false)}
+              onClick={() => setEditing(null)}
               className="px-4 py-2.5 border border-line text-sand-700 text-sm font-semibold rounded-lg hover:bg-sand-50"
             >
               Cancel

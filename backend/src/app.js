@@ -26,6 +26,8 @@ import {
 } from './routes/phase5Routes.js';
 import publicRoutes from './routes/publicRoutes.js';
 import staffAccessRoutes from './routes/staffAccessRoutes.js';
+import facilityRoutes from './routes/facilityRoutes.js';
+import treatmentPlanRoutes from './routes/treatmentPlanRoutes.js';
 import streamRoutes from './routes/streamRoutes.js';
 
 export function createApp() {
@@ -102,6 +104,8 @@ export function createApp() {
   app.use('/api/ai', aiRouter);
   app.use('/api/audit-logs', auditRouter);
   app.use('/api/staff-access', staffAccessRoutes);
+  app.use('/api/facilities', facilityRoutes);
+  app.use('/api/treatment-plans', treatmentPlanRoutes);
   app.use('/api/public', publicRoutes);
   app.use('/api/stream', streamRoutes);
 

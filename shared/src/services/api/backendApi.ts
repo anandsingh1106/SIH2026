@@ -110,9 +110,16 @@ export interface ReferralRecord {
   urgency: 'ROUTINE' | 'URGENT' | 'EMERGENCY';
   status: string;
   clinicalSummary?: string;
+  reason?: string;
+  diagnosis?: string;
+  referredByName?: string;
+  referredTo?: string;
+  referredToName?: string;
   sourceFacilityName?: string;
   destinationFacilityName?: string;
   createdAt: string;
+  acceptedAt?: string;
+  completedAt?: string;
   history?: { id: string; status: string; note?: string; timestamp: string }[];
 }
 
@@ -159,6 +166,72 @@ export interface FacilityRecord {
   emergencyAvailable?: boolean;
 }
 
+export type FacilityType =
+  | 'SUB_CENTER' | 'PHC' | 'CHC' | 'DISTRICT_HOSPITAL' | 'SPECIALIST_HOSPITAL' | 'MEDICAL_COLLEGE';
+
+/** A facility as the admin registry returns it, with live bed and staff counts. */
+export interface AdminFacilityRecord {
+  id: string;
+  name: string;
+  type: FacilityType;
+  address?: string;
+  district: string;
+  taluka?: string;
+  village?: string;
+  latitude?: number;
+  longitude?: number;
+  phone?: string;
+  email?: string;
+  emergencyAvailable: boolean;
+  active: boolean;
+  beds: { total: number; available: number; icuTotal: number; icuAvailable: number; ventilators: number };
+  doctors: number;
+  ashaWorkers: number;
+  updatedAt: string;
+}
+
+export interface FacilityInput {
+  name: string;
+  type: FacilityType;
+  district: string;
+  taluka?: string;
+  village?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  emergencyAvailable?: boolean;
+}
+
+export type TreatmentPlanStatus = 'ACTIVE' | 'REVIEW_REQUIRED' | 'COMPLETED' | 'CANCELLED';
+
+export interface TreatmentPlanRecord {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientAbhaId?: string;
+  patientVillage?: string;
+  referralId?: string;
+  referralCode?: string;
+  authorId?: string;
+  authorName?: string;
+  title: string;
+  specialty?: string;
+  directives?: string;
+  status: TreatmentPlanStatus;
+  startDate: string;
+  createdAt: string;
+  updatedAt: string;
+  phases: {
+    id: string;
+    position: number;
+    title: string;
+    description?: string;
+    targetDate?: string;
+    completed: boolean;
+    completedAt?: string;
+  }[];
+}
+
 export interface StaffRecord {
   id: string;
   name: string;
@@ -193,6 +266,108 @@ export interface AshaAnalytics {
   vaccinationsDue: number;
   ncdHighRisk: number;
 }
+
+export interface VillageHotspot {
+  district: string;
+  taluka?: string;
+  village: string;
+  highRiskMaternal: number;
+  severeAnaemia: number;
+  ncdHighRisk: number;
+  overdueVaccines: number;
+  score: number;
+}
+
+export interface AdminAnalytics {
+  patients: { total: number; registeredInPeriod: number };
+  facilities: { total: number; byType: { type: string; count: number }[] };
+  staff: { role: string; count: number }[];
+  appointments: { total: number; completed: number; cancelled: number };
+  referrals: {
+    total: number; completed: number; pending: number; completionRate: number;
+    byUrgency: { urgency: string; count: number }[];
+  };
+  maternal: { active: number; highRisk: number; ancVisits: number };
+  immunization: { given: number; due: number; coverageRate: number };
+  ncd: {
+    screenings: number; byRisk: { risk_category: string; count: number }[];
+    suspectedDiabetes: number; suspectedHypertension: number;
+  };
+  beds: { total: number; occupied: number; available: number; occupancyRate: number };
+  inventory: { items: number; lowStock: number; expiringSoon: number };
+  districts: { district: string; patients: number }[];
+  trends: {
+    key: string; month: string; registrations: number; consultations: number; referrals: number;
+    screenings: number; ancVisits: number; vaccinesGiven: number;
+  }[];
+  topDiagnoses: { diagnosis: string; count: number }[];
+  referralTurnaroundHours: number | null;
+  hotspots: VillageHotspot[];
+}
+
+export interface DistrictAnalyticsRecord {
+  district: string;
+  patients: number;
+  facilities: { total: number; subCenters: number; phcs: number; chcs: number; hospitals: number; emergencyReady: number };
+  ashaWorkers: number;
+  doctors: number;
+  beds: { total: number; occupied: number; occupancyRate: number };
+  stock: { lines: number; stockedOut: number; availabilityRate: number | null };
+  referrals: {
+    total: number; completed: number; pending: number; emergency: number; avgAcceptHours: number | null;
+    topDestinations: { facility: string; count: number; share: number }[];
+  };
+  consultations: number;
+  teleconsultations: number;
+  homeVisits: number;
+  highRiskMaternal: number;
+  ncdHighRisk: number;
+  immunization: { given: number; due: number; coverageRate: number };
+}
+
+export interface HealthSignal {
+  id: string;
+  category: string;
+  severity: 'critical' | 'high' | 'moderate';
+  title: string;
+  location: string;
+  evidence: string;
+  recommendedAction: string;
+  link: string;
+  count: number;
+}
+
+export type ReportType = 'maternal-child' | 'ncd' | 'immunization' | 'referrals' | 'inventory' | 'facilities';
+
+export interface ReportDefinition {
+  type: ReportType;
+  category: string;
+  title: string;
+  description: string;
+}
+
+export interface ReportTable extends ReportDefinition {
+  generatedAt: string;
+  columns: string[];
+  rows: (string | number | null)[][];
+}
+
+export interface DoctorAnalytics {
+  todaysAppointments: number;
+  consultations: number;
+  teleconsultations: number;
+  prescriptionsIssued: number;
+  pendingLabResults: number;
+  referralsMade: number;
+  openTasks: number;
+  weekly: { from: string; to: string; week: string; opd: number; tele: number }[];
+  topDiagnoses: { diagnosis: string; count: number; percent: number }[];
+  antibiotic: { prescriptions: number; withAntibiotic: number; rate: number };
+  followUps: { due: number; kept: number; rate: number };
+}
+
+export type HeatmapMetric =
+  | 'patients' | 'ncd_high_risk' | 'maternal_high_risk' | 'referrals' | 'vaccinations_overdue' | 'severe_anaemia';
 
 export interface DrugInteractionResult {
   interactions: { drugs: string[]; severity: string; effect: string; guidance: string }[];
@@ -245,6 +420,9 @@ export const backendApi = {
   acceptReferral: (id: string, note?: string) => api.post<ReferralRecord>(`/api/referrals/${id}/accept`, { note }),
   rejectReferral: (id: string, note?: string) => api.post<ReferralRecord>(`/api/referrals/${id}/reject`, { note }),
   completeReferral: (id: string, note?: string) => api.post<ReferralRecord>(`/api/referrals/${id}/complete`, { note }),
+  arriveReferral: (id: string, note?: string) => api.post<ReferralRecord>(`/api/referrals/${id}/arrive`, { note }),
+  setReferralStatus: (id: string, status: string, note?: string) =>
+    api.patch<ReferralRecord>(`/api/referrals/${id}`, { status, note }),
 
   // Tasks
   getTasks: (params: { status?: string } = {}) =>
@@ -317,11 +495,43 @@ export const backendApi = {
   getStaff: (params: { role?: string; district?: string; search?: string } = {}) =>
     api.get<Paginated<StaffRecord>>('/api/staff-access/staff', { query: page(params) as never }),
 
+  // Treatment plans
+  getTreatmentPlans: (params: { patientId?: string; status?: TreatmentPlanStatus; mine?: boolean; limit?: number } = {}) =>
+    api.get<Paginated<TreatmentPlanRecord>>('/api/treatment-plans', { query: page(params) as never }),
+  createTreatmentPlan: (body: {
+    patientId: string;
+    referralId?: string;
+    title: string;
+    specialty?: string;
+    directives?: string;
+    startDate?: string;
+    phases: { title: string; description?: string; targetDate?: string }[];
+  }) => api.post<TreatmentPlanRecord>('/api/treatment-plans', body),
+  updateTreatmentPlan: (id: string, body: { title?: string; specialty?: string; directives?: string; status?: TreatmentPlanStatus }) =>
+    api.patch<TreatmentPlanRecord>(`/api/treatment-plans/${id}`, body),
+  setTreatmentPhase: (planId: string, phaseId: string, completed: boolean) =>
+    api.patch<TreatmentPlanRecord>(`/api/treatment-plans/${planId}/phases/${phaseId}`, { completed }),
+
+  // Facility registry (admin only)
+  getFacilities: (params: { search?: string; type?: FacilityType; district?: string; includeInactive?: boolean; limit?: number } = {}) =>
+    api.get<Paginated<AdminFacilityRecord>>('/api/facilities', { query: page(params) as never }),
+  createFacility: (body: FacilityInput) => api.post<AdminFacilityRecord>('/api/facilities', body),
+  updateFacility: (id: string, body: Partial<FacilityInput> & { active?: boolean }) =>
+    api.patch<AdminFacilityRecord>(`/api/facilities/${id}`, body),
+
   // Analytics
   getAnalytics: (scope: 'patient' | 'asha' | 'doctor' | 'specialist' | 'admin') =>
     api.get<Record<string, unknown>>(`/api/analytics/${scope}`),
   getAshaAnalytics: () => api.get<AshaAnalytics>('/api/analytics/asha'),
-  getHeatmap: (metric = 'patients') =>
+  getDoctorAnalytics: () => api.get<DoctorAnalytics>('/api/analytics/doctor'),
+  getAdminAnalytics: (params: { from?: string; to?: string; district?: string } = {}) =>
+    api.get<AdminAnalytics>('/api/analytics/admin', { query: params }),
+  getDistrictAnalytics: () => api.get<DistrictAnalyticsRecord[]>('/api/analytics/districts'),
+  getHealthSignals: () =>
+    api.get<{ generatedAt: string; signals: HealthSignal[]; hotspots: VillageHotspot[] }>('/api/analytics/insights'),
+  getReportCatalogue: () => api.get<ReportDefinition[]>('/api/analytics/reports'),
+  getReport: (type: ReportType) => api.get<ReportTable>(`/api/analytics/reports/${type}`),
+  getHeatmap: (metric: HeatmapMetric = 'patients') =>
     api.get<{ metric: string; points: { district: string; taluka?: string; value: number }[] }>(
       '/api/analytics/heatmap', { query: { metric } }
     ),
