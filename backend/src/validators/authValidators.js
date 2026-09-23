@@ -28,6 +28,10 @@ export const mfaRecoverySchema = z.object({
   code: z.string().trim().min(8, 'Enter your full recovery code.').max(32),
 });
 
+export const mfaDemoSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code.'),
+});
+
 export const userIdParamSchema = z.object({
   userId: z.string().trim().min(1),
 });

@@ -4,7 +4,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { mfaLimiter } from '../config/rateLimits.js';
 import {
-  mfaTokenSchema, mfaRecoverySchema, userIdParamSchema,
+  mfaTokenSchema, mfaRecoverySchema, mfaDemoSchema, userIdParamSchema,
 } from '../validators/authValidators.js';
 
 const router = Router();
@@ -31,6 +31,8 @@ router.post(
 router.post('/verify', mfaLimiter, validate({ body: mfaTokenSchema }), ctrl.postVerify);
 
 router.post('/recovery', mfaLimiter, validate({ body: mfaRecoverySchema }), ctrl.postRecovery);
+
+router.post('/demo', mfaLimiter, validate({ body: mfaDemoSchema }), ctrl.postDemoCode);
 
 router.post('/recovery-codes', ctrl.postRegenerateRecoveryCodes);
 

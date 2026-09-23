@@ -15,6 +15,18 @@ import { recordAudit } from '../services/auditService.js';
 import { sendSuccess } from '../utils/response.js';
 import { AppError } from '../utils/errors.js';
 import { getDb } from '../db/connection.js';
+import { env } from '../config/env.js';
+import crypto from 'crypto';
+
+// The accounts created by scripts/create-demo-accounts.js. Named exactly,
+// rather than matched by domain, so no other account can ever qualify.
+export const DEMO_ACCOUNT_EMAILS = new Set([
+  'demo.patient@arogyasetu.test',
+  'demo.asha@arogyasetu.test',
+  'demo.doctor@arogyasetu.test',
+  'demo.specialist@arogyasetu.test',
+  'demo.admin@arogyasetu.test',
+]);
 
 function requestMeta(req) {
   return { ipAddress: req.ip, userAgent: req.get('user-agent') };
@@ -172,6 +184,53 @@ export async function postRecovery(req, res, next) {
       csrfToken,
       sessionToken,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Accepts the fixed DEMO_MFA_CODE as the second factor for a demo account.
+ *
+ * Off unless DEMO_MFA_CODE is set, and never available to any account outside
+ * DEMO_ACCOUNT_EMAILS, so real staff always need their authenticator.
+ */
+export function postDemoCode(req, res, next) {
+  try {
+    const expected = env.DEMO_MFA_CODE;
+    if (!expected) {
+      throw new AppError('Demo codes are not enabled.', { status: 404, code: 'MFA_DEMO_DISABLED' });
+    }
+
+    if (!DEMO_ACCOUNT_EMAILS.has(String(req.user.email || '').toLowerCase())) {
+      throw new AppError('That code was not accepted. Please try again.', {
+        status: 403,
+        code: 'MFA_DEMO_NOT_ALLOWED',
+      });
+    }
+
+    const given = Buffer.from(String(req.body.code));
+    const wanted = Buffer.from(expected);
+    if (given.length !== wanted.length || !crypto.timingSafeEqual(given, wanted)) {
+      throw new AppError('That code was not accepted. Please try again.', {
+        status: 400,
+        code: 'MFA_NOT_VERIFIED',
+      });
+    }
+
+    recordAudit({
+      actorId: req.user.id,
+      action: 'MFA_DEMO_CODE',
+      entityType: 'user',
+      entityId: req.user.id,
+      ...requestMeta(req),
+    });
+
+    setSessionCookie(res, req.user, { mfaSatisfied: true });
+    const csrfToken = issueCsrfToken(res);
+    const sessionToken = signToken(req.user, { mfaSatisfied: true });
+
+    return sendSuccess(res, { verified: true, csrfToken, sessionToken });
   } catch (err) {
     next(err);
   }

@@ -43,6 +43,10 @@ export const env = {
   // The OpenAPI reference maps every endpoint, so it is off unless asked for.
   ENABLE_API_DOCS: bool('ENABLE_API_DOCS', process.env.NODE_ENV !== 'production'),
 
+  // A fixed 6-digit second factor accepted for the demo accounts only, so a
+  // presentation does not need an authenticator app. Unset means disabled.
+  DEMO_MFA_CODE: optional('DEMO_MFA_CODE'),
+
   // Sessions are long-lived for field workers on poor connectivity; shorten
   // this for deployments handling higher-sensitivity data.
   SESSION_TTL_DAYS: Number(optional('SESSION_TTL_DAYS', '7')),
@@ -113,6 +117,10 @@ function assertProductionConfig() {
   }
   if (origins.includes('*')) {
     problems.push('CORS origin "*" cannot be combined with cookie authentication.');
+  }
+
+  if (env.DEMO_MFA_CODE && !/^\d{6}$/.test(env.DEMO_MFA_CODE)) {
+    problems.push('DEMO_MFA_CODE must be exactly 6 digits.');
   }
 
   if (env.SUPABASE_URL && !env.SUPABASE_SERVICE_ROLE_KEY) {

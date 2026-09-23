@@ -103,6 +103,10 @@ export const authApi = {
         { code }
       ),
 
+    /** Accepts the server's fixed demo code, for the demo accounts only. */
+    useDemoCode: (code: string) =>
+      api.post<{ verified: boolean; sessionToken?: string }>('/api/auth/mfa/demo', { code }),
+
     regenerateRecoveryCodes: () =>
       api.post<{ recoveryCodes: string[] }>('/api/auth/mfa/recovery-codes'),
 
