@@ -22,6 +22,7 @@
     "demo:accounts": "node scripts/create-demo-accounts.js",
     "demo:data": "node scripts/seed-demo-data.js",
     "demo:full": "npm run demo:accounts && npm run demo:data && npm run demo:scale && npm run demo:link",
+    "demo:boot": "node src/db/cli.js migrate && node src/db/cli.js seed && node scripts/create-demo-accounts.js --link-only && node scripts/seed-demo-data.js && node scripts/seed-scale.js && node scripts/link-demo-data.js",
     "demo:history": "node scripts/seed-history.js",
     "demo:scale": "node scripts/seed-scale.js",
     "demo:link": "node scripts/link-demo-data.js",

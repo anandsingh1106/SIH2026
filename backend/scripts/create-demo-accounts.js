@@ -86,10 +86,15 @@ const authHeaders = {
   'Content-Type': 'application/json',
 };
 
-async function findAuthUser(email) {
+async function listAuthUsers() {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=200`, { headers: authHeaders });
+  if (!res.ok) throw new Error(`listing users failed: ${res.status}`);
   const body = await res.json();
-  return (body.users || []).find((u) => u.email === email) || null;
+  return body.users || [];
+}
+
+async function findAuthUser(email) {
+  return (await listAuthUsers()).find((u) => u.email === email) || null;
 }
 
 async function upsertAuthUser(account) {
@@ -342,12 +347,45 @@ function attachSeedData(byRole) {
   return changes;
 }
 
-console.log('Creating demo accounts...\n');
+// --link-only rebuilds the local rows for accounts that already exist in
+// Supabase, for hosts whose database does not survive a restart. It only reads
+// from Supabase: passwords and 2FA factors are left exactly as they are, so an
+// authenticator app already holding the secrets keeps working. 2FA enrolment
+// is not copied here because sign-in reconciles it from Supabase anyway.
+const LINK_ONLY = process.argv.includes('--link-only');
+
+console.log(LINK_ONLY ? 'Linking existing demo accounts...\n' : 'Creating demo accounts...\n');
 
 const results = [];
 
-for (const account of ACCOUNTS) {
+if (LINK_ONLY) {
+  // Runs at boot on a cold container, where the first connection can stall.
+  let authUsers;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      authUsers = await listAuthUsers();
+      break;
+    } catch (err) {
+      if (attempt === 6) throw err;
+    }
+  }
+
+  for (const account of ACCOUNTS) {
+    const existing = authUsers.find((u) => u.email === account.email);
+    if (!existing) {
+      console.log(`  ${account.role.padEnd(11)} ${account.email.padEnd(38)} FAILED: not in Supabase, run demo:accounts once first`);
+      process.exitCode = 1;
+      continue;
+    }
+    const app = upsertAppUser(account, existing.id);
+    console.log(`  ${account.role.padEnd(11)} ${account.email.padEnd(38)} linked`);
+    results.push({ ...account, authUserId: existing.id, appUserId: app.id, totpSecret: null });
+  }
+}
+
+for (const account of LINK_ONLY ? [] : ACCOUNTS) {
   process.stdout.write(`  ${account.role.padEnd(11)} ${account.email.padEnd(38)} `);
+
   try {
     const auth = await upsertAuthUser(account);
     const app = upsertAppUser(account, auth.id);
@@ -379,6 +417,9 @@ const linked = attachSeedData(byRole);
 if (linked.length) {
   console.log(`\nSeed data linked: ${linked.join(', ')}`);
 }
+
+// Nothing new to record: the credentials file would only lose its secrets.
+if (LINK_ONLY) process.exit(process.exitCode ?? 0);
 
 // ─── Write the credentials file used during the demo ────────────────────────
 
