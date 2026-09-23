@@ -328,3 +328,47 @@ describe('medicines formulary', () => {
     expect(res.body.data.items[0].name).toBe('Paracetamol');
   });
 });
+
+describe('consultation page sign and issue', () => {
+  // The exact requests the doctor's consultation page sends when "Sign & Issue
+  // E-Prescription" is pressed with its prefilled form.
+  it('records the consultation, then the prescription linked to it', async () => {
+    const consultation = await request(app).post('/api/consultations').set('Cookie', authCookie(doctor))
+      .send({
+        patientId: patient.id,
+        chiefComplaint: 'Persistent morning headache, occasional dizziness',
+        symptoms: ['Persistent morning headache', 'occasional dizziness'],
+        examination: 'Chest clear bilaterally, S1S2 heard, no murmur.',
+        diagnosis: 'Essential Hypertension (Stage 2)',
+        icdCode: 'BA00',
+        followUpDate: '2026-10-24',
+      });
+    expect(consultation.status).toBe(201);
+
+    const rx = await request(app).post('/api/prescriptions').set('Cookie', authCookie(doctor))
+      .send({
+        patientId: patient.id,
+        consultationId: consultation.body.data.id,
+        diagnosis: 'Essential Hypertension (Stage 2)',
+        instructions: 'Maintain a low salt and sugar diet.',
+        followUpDate: '2026-10-24',
+        items: [
+          { medicineName: 'Amlodipine 5mg Tablets', dosage: '5 mg', frequency: '1-0-0', duration: '30 days',
+            timing: ['morning'], quantity: 30, instructions: 'Take 1 tablet in the morning after breakfast.',
+            instructionsMr: 'दररोज सकाळी नाश्त्यानंतर १ गोळी घ्या.', instructionsHi: 'प्रतिदिन सुबह नाश्ते के बाद 1 गोली लें।' },
+          { medicineName: 'Metformin 500mg SR', dosage: '500 mg', frequency: '1-0-1', duration: '30 days',
+            timing: ['morning', 'night'], quantity: 60 },
+        ],
+      });
+    expect(rx.status).toBe(201);
+
+    const row = getDb().prepare('SELECT consultation_id FROM prescriptions WHERE id = ?').get(rx.body.data.id);
+    expect(row.consultation_id).toBe(consultation.body.data.id);
+  });
+
+  it('rejects a medicine line with no quantity', async () => {
+    const rx = await request(app).post('/api/prescriptions').set('Cookie', authCookie(doctor))
+      .send({ patientId: patient.id, items: [{ medicineName: 'Amlodipine 5mg', quantity: 0 }] });
+    expect(rx.status).toBe(400);
+  });
+});

@@ -23,7 +23,10 @@ export const DoctorConsultationPage: React.FC = () => {
   // is what moves the patient out of the waiting list.
   const queueState = (location.state ?? {}) as { patientId?: string; queueTokenId?: string };
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [selectedPatientId, setSelectedPatientId] = useState(queueState.patientId ?? 'pat-101');
+  // Empty until the queue supplies a patient or the list loads. A hard-coded
+  // default id matched no real record, so the select showed one patient while
+  // the form held none and "Sign & Issue" silently did nothing.
+  const [selectedPatientId, setSelectedPatientId] = useState(queueState.patientId ?? '');
   const [symptoms, setSymptoms] = useState('Persistent morning headache, occasional dizziness, elevated blood pressure at home');
   const [examNotes, setExamNotes] = useState('Chest clear bilaterally, S1S2 heard, no murmur. Mild pedal edema noted. Fundus exam normal.');
   const [diagnosis, setDiagnosis] = useState('Essential Hypertension (Stage 2) with Suboptimal Glycemic Control');
@@ -76,7 +79,12 @@ export const DoctorConsultationPage: React.FC = () => {
   const [issuedRx, setIssuedRx] = useState<Prescription | null>(null);
 
   useEffect(() => {
-    dataService.getPatients().then(setPatients);
+    dataService.getPatients().then((list) => {
+      setPatients(list);
+      // Opened directly rather than from the queue: start on the first patient
+      // so the selection and the select box agree.
+      setSelectedPatientId((current) => current || list[0]?.id || '');
+    });
   }, []);
 
   // The registry is larger than one page of the patient list, so a patient
@@ -130,10 +138,21 @@ export const DoctorConsultationPage: React.FC = () => {
 
   const handleCompleteConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient) return;
+    if (!selectedPatient) {
+      setSaveError('Select a patient before issuing the prescription.');
+      return;
+    }
 
     if (medicines.length === 0) {
       setSaveError('Add at least one medicine before issuing the prescription.');
+      return;
+    }
+
+    // The server needs a name and at least one unit per medicine; say which
+    // line is wrong here instead of returning a generic validation error.
+    const invalidLine = medicines.findIndex((m) => !m.name.trim() || !(m.quantity >= 1));
+    if (invalidLine !== -1) {
+      setSaveError(`Medicine #${invalidLine + 1} needs a name and a quantity of at least 1.`);
       return;
     }
 
@@ -277,6 +296,11 @@ export const DoctorConsultationPage: React.FC = () => {
               onChange={(e) => setSelectedPatientId(e.target.value)}
               className="w-full text-xs border border-sand-300 rounded-lg p-2.5 bg-surface text-ink font-semibold focus:outline-none focus:border-gov-600"
             >
+              {!selectedPatient && (
+                <option value={selectedPatientId} disabled>
+                  {patients.length === 0 ? 'Loading patients…' : 'Select a patient'}
+                </option>
+              )}
               {patients.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name} ({p.age}y, {p.village}) — ABHA: {p.abhaId}
