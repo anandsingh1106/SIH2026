@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -43,7 +44,9 @@ export const Drawer: React.FC<DrawerProps> = ({
     lg: 'max-w-xl',
   };
 
-  return (
+  // Rendered into <body> for the same reason as Modal: the page wrapper's
+  // transform would trap this `fixed` layer below the sticky header.
+  return createPortal(
     <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label={title}>
       <div
         className="fixed inset-0 bg-sand-900/50 backdrop-blur-sm animate-fade-in"
@@ -82,6 +85,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
