@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import { getDb, transaction } from '../db/connection.js';
 import { notify } from './notificationService.js';
+import { accessiblePatientIds } from './accessControlService.js';
+import { patientRepository } from '../repositories/patientRepository.js';
 import { NotFoundError, AuthorizationError } from '../utils/errors.js';
 
 const now = () => new Date().toISOString();
@@ -11,6 +13,59 @@ function assertMember(conversationId, userId, db) {
     .get(conversationId, userId);
   // 404 rather than 403 so non-members cannot confirm a conversation exists.
   if (!member) throw new NotFoundError('Conversation');
+}
+
+const STAFF_ROLES = ['ASHA', 'DOCTOR', 'SPECIALIST', 'ADMIN'];
+
+/**
+ * The people this user may start a conversation with. Staff reach other staff
+ * and the patients already in their care; a patient reaches their own ASHA and
+ * the clinicians who have seen or been referred them. Without this any
+ * account could message any other by guessing an id.
+ */
+export function messagingContacts(user, db = getDb()) {
+  const row = (r) => ({
+    id: r.id, name: r.name, role: r.role, facilityName: r.facility_name || undefined,
+  });
+
+  if (STAFF_ROLES.includes(user.role)) {
+    const staff = db.prepare(`
+      SELECT u.id, u.name, u.role, f.name AS facility_name
+      FROM users u LEFT JOIN facilities f ON f.id = u.facility_id
+      WHERE u.status = 'ACTIVE' AND u.role IN ('ASHA','DOCTOR','SPECIALIST','ADMIN') AND u.id != ?
+      ORDER BY u.role, u.name LIMIT 300
+    `).all(user.id);
+
+    const scope = accessiblePatientIds(user, db);
+    const patientRows = scope && scope.length
+      ? db.prepare(`
+          SELECT u.id, u.name, u.role, NULL AS facility_name
+          FROM patients p JOIN users u ON u.id = p.user_id
+          WHERE u.status = 'ACTIVE' AND p.id IN (${scope.map(() => '?').join(',')})
+          ORDER BY u.name LIMIT 200
+        `).all(...scope)
+      : [];
+    return [...staff, ...patientRows].map(row);
+  }
+
+  if (user.role === 'PATIENT') {
+    const ids = patientRepository.idsForPatientUser(user.id, db);
+    if (!ids.length) return [];
+    const inList = ids.map(() => '?').join(',');
+    return db.prepare(`
+      SELECT DISTINCT u.id, u.name, u.role, f.name AS facility_name
+      FROM users u LEFT JOIN facilities f ON f.id = u.facility_id
+      WHERE u.status = 'ACTIVE' AND u.id IN (
+        SELECT assigned_asha_id FROM patients WHERE id IN (${inList})
+        UNION SELECT doctor_id FROM consultations WHERE patient_id IN (${inList})
+        UNION SELECT doctor_id FROM appointments WHERE patient_id IN (${inList})
+        UNION SELECT referred_to FROM referrals WHERE patient_id IN (${inList})
+      )
+      ORDER BY u.role, u.name
+    `).all(...ids, ...ids, ...ids, ...ids).map(row);
+  }
+
+  return [];
 }
 
 export function listConversations(user, { page = 1, limit = 20 } = {}) {
@@ -33,7 +88,12 @@ export function listConversations(user, { page = 1, limit = 20 } = {}) {
     `)
     .all(user.id, user.id, limit, (page - 1) * limit);
 
-  return { items, total };
+  // The other people in each conversation, so a thread can be titled by them.
+  const memberStmt = db.prepare(`
+    SELECT u.id, u.name, u.role FROM conversation_members cm JOIN users u ON u.id = cm.user_id
+    WHERE cm.conversation_id = ? AND cm.user_id != ? ORDER BY u.name
+  `);
+  return { items: items.map((c) => ({ ...c, members: memberStmt.all(c.id, user.id) })), total };
 }
 
 export function createConversation(user, { subject, patientId, memberIds = [] }, requestMeta = {}) {
@@ -46,7 +106,8 @@ export function createConversation(user, { subject, patientId, memberIds = [] },
       VALUES (?, ?, ?, ?, ?, ?)
     `).run(id, subject ?? null, patientId ?? null, user.id, ts, ts);
 
-    // The creator is always a member.
+    // The creator is always a member; everyone else must be one of their contacts.
+    const allowed = new Set(messagingContacts(user, db).map((c) => c.id));
     const unique = [...new Set([user.id, ...memberIds])];
     const addMember = db.prepare(`
       INSERT INTO conversation_members (id, conversation_id, user_id, joined_at)
@@ -54,7 +115,7 @@ export function createConversation(user, { subject, patientId, memberIds = [] },
     `);
 
     for (const memberId of unique) {
-      if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(memberId)) {
+      if (memberId !== user.id && !allowed.has(memberId)) {
         throw new NotFoundError(`User ${memberId}`);
       }
       addMember.run(crypto.randomUUID(), id, memberId, ts);

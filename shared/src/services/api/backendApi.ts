@@ -21,6 +21,15 @@ export interface PatientSummary {
   registeredDate?: string;
 }
 
+/** A single patient record, as GET /api/patients/:id returns it. */
+export interface PatientDetail extends PatientSummary {
+  address?: string;
+  emergencyContact?: { name: string; phone: string };
+  assignedAsha?: { name: string; phone?: string; village?: string };
+  allergies: { id: string; substance: string; reaction?: string; severity?: string }[];
+  chronicConditions: { id: string; condition: string; status: string; diagnosedDate?: string }[];
+}
+
 export interface FamilyMemberRecord {
   id: string;
   relatedPatientId?: string;
@@ -210,6 +219,7 @@ export interface TreatmentPlanRecord {
   patientName: string;
   patientAbhaId?: string;
   patientVillage?: string;
+  ashaName?: string;
   referralId?: string;
   referralCode?: string;
   authorId?: string;
@@ -230,6 +240,33 @@ export interface TreatmentPlanRecord {
     completed: boolean;
     completedAt?: string;
   }[];
+}
+
+export interface MessagingContact {
+  id: string;
+  name: string;
+  role: string;
+  facilityName?: string;
+}
+
+export interface ConversationRecord {
+  id: string;
+  subject?: string;
+  lastMessage?: string;
+  unreadCount: number;
+  updatedAt: string;
+  members: { id: string; name: string; role: string }[];
+}
+
+export interface ChatMessageRecord {
+  id: string;
+  conversationId: string;
+  senderId?: string;
+  senderName?: string;
+  senderRole?: string;
+  text: string;
+  isRead?: boolean;
+  timestamp: string;
 }
 
 export interface StaffRecord {
@@ -385,7 +422,7 @@ export const backendApi = {
   // Patients
   getPatients: (params: { search?: string; district?: string; page?: number; limit?: number } = {}) =>
     api.get<Paginated<PatientSummary>>('/api/patients', { query: page(params) as never }),
-  getPatient: (id: string) => api.get<PatientSummary>(`/api/patients/${id}`),
+  getPatient: (id: string) => api.get<PatientDetail>(`/api/patients/${id}`),
   createPatient: (body: Partial<PatientSummary> & { name: string }) =>
     api.post<PatientSummary>('/api/patients', body),
   updatePatient: (id: string, body: Partial<PatientSummary> & { emergencyContact?: string; emergencyContactPhone?: string }) =>
@@ -490,6 +527,22 @@ export const backendApi = {
   getUnreadCount: () => api.get<{ unread: number }>('/api/notifications/unread-count'),
   markNotificationRead: (id: string) => api.patch<NotificationRecord>(`/api/notifications/${id}/read`),
   markAllNotificationsRead: () => api.post<{ updated: number }>('/api/notifications/read-all'),
+  /** Pages the patient's ASHA and the patient with a CRITICAL notification. */
+  sendUrgentAlert: (patientId: string, message: string, title?: string) =>
+    api.post<{ patientId: string; patientName: string; notified: ('ASHA' | 'PATIENT')[] }>(
+      '/api/notifications/urgent-alert', { patientId, title, message }
+    ),
+
+  // Messaging
+  getMessagingContacts: () => api.get<MessagingContact[]>('/api/conversations/contacts'),
+  getConversations: () => api.get<Paginated<ConversationRecord>>('/api/conversations', { query: { limit: 100 } }),
+  createConversation: (memberIds: string[], subject?: string) =>
+    api.post<{ id: string; subject?: string }>('/api/conversations', { memberIds, subject }),
+  getConversationMessages: (conversationId: string) =>
+    api.get<Paginated<ChatMessageRecord>>(`/api/conversations/${conversationId}/messages`, { query: { limit: 100 } }),
+  sendChatMessage: (conversationId: string, body: string) =>
+    api.post<ChatMessageRecord>(`/api/conversations/${conversationId}/messages`, { body }),
+  markMessageRead: (messageId: string) => api.patch<{ id: string; isRead: boolean }>(`/api/messages/${messageId}/read`),
 
   // Staff directory (admin only)
   getStaff: (params: { role?: string; district?: string; search?: string } = {}) =>
@@ -524,6 +577,30 @@ export const backendApi = {
     api.get<Record<string, unknown>>(`/api/analytics/${scope}`),
   getAshaAnalytics: () => api.get<AshaAnalytics>('/api/analytics/asha'),
   getDoctorAnalytics: () => api.get<DoctorAnalytics>('/api/analytics/doctor'),
+  getAshaHouseholds: () =>
+    api.get<{
+      patientId: string;
+      name: string;
+      gender?: string;
+      dateOfBirth?: string;
+      phone?: string;
+      village?: string;
+      taluka?: string;
+      district?: string;
+      address?: string;
+      householdId?: string;
+      lastVisit?: string;
+      vaccinesDue: number;
+      status: 'critical' | 'high_risk' | 'due' | 'routine';
+      alerts: string[];
+    }[]>('/api/analytics/asha/households'),
+  getAshaMonthlyReport: (month: string) =>
+    api.get<{
+      month: string;
+      assignedPatients: number;
+      rows: { key: string; indicator: string; value: number }[];
+      pending: { vaccinesDue: number; highRiskPregnancies: number; openTasks: number };
+    }>('/api/analytics/asha/monthly', { query: { month } }),
   getAdminAnalytics: (params: { from?: string; to?: string; district?: string } = {}) =>
     api.get<AdminAnalytics>('/api/analytics/admin', { query: params }),
   getDistrictAnalytics: () => api.get<DistrictAnalyticsRecord[]>('/api/analytics/districts'),

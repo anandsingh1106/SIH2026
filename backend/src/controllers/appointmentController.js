@@ -4,6 +4,7 @@ import {
   createAppointment,
   cancelAppointment,
   rescheduleAppointment,
+  listBookableDoctors,
 } from '../services/appointmentService.js';
 import { getDb } from '../db/connection.js';
 import { toPublicAppointment } from '../utils/mappers.js';
@@ -42,6 +43,14 @@ export function getAppointments(req, res, next) {
     const { page, limit, ...filters } = req.validatedQuery;
     const { items, total } = listAppointments(req.user, { ...filters, page, limit });
     return sendPaginated(res, items.map(toPublicAppointment), { page, limit, total });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export function getBookableDoctors(req, res, next) {
+  try {
+    return sendSuccess(res, listBookableDoctors(req.validatedQuery));
   } catch (err) {
     next(err);
   }

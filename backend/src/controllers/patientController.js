@@ -45,6 +45,10 @@ export function getPatientById(req, res, next) {
       allergies: patient.allergies.map(toPublicAllergy),
       chronicConditions: patient.chronicConditions.map(toPublicCondition),
       familyMembers: patient.familyMembers.map(toPublicFamilyMember),
+      assignedAsha: patient.assignedAsha
+        ? { name: patient.assignedAsha.name, phone: patient.assignedAsha.phone || undefined,
+            village: patient.assignedAsha.village || undefined }
+        : undefined,
     });
   } catch (err) { next(err); }
 }

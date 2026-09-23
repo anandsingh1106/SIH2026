@@ -508,4 +508,27 @@ describe('messaging', () => {
     const notif = getDb().prepare("SELECT * FROM notifications WHERE type='MESSAGE' AND user_id=?").get(asha.id);
     expect(notif).toBeTruthy();
   });
+
+  it('offers a patient only their own care team as contacts', async () => {
+    const res = await request(app).get('/api/conversations/contacts').set('Cookie', authCookie(patientUser));
+    expect(res.status).toBe(200);
+    // The patient's assigned ASHA, and nobody they have no link to.
+    expect(res.body.data.map((c) => c.id)).toEqual([asha.id]);
+  });
+
+  it('refuses to add someone who is not a contact', async () => {
+    const res = await request(app).post('/api/conversations').set('Cookie', authCookie(patientUser))
+      .send({ memberIds: [admin.id] });
+    expect(res.status).toBe(404);
+
+    const ok = await request(app).post('/api/conversations').set('Cookie', authCookie(patientUser))
+      .send({ memberIds: [asha.id] });
+    expect(ok.status).toBe(201);
+  });
+
+  it('names the other members of each conversation', async () => {
+    await request(app).post('/api/conversations').set('Cookie', authCookie(doctor)).send({ memberIds: [asha.id] });
+    const res = await request(app).get('/api/conversations').set('Cookie', authCookie(doctor));
+    expect(res.body.data.items[0].members).toEqual([{ id: asha.id, name: 'ASHA One', role: 'asha' }]);
+  });
 });

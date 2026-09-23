@@ -1,10 +1,16 @@
-import React from 'react';
-import { Newspaper, Calendar, ArrowRight, BellRing, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Newspaper, BellRing } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
-import { useToast } from '../../hooks/useToast';
 
 export const NewsPage: React.FC = () => {
-  const toast = useToast();
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const articles = [
     {
       id: 'news-1',
@@ -75,14 +81,8 @@ export const NewsPage: React.FC = () => {
             <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-4xl">
               {feat.summary}
             </p>
-            <div className="pt-2 flex items-center justify-between text-xs text-ink-soft border-t border-line">
+            <div className="pt-2 text-xs text-ink-soft border-t border-line">
               <span className="font-semibold">Source: {feat.source}</span>
-              <button
-                onClick={() => toast.info('Full bulletin not available', 'This build carries headline summaries only.')}
-                className="font-bold text-gov-700 hover:underline flex items-center gap-1"
-              >
-                Read Official Bulletin →
-              </button>
             </div>
           </div>
         ))}
@@ -102,16 +102,19 @@ export const NewsPage: React.FC = () => {
                   <span className="text-[11px] text-ink-soft">{art.date}</span>
                 </div>
                 <h3 className="font-bold text-ink text-sm leading-snug">{art.title}</h3>
-                <p className="text-xs text-ink-muted leading-relaxed line-clamp-3">{art.summary}</p>
+                <p className={`text-xs text-ink-muted leading-relaxed ${expanded.has(art.id) ? '' : 'line-clamp-3'}`}>
+                  {art.summary}
+                </p>
               </div>
 
               <div className="mt-5 pt-3 border-t border-line flex items-center justify-between text-xs">
                 <span className="text-[11px] text-ink-soft truncate max-w-[160px]">{art.source}</span>
                 <button
-                  onClick={() => toast.info('Full report not available', 'This build carries headline summaries only.')}
+                  onClick={() => toggle(art.id)}
+                  aria-expanded={expanded.has(art.id)}
                   className="font-bold text-gov-700 hover:underline"
                 >
-                  Read More →
+                  {expanded.has(art.id) ? 'Show Less' : 'Read More'}
                 </button>
               </div>
             </div>

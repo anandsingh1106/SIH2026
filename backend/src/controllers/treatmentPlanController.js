@@ -11,6 +11,7 @@ const toPublicPlan = (r) => ({
   patientName: r.patient_name,
   patientAbhaId: r.patient_abha_id || undefined,
   patientVillage: r.patient_village || undefined,
+  ashaName: r.asha_name || undefined,
   referralId: r.referral_id || undefined,
   referralCode: r.referral_code || undefined,
   authorId: r.created_by || undefined,

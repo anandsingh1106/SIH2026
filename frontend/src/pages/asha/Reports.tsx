@@ -1,162 +1,175 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import { BarChart3, Download, Printer, CheckCircle2, DollarSign, Calendar } from 'lucide-react';
+import { BarChart3, Download, Printer } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
+import { backendApi } from '@arogyasetu/shared/services/api';
+import { useAuth } from '../../services/auth/authContext';
 import { useToast } from '../../hooks/useToast';
+
+type MonthlyReport = Awaited<ReturnType<typeof backendApi.getAshaMonthlyReport>>;
+
+/** The current month and the five before it, newest first, as YYYY-MM. */
+const recentMonths = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    return {
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleString('en-IN', { month: 'long', year: 'numeric' }),
+    };
+  });
+};
 
 export const AshaReportsPage: React.FC = () => {
   const toast = useToast();
-  const [selectedMonth, setSelectedMonth] = useState('August 2026');
+  const { currentUser } = useAuth();
+  const months = recentMonths();
+  const [month, setMonth] = useState(months[0].value);
+  const [report, setReport] = useState<MonthlyReport | null>(null);
+  const [error, setError] = useState('');
 
-  const performanceMetrics = [
-    { indicator: 'Total Village Households Surveyed', target: 284, achieved: 284, percentage: '100%' },
-    { indicator: 'Early ANC Registrations (First Trimester)', target: 12, achieved: 11, percentage: '91.6%' },
-    { indicator: 'Full Immunization (0-1 Year Infants)', target: 18, achieved: 17, percentage: '94.4%' },
-    { indicator: 'NCD CBAC Questionnaires Completed (30+)', target: 45, achieved: 42, percentage: '93.3%' },
-    { indicator: 'High-Risk Maternal Referrals Facilitated', target: 4, achieved: 4, percentage: '100%' },
-    { indicator: 'Institutional Deliveries Accompanied', target: 6, achieved: 6, percentage: '100%' },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    setReport(null);
+    setError('');
+    backendApi
+      .getAshaMonthlyReport(month)
+      .then((r) => { if (!cancelled) setReport(r); })
+      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Could not build the report.'); });
+    return () => { cancelled = true; };
+  }, [month]);
 
-  const incentives = [
-    { activity: 'Facilitating Institutional Delivery under JSY (Rural)', rate: '₹600 / Delivery', count: 6, total: '₹3,600' },
-    { activity: 'Complete Infant Immunization Tracking (1 Year)', rate: '₹500 / Child', count: 17, total: '₹8,500' },
-    { activity: 'Community NCD CBAC Screening Surveys', rate: '₹10 / Form', count: 42, total: '₹420' },
-    { activity: 'High-Risk Pregnancy Home Monitoring & Escort', rate: '₹400 / Case', count: 4, total: '₹1,600' },
-    { activity: 'VHND / Anganwadi Nutrition Session Mobilization', rate: '₹200 / Session', count: 4, total: '₹800' },
-  ];
+  const monthLabel = months.find((m) => m.value === month)?.label ?? month;
 
-  const totalIncentive = '₹14,920';
+  const exportCsv = () => {
+    if (!report) return;
+    const lines = [
+      ['Monthly Progress Report', monthLabel],
+      ['ASHA', currentUser?.name ?? ''],
+      ['Assigned patients', String(report.assignedPatients)],
+      [],
+      ['Indicator', 'Count'],
+      ...report.rows.map((r) => [r.indicator, String(r.value)]),
+      [],
+      ['Still open', 'Count'],
+      ['Vaccine doses due or overdue', String(report.pending.vaccinesDue)],
+      ['High-risk pregnancies being followed', String(report.pending.highRiskPregnancies)],
+      ['Open tasks', String(report.pending.openTasks)],
+    ];
+    const csv = lines.map((l) => l.map((c) => (/[",\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `asha-mpr-${month}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success('Report downloaded', monthLabel);
+  };
 
   return (
     <div className="space-y-6">
       <Breadcrumbs
         items={[
           { label: 'ASHA Workspace', href: '/asha/dashboard' },
-          { label: 'Monthly ASHA Progress Report (MPR) & Incentives' },
+          { label: 'Monthly ASHA Progress Report (MPR)' },
         ]}
       />
 
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-gov-700" />
-            Monthly ASHA Progress Report (MPR) & Performance Ledger
+            Monthly ASHA Progress Report (MPR)
           </h1>
           <p className="text-xs text-ink-soft mt-0.5">
-            Auto-generated service indicators and verified performance-based remuneration calculation
+            Counted from the visits, screenings and records you entered in the app
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            leftIcon={<Printer className="w-4 h-4" />}
-            onClick={() => window.print()}
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="px-3 py-2 border border-line rounded-lg text-xs font-semibold bg-surface"
+            aria-label="Reporting month"
           >
+            {months.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+          <Button size="sm" variant="outline" leftIcon={<Printer className="w-4 h-4" />} onClick={() => window.print()} disabled={!report}>
             Print MPR
           </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            leftIcon={<Download className="w-4 h-4" />}
-            onClick={() => toast.info('Export not available in this build', 'Monthly Progress Report export is not implemented yet.')}
-          >
+          <Button size="sm" variant="primary" leftIcon={<Download className="w-4 h-4" />} onClick={exportCsv} disabled={!report}>
             Export CSV
           </Button>
         </div>
       </div>
 
-      {/* Overview Cards */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 font-medium">{error}</div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface p-5 rounded-2xl border border-line shadow-xs space-y-1">
-          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Reporting Cycle</div>
-          <div className="text-xl font-bold text-ink">{selectedMonth}</div>
-          <div className="text-[11px] text-gov-700 font-medium">PHC Paud • Mulshi Block</div>
+          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Reporting Month</div>
+          <div className="text-xl font-bold text-ink">{monthLabel}</div>
+          <div className="text-[11px] text-gov-700 font-medium">
+            {[currentUser?.name, currentUser?.facilityName].filter(Boolean).join(' • ')}
+          </div>
         </div>
 
         <div className="bg-surface p-5 rounded-2xl border border-line shadow-xs space-y-1">
-          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Overall KPI Compliance</div>
-          <div className="text-xl font-bold text-emerald-600">96.5% Target Achieved</div>
-          <div className="text-[11px] text-ink-soft">Grade A Frontline Performance</div>
+          <div className="text-xs text-ink-soft font-bold uppercase tracking-wider">Assigned Patients</div>
+          <div className="text-xl font-bold text-ink">{report ? report.assignedPatients : '…'}</div>
+          <div className="text-[11px] text-ink-soft">
+            {report ? `${report.rows.find((r) => r.key === 'homeVisits')?.value ?? 0} home visits this month` : ' '}
+          </div>
         </div>
 
         <div className="bg-gov-900 text-white p-5 rounded-2xl shadow-md border border-gov-800 space-y-1">
-          <div className="text-xs text-gov-300 font-bold uppercase tracking-wider">Estimated Monthly Remuneration</div>
-          <div className="text-2xl font-extrabold text-emerald-400">{totalIncentive}</div>
-          <div className="text-[11px] text-gov-300">Direct Benefit Transfer (DBT) Ready</div>
+          <div className="text-xs text-gov-300 font-bold uppercase tracking-wider">Still Open</div>
+          {report ? (
+            <div className="text-sm font-semibold space-y-0.5">
+              <p>{report.pending.vaccinesDue} vaccine doses due</p>
+              <p>{report.pending.highRiskPregnancies} high-risk pregnancies</p>
+              <p>{report.pending.openTasks} open tasks</p>
+            </div>
+          ) : (
+            <div className="text-xl font-bold">…</div>
+          )}
         </div>
       </div>
 
-      {/* Section 1: KPI Achievements */}
       <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-        <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
-          Village Health Indicators & Performance Summary
-        </h3>
+        <h3 className="font-bold text-ink text-sm uppercase tracking-wider">Activity in {monthLabel}</h3>
 
         <div className="overflow-x-auto rounded-xl border border-line">
           <table className="w-full text-xs text-left">
             <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
               <tr>
-                <th className="p-3">Healthcare Indicator / Milestone</th>
-                <th className="p-3">Target</th>
-                <th className="p-3">Achieved</th>
-                <th className="p-3">Performance %</th>
-                <th className="p-3">Status</th>
+                <th className="p-3">Indicator</th>
+                <th className="p-3 text-right">Count</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line text-ink">
-              {performanceMetrics.map((m, idx) => (
-                <tr key={idx} className="hover:bg-sand-50">
-                  <td className="p-3 font-semibold text-ink">{m.indicator}</td>
-                  <td className="p-3 font-mono">{m.target}</td>
-                  <td className="p-3 font-mono font-bold text-gov-800">{m.achieved}</td>
-                  <td className="p-3 font-bold">{m.percentage}</td>
-                  <td className="p-3">
-                    <Badge variant="success" size="sm">
-                      Target Met
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
+              {!report ? (
+                <tr><td colSpan={2} className="p-6 text-center text-ink-soft">{error ? '-' : 'Loading…'}</td></tr>
+              ) : (
+                report.rows.map((r) => (
+                  <tr key={r.key} className="hover:bg-sand-50">
+                    <td className="p-3 font-semibold text-ink">{r.indicator}</td>
+                    <td className="p-3 font-mono font-bold text-gov-800 text-right">{r.value}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Section 2: Incentive Itemization */}
-      <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-ink text-sm uppercase tracking-wider">
-            National Health Mission Incentive Itemization
-          </h3>
-          <span className="text-xs font-bold text-gov-800">Total: {totalIncentive}</span>
-        </div>
-
-        <div className="overflow-x-auto rounded-xl border border-line">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-sand-50 text-sand-700 font-semibold border-b border-line">
-              <tr>
-                <th className="p-3">Approved NHM Activity</th>
-                <th className="p-3">Unit Remuneration Rate</th>
-                <th className="p-3">Verified Units</th>
-                <th className="p-3">Total Payable</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line text-ink">
-              {incentives.map((inc, idx) => (
-                <tr key={idx} className="hover:bg-sand-50">
-                  <td className="p-3 font-semibold text-ink">{inc.activity}</td>
-                  <td className="p-3 text-ink-muted">{inc.rate}</td>
-                  <td className="p-3 font-mono font-bold text-ink">{inc.count}</td>
-                  <td className="p-3 font-mono font-bold text-emerald-700">{inc.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <p className="text-[11px] text-ink-soft">
+          Incentive amounts are set by the state NHM and verified by the ANM, so this report lists the activities only.
+        </p>
       </div>
     </div>
   );

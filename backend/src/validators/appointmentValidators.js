@@ -16,6 +16,10 @@ export const listAppointmentsSchema = paginationSchema.extend({
   to: z.string().regex(DATE_RE, 'to must be YYYY-MM-DD').optional(),
 });
 
+export const bookableDoctorsSchema = z.object({
+  facilityId: z.string().trim().min(1).max(80).optional(),
+});
+
 export const createAppointmentSchema = z.object({
   patientId: z.string().trim().min(1).optional(),
   doctorId: z.string().trim().min(1).optional(),

@@ -41,6 +41,16 @@
     --shell-deep: 10 23 50;     /* #0a1732  sidebar gradient foot     */
   }
 
+  /* High contrast, switched on from Settings: near-black text and firm
+     borders for bright outdoor light and low vision. */
+  :root[data-contrast="high"] {
+    --line: 148 163 184;
+    --line-strong: 100 116 139;
+    --ink: 0 0 0;
+    --ink-muted: 17 24 39;
+    --ink-soft: 55 65 81;
+  }
+
   html {
     scroll-behavior: smooth;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";

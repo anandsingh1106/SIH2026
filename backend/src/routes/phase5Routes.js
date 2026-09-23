@@ -7,7 +7,7 @@ import { aiLimiter } from '../config/rateLimits.js';
 import {
   listInventorySchema, createInventorySchema, adjustStockSchema, transferStockSchema,
   createConversationSchema, sendMessageSchema, syncBatchSchema,
-  analyticsQuerySchema, heatmapQuerySchema, reportParamSchema,
+  analyticsQuerySchema, heatmapQuerySchema, reportParamSchema, ashaMonthlySchema,
   medicineOrderSchema,
   issueTokenSchema, queueParamSchema, tokenParamSchema,
   triageSchema, assistantSchema, drugInteractionSchema, listAuditSchema,
@@ -32,6 +32,8 @@ export const messagingRouter = Router();
 messagingRouter.use(requireAuth);
 messagingRouter.get('/', validate({ query: paginationSchema }), ctrl.getConversations);
 messagingRouter.post('/', validate({ body: createConversationSchema }), ctrl.postConversation);
+// Declared before '/:id/...' so 'contacts' is not read as a conversation id.
+messagingRouter.get('/contacts', ctrl.getMessagingContacts);
 messagingRouter.get('/:id/messages', validate({ params: idParamSchema, query: paginationSchema }), ctrl.getMessages);
 messagingRouter.post('/:id/messages', validate({ params: idParamSchema, body: sendMessageSchema }), ctrl.postMessage);
 
@@ -47,6 +49,8 @@ export const analyticsRouter = Router();
 analyticsRouter.use(requireAuth);
 analyticsRouter.get('/patient', ctrl.getAnalytics('patient'));
 analyticsRouter.get('/asha', ctrl.getAnalytics('asha'));
+analyticsRouter.get('/asha/monthly', validate({ query: ashaMonthlySchema }), ctrl.getAshaMonthlyReport);
+analyticsRouter.get('/asha/households', ctrl.getAshaHouseholds);
 analyticsRouter.get('/doctor', ctrl.getAnalytics('doctor'));
 analyticsRouter.get('/specialist', ctrl.getAnalytics('specialist'));
 analyticsRouter.get('/admin', requireRole('ADMIN'), validate({ query: analyticsQuerySchema }), ctrl.getAnalytics('admin'));

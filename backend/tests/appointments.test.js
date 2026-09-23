@@ -263,3 +263,40 @@ describe('pagination', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('booking with a real doctor', () => {
+  const book = (body) => request(app).post('/api/appointments').set('Cookie', authCookie(patientUser))
+    .send({ date: '2026-12-02', time: '11:00', type: 'in-person', specialty: 'General Medicine', ...body });
+
+  it('lists the doctors at a facility for the booking form', async () => {
+    const res = await request(app).get(`/api/appointments/doctors?facilityId=${facility.id}`)
+      .set('Cookie', authCookie(patientUser));
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual([
+      { id: doctor.id, name: 'Dr Test', role: 'DOCTOR', facilityId: facility.id, facilityName: 'PHC Test' },
+    ]);
+  });
+
+  it('puts a patient booking in the chosen doctor\'s own list', async () => {
+    const created = await book({ doctorId: doctor.id });
+    expect(created.status).toBe(201);
+
+    const row = getDb().prepare('SELECT doctor_id, facility_id FROM appointments WHERE id = ?').get(created.body.data.id);
+    // The facility follows from the doctor when the form sends only the doctor.
+    expect(row).toEqual({ doctor_id: doctor.id, facility_id: facility.id });
+
+    const list = await request(app).get('/api/appointments').set('Cookie', authCookie(doctor));
+    expect(list.body.data.items.map((a) => a.id)).toContain(created.body.data.id);
+  });
+
+  it('rejects a doctor from a different facility', async () => {
+    const elsewhere = createFacility({ name: 'CHC Elsewhere' });
+    const res = await book({ doctorId: doctor.id, facilityId: elsewhere.id });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects ids that match nothing', async () => {
+    expect((await book({ doctorId: 'nobody' })).status).toBe(404);
+    expect((await book({ facilityId: 'nowhere' })).status).toBe(404);
+  });
+});

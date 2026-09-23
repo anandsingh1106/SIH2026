@@ -3,6 +3,7 @@ import { getDb } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
 import { NotFoundError } from '../utils/errors.js';
 import { publish } from './eventBus.js';
+import { canAccessPatient } from './accessControlService.js';
 
 /**
  * Creates a notification. Targets either one user (`userId`) or a broadcast
@@ -42,7 +43,15 @@ export function notify({ userId, role, facilityId, type, title, message, priorit
  */
 export function sendUrgentPatientAlert(user, { patientId, title, message }, db = getDb()) {
   const patient = db.prepare('SELECT * FROM patients WHERE id = ?').get(patientId);
-  if (!patient) throw new NotFoundError('Patient');
+  // A CRITICAL alert about a stranger would let any account page someone's
+  // ASHA, so the sender must already reach this patient: themselves, their
+  // ASHA or clinician, or the specialist the patient was referred to.
+  const referredToSender = patient && !!db
+    .prepare('SELECT 1 FROM referrals WHERE patient_id = ? AND referred_to = ? LIMIT 1')
+    .get(patientId, user.id);
+  if (!patient || !(canAccessPatient(user, patientId, db) || referredToSender)) {
+    throw new NotFoundError('Patient');
+  }
 
   const alertTitle = title || `Urgent: ${patient.name}`;
   const notified = [];

@@ -6,6 +6,31 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../hooks/useToast';
 
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+/**
+ * Opens the material as a printable page. The browser's print dialog offers
+ * "Save as PDF", so this works offline with no PDF library.
+ */
+function printMaterial(doc: { title: string; category: string; lang: string; description: string; content: string }) {
+  const win = window.open('', '_blank', 'width=800,height=900');
+  if (!win) return false;
+  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(doc.title)}</title>
+    <style>body{font-family:system-ui,'Noto Sans Devanagari',sans-serif;margin:32px;color:#111;line-height:1.6}
+    h1{font-size:20px;margin:0 0 4px}.meta{color:#555;font-size:12px;margin-bottom:16px}
+    .desc{font-style:italic;border-left:3px solid #999;padding-left:10px;margin-bottom:16px}
+    .body{white-space:pre-line;font-size:15px}</style></head><body>
+    <h1>${escapeHtml(doc.title)}</h1>
+    <div class="meta">${escapeHtml(doc.category)} • ${escapeHtml(doc.lang)}</div>
+    <p class="desc">${escapeHtml(doc.description)}</p>
+    <div class="body">${escapeHtml(doc.content)}</div></body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
+  return true;
+}
+
 export const AshaDocumentsPage: React.FC = () => {
   const toast = useToast();
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
@@ -88,7 +113,9 @@ export const AshaDocumentsPage: React.FC = () => {
                 size="sm"
                 variant="secondary"
                 leftIcon={<Download className="w-3.5 h-3.5" />}
-                onClick={() => toast.info('Not available in this build', `"${doc.title}" is reference metadata — the document file is not bundled.`)}
+                onClick={() => {
+                  if (!printMaterial(doc)) toast.error('Pop-up blocked', 'Allow pop-ups for this site to save the material as PDF.');
+                }}
               >
                 Save PDF
               </Button>

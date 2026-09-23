@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { useI18n } from '../../hooks/useI18n';
+import { useToast } from '../../hooks/useToast';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
-import { Settings, Globe, Moon, Bell, CloudOff, RefreshCw, Trash2, Database, Download, CheckCircle2 } from 'lucide-react';
+import { getPreferences, setPreferences, playCriticalChime } from '../../utils/preferences';
+import { Settings, Globe, Moon, Bell, CloudOff, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { Button } from '../../components/ui/Button';
 
@@ -10,9 +12,9 @@ export const SettingsPage: React.FC = () => {
   const { currentRole } = useAuth();
   const { language, setLanguage } = useI18n();
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [highContrast, setHighContrast] = useState(false);
-  const [autoSyncInterval, setAutoSyncInterval] = useState('1'); // minutes
+  const toast = useToast();
+  // Kept on this device and applied app-wide, not just while this page is open.
+  const [prefs, setPrefs] = useState(getPreferences);
   const [pendingCount, setPendingCount] = useState(0);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
@@ -30,10 +32,15 @@ export const SettingsPage: React.FC = () => {
   };
 
   const handleClearCache = async () => {
-    if (confirm('Are you sure you want to purge local temporary offline queue cache?')) {
+    if (confirm(`Discard ${pendingCount} record(s) that have not reached the server yet? This cannot be undone.`)) {
       await syncQueueManager.clearQueue();
-      alert('Local offline cache reset successfully.');
+      toast.success('Offline queue cleared');
     }
+  };
+
+  const updatePref = (patch: Parameters<typeof setPreferences>[0]) => {
+    setPrefs(setPreferences(patch));
+    if (patch.criticalChime) playCriticalChime();
   };
 
   return (
@@ -145,13 +152,13 @@ export const SettingsPage: React.FC = () => {
 
           <label className="flex items-center justify-between p-3 bg-sand-50 rounded-xl border border-line cursor-pointer text-xs">
             <div>
-              <span className="font-bold text-ink block">Emergency 108 Transfer Chimes</span>
-              <span className="text-ink-soft">Play high-priority alert sound for incoming critical referrals</span>
+              <span className="font-bold text-ink block">Critical Alert Chime</span>
+              <span className="text-ink-soft">Play a short tone when a critical notification arrives, such as an SOS or emergency referral</span>
             </div>
             <input
               type="checkbox"
-              checked={notificationsEnabled}
-              onChange={(e) => setNotificationsEnabled(e.target.checked)}
+              checked={prefs.criticalChime}
+              onChange={(e) => updatePref({ criticalChime: e.target.checked })}
               className="rounded text-gov-700 w-4 h-4 focus:ring-gov-500"
             />
           </label>
@@ -171,8 +178,8 @@ export const SettingsPage: React.FC = () => {
             </div>
             <input
               type="checkbox"
-              checked={highContrast}
-              onChange={(e) => setHighContrast(e.target.checked)}
+              checked={prefs.highContrast}
+              onChange={(e) => updatePref({ highContrast: e.target.checked })}
               className="rounded text-gov-700 w-4 h-4 focus:ring-gov-500"
             />
           </label>

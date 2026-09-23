@@ -90,6 +90,11 @@ export const heatmapQuerySchema = z.object({
   district: z.string().trim().max(100).optional(),
 });
 
+export const ashaMonthlySchema = z.object({
+  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'month must be YYYY-MM')
+    .default(() => new Date().toISOString().slice(0, 7)),
+});
+
 export const reportParamSchema = z.object({
   type: z.enum(['maternal-child', 'ncd', 'immunization', 'referrals', 'inventory', 'facilities']),
 });

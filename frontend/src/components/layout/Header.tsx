@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { LanguageSelector } from '../ui/LanguageSelector';
 import { Badge } from '../ui/Badge';
+import { getPreferences, playCriticalChime } from '../../utils/preferences';
 
 export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSidebar }) => {
   const { currentUser, currentRole, logout } = useAuth();
@@ -29,9 +30,18 @@ export const Header: React.FC<{ onToggleSidebar?: () => void }> = ({ onToggleSid
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  // Ids already seen, so only a newly arrived critical alert plays the chime.
+  const seenIds = useRef<Set<string> | null>(null);
+
   const fetchNotifs = useCallback(async () => {
     try {
       const { items } = await backendApi.getNotifications();
+      const seen = seenIds.current;
+      if (seen && getPreferences().criticalChime &&
+          items.some((n) => !n.isRead && n.priority === 'CRITICAL' && !seen.has(n.id))) {
+        playCriticalChime();
+      }
+      seenIds.current = new Set(items.map((n) => n.id));
       setNotifications(items);
     } catch {
       // A failed notification poll should not break the shell.
