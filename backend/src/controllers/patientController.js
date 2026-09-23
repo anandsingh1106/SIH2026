@@ -22,8 +22,10 @@ function toPublicFamilyMember(row) {
     relatedPatientId: row.related_patient_id || undefined,
     name: row.related_name || row.name || undefined,
     relationship: row.relationship,
-    dateOfBirth: row.related_dob || undefined,
-    gender: row.related_gender ? String(row.related_gender).toLowerCase() : undefined,
+    dateOfBirth: row.related_dob || row.date_of_birth || undefined,
+    gender: (row.related_gender || row.gender) ? String(row.related_gender || row.gender).toLowerCase() : undefined,
+    abhaId: row.related_abha_id || row.abha_id || undefined,
+    bloodGroup: row.related_blood_group || undefined,
   };
 }
 

@@ -239,6 +239,26 @@ describe('maternal health', () => {
     expect(notif).toBeTruthy();
   });
 
+  it('lists each pregnancy with its visit count and latest readings', async () => {
+    const record = await request(app).post('/api/maternal-records').set('Cookie', authCookie(asha))
+      .send({ patientId: patient.id, lmpDate: '2026-01-01' });
+    const id = record.body.data.id;
+
+    await request(app).post(`/api/maternal-records/${id}/anc-visits`).set('Cookie', authCookie(asha))
+      .send({ visitDate: '2026-03-01', hemoglobin: 9.5, bloodPressureSystolic: 118, bloodPressureDiastolic: 76 });
+    await request(app).post(`/api/maternal-records/${id}/anc-visits`).set('Cookie', authCookie(asha))
+      .send({ visitDate: '2026-04-01', hemoglobin: 10.2, bloodPressureSystolic: 122, bloodPressureDiastolic: 80 });
+
+    const list = await request(app).get('/api/maternal-records').set('Cookie', authCookie(asha));
+    const row = list.body.data.items.find((m) => m.id === id);
+    expect(row).toMatchObject({
+      patientName: patient.name,
+      ancVisitCount: 2,
+      latestHemoglobin: 10.2,
+      latestBp: '122/80',
+    });
+  });
+
   it('rejects an out-of-range haemoglobin value', async () => {
     const record = await request(app).post('/api/maternal-records').set('Cookie', authCookie(asha))
       .send({ patientId: patient.id });

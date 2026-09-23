@@ -297,7 +297,15 @@ export function listMaternalRecords(user, { patientId, highRisk, page = 1, limit
   const total = db.prepare(`SELECT COUNT(*) AS c FROM maternal_records m ${whereSql}`).get(...params).c;
   const items = db
     .prepare(`
-      SELECT m.*, p.name AS patient_name FROM maternal_records m
+      SELECT m.*, p.name AS patient_name, p.phone AS patient_phone,
+        p.village AS patient_village, p.date_of_birth AS patient_dob,
+        (SELECT COUNT(*) FROM anc_visits a WHERE a.maternal_record_id = m.id) AS anc_count,
+        (SELECT a.hemoglobin FROM anc_visits a WHERE a.maternal_record_id = m.id
+           AND a.hemoglobin IS NOT NULL ORDER BY a.visit_date DESC, a.visit_number DESC LIMIT 1) AS latest_hemoglobin,
+        (SELECT a.blood_pressure_systolic || '/' || a.blood_pressure_diastolic FROM anc_visits a
+           WHERE a.maternal_record_id = m.id AND a.blood_pressure_systolic IS NOT NULL
+           ORDER BY a.visit_date DESC, a.visit_number DESC LIMIT 1) AS latest_bp
+      FROM maternal_records m
       LEFT JOIN patients p ON p.id = m.patient_id
       ${whereSql} ORDER BY m.created_at DESC LIMIT ? OFFSET ?
     `)

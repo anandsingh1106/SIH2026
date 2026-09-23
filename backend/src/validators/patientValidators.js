@@ -43,4 +43,10 @@ export const familyMemberSchema = z.object({
   relatedPatientId: z.string().trim().max(80).optional(),
   name: z.string().trim().max(160).optional(),
   relationship: z.string().trim().min(1).max(60),
+  dateOfBirth: dateString.optional(),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  abhaId: abhaIdentifier.optional(),
+}).refine((m) => m.relatedPatientId || m.name, {
+  message: 'Give the member a name, or link an existing patient record.',
+  path: ['name'],
 });
