@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, TextInput, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { dataService } from '../../services/api/dataService';
@@ -68,7 +69,7 @@ export function RegisterPatientScreen({ navigation }: Props) {
         emergencyContact: formData.emergencyContact || { name: 'Family', relationship: 'Spouse', phone: '+91 98000 00000' },
         vitals: formData.vitals,
         riskCategory: formData.riskCategory || 'normal',
-        registeredDate: new Date().toISOString().slice(0, 10),
+        registeredDate: localDateString(),
       };
 
       await dataService.savePatient(newPatient);

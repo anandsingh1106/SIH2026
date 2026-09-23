@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient, Prescription, PrescribedMedicine, Vitals, Referral } from '@arogyasetu/shared/types';
@@ -34,7 +35,7 @@ export const DoctorConsultationPage: React.FC = () => {
   const [followUpDate, setFollowUpDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 30);
-    return d.toISOString().slice(0, 10);
+    return localDateString(d);
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -167,7 +168,7 @@ export const DoctorConsultationPage: React.FC = () => {
         doctorId: '',
         doctorName: '',
         facilityName: '',
-        date: new Date().toISOString().substring(0, 10),
+        date: localDateString(),
         medicines,
         generalAdvice: generalAdvice,
         followUpDate,

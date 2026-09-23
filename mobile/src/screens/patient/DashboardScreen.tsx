@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { dataService } from '../../services/api/dataService';
@@ -57,7 +58,7 @@ export function DashboardScreen({ navigation }: Props) {
           .sort((a, b) => String(a.scheduledDate ?? '').localeCompare(String(b.scheduledDate ?? '')));
         setUpcomingVaccine(pending[0] ?? null);
 
-        const today = new Date().toISOString().slice(0, 10);
+        const today = localDateString();
         const upcoming = appointments
           .filter((a) => a.appointmentDate >= today && a.status !== 'CANCELLED')
           .sort((a, b) =>

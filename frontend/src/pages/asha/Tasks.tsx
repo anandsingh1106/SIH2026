@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { backendApi, PatientSummary } from '@arogyasetu/shared/services/api';
@@ -12,7 +13,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { useToast } from '../../hooks/useToast';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDateString();
 
 const TASK_TYPES = [
   { value: 'home_visit', label: 'Home Visit' },

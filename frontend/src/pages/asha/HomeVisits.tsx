@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../../services/api/dataService';
 import { Patient, HomeVisit, Vitals, Referral } from '@arogyasetu/shared/types';
@@ -59,7 +60,7 @@ export const AshaRecordVisitTab: React.FC = () => {
       ashaId: 'usr-asha-1',
       patientId: selectedPatient.id,
       patientName: selectedPatient.name,
-      date: new Date().toISOString().substring(0, 10),
+      date: localDateString(),
       vitals,
       observations: observations || 'Conducted standard maternal & vital monitoring.',
       dangerSignsIdentified: selectedDangerSigns,

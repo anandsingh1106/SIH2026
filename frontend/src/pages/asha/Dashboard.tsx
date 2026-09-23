@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { dataService } from '../../services/api/dataService';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
 import { Task, Referral, Patient } from '@arogyasetu/shared/types';
@@ -25,7 +26,14 @@ import { Badge } from '../../components/ui/Badge';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { PageHeader, SectionTitle } from '../../components/layout/PageHeader';
 
+// The API reports TODO / IN_PROGRESS / COMPLETED / CANCELLED; the shared
+// mapping only lowercases them, so they never equal the declared 'pending'.
+const isOpenTask = (t: Task) => !['completed', 'cancelled'].includes(String(t.status).toLowerCase());
+
+const PRIORITY_RANK: Record<string, number> = { urgent: 0, critical: 0, high: 1, normal: 2, medium: 2, low: 3 };
+
 export const AshaDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -53,7 +61,17 @@ export const AshaDashboard: React.FC = () => {
     };
   }, []);
 
-  const pendingTasks = tasks.filter((t) => t.status === 'pending');
+  const today = localDateString();
+  const dueDay = (t: Task) => (t.dueDate ?? '').slice(0, 10);
+  // Today's work is everything still open that is due today or already late.
+  const pendingTasks = tasks
+    .filter((t) => isOpenTask(t) && dueDay(t) !== '' && dueDay(t) <= today)
+    .sort((a, b) =>
+      (PRIORITY_RANK[String(a.priority).toLowerCase()] ?? 2) - (PRIORITY_RANK[String(b.priority).toLowerCase()] ?? 2) ||
+      dueDay(a).localeCompare(dueDay(b))
+    );
+  const overdueCount = pendingTasks.filter((t) => dueDay(t) < today).length;
+  const dueTodayCount = pendingTasks.length - overdueCount;
   const criticalReferrals = referrals.filter((r) => r.priority === 'critical' || r.status === 'in_transit');
 
   return (
@@ -108,10 +126,10 @@ export const AshaDashboard: React.FC = () => {
         <MetricCard
           title="Today's Priority Tasks"
           value={pendingTasks.length}
-          subtitle="4 home visits & vaccines"
+          subtitle={`${dueTodayCount} due today • ${overdueCount} overdue`}
           variant="teal"
           icon={<CheckSquare className="w-5 h-5 text-gov-700" />}
-          onClick={() => {}}
+          onClick={() => navigate('/asha/tasks')}
         />
         <MetricCard
           title="High-Risk Maternal (ANC)"
@@ -152,28 +170,41 @@ export const AshaDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {pendingTasks.slice(0, 4).map((task) => (
+              {pendingTasks.length === 0 && (
+                <p className="p-4 text-center text-xs text-ink-soft bg-sand-50 border border-dashed border-line rounded-xl">
+                  Nothing due today. You are all caught up.
+                </p>
+              )}
+              {pendingTasks.slice(0, 4).map((task) => {
+                const priority = String(task.priority ?? '').toLowerCase();
+                const overdue = dueDay(task) < today;
+                return (
                 <div
                   key={task.id}
                   className="p-3.5 bg-sand-50 border border-line rounded-xl flex items-start justify-between gap-3 text-xs hover:bg-sand-100/80 transition-colors"
                 >
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge
-                        variant={task.priority === 'critical' ? 'critical' : task.priority === 'high' ? 'danger' : 'primary'}
+                        variant={priority === 'urgent' || priority === 'critical' ? 'critical' : priority === 'high' ? 'danger' : 'primary'}
                         size="sm"
                       >
-                        {(task.priority ?? '').toUpperCase()}
+                        {priority.toUpperCase()}
                       </Badge>
+                      {overdue && <Badge variant="warning" size="sm">OVERDUE</Badge>}
                       <span className="font-bold text-ink text-sm">{task.title}</span>
                     </div>
-                    <p className="text-ink-muted">{task.description}</p>
-                    <div className="text-[11px] text-ink-soft flex items-center gap-2 pt-0.5">
-                      <span>👤 {task.patientName}</span>
-                      <span>•</span>
-                      <span>🏠 {task.village} ({task.householdNumber})</span>
-                      <span>•</span>
-                      <span>⏰ Due: {task.dueTime}</span>
+                    {task.description && task.description !== task.title && (
+                      <p className="text-ink-muted">{task.description}</p>
+                    )}
+                    <div className="text-[11px] text-ink-soft flex items-center gap-2 pt-0.5 flex-wrap">
+                      {task.patientName && (
+                        <>
+                          <span>👤 {task.patientName}</span>
+                          <span>•</span>
+                        </>
+                      )}
+                      <span>⏰ Due: {overdue ? dueDay(task) : 'Today'}</span>
                     </div>
                   </div>
 
@@ -183,7 +214,8 @@ export const AshaDashboard: React.FC = () => {
                     </Button>
                   </Link>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

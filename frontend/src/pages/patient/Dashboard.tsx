@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
-import { formatAbhaNumber } from '@arogyasetu/shared/utils';
+import { formatAbhaNumber, localDateString } from '@arogyasetu/shared/utils';
 import { MetricCard } from '../../components/ui/MetricCard';
 import { dataService } from '../../services/api/dataService';
 import type { Appointment, LabOrder, Patient, Prescription, Referral, Vaccination } from '@arogyasetu/shared/types';
@@ -65,7 +65,7 @@ export const PatientDashboard: React.FC = () => {
         setUpcomingVaccine(pending[0] ?? null);
 
         // The soonest appointment that has not already happened.
-        const today = new Date().toISOString().slice(0, 10);
+        const today = localDateString();
         const upcoming = appointments
           .filter((a) => a.appointmentDate >= today && a.status !== 'CANCELLED')
           .sort((a, b) =>

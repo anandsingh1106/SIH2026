@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import {
   View, Text, ScrollView, Pressable, StyleSheet, TextInput, Modal, ActivityIndicator,
 } from 'react-native';
@@ -10,7 +11,7 @@ import type { AshaStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AshaStackParamList, 'Tasks'>;
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDateString();
 
 const TASK_TYPES = [
   { value: 'home_visit', label: 'Home Visit' },

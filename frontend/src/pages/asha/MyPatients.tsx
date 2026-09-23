@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { localDateString } from '@arogyasetu/shared/utils';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, MapPin, Phone, Search, RefreshCcw, CalendarPlus } from 'lucide-react';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
@@ -81,7 +82,7 @@ export const AshaMyPatientsPage: React.FC = () => {
         patientId: p.id,
         type: 'home_visit',
         priority: 'medium',
-        dueDate: new Date().toISOString().slice(0, 10),
+        dueDate: localDateString(),
       } as never);
       toast.success('Visit scheduled', `A task was added for ${p.name}.`);
     } catch (err) {
