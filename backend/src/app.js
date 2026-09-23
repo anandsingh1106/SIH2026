@@ -32,7 +32,9 @@ export function createApp() {
   const app = express();
 
   // Rate limiters key on req.ip, which behind a proxy is the proxy without this.
-  app.set('trust proxy', 1);
+  // Set TRUST_PROXY to the number of proxies in front of the API, e.g. 2 when
+  // the frontend host forwards /api to a platform that adds its own proxy.
+  app.set('trust proxy', env.TRUST_PROXY);
 
   // Never advertise the server stack; it only helps someone fingerprint us.
   app.disable('x-powered-by');
