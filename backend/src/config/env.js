@@ -83,6 +83,15 @@ export const env = {
   ABDM_CLIENT_SECRET: optional('ABDM_CLIENT_SECRET'),
   ABDM_ENV: optional('ABDM_ENV', 'sandbox'),
 
+  // TURN relay for video calls between different networks. Either Cloudflare
+  // Realtime TURN, or any TURN server with fixed credentials. Without one,
+  // calls use STUN only and can fail on mobile data or strict office networks.
+  TURN_CLOUDFLARE_KEY_ID: optional('TURN_CLOUDFLARE_KEY_ID'),
+  TURN_CLOUDFLARE_API_TOKEN: optional('TURN_CLOUDFLARE_API_TOKEN'),
+  TURN_URLS: optional('TURN_URLS'),
+  TURN_USERNAME: optional('TURN_USERNAME'),
+  TURN_CREDENTIAL: optional('TURN_CREDENTIAL'),
+
   SENDGRID_API_KEY: optional('SENDGRID_API_KEY'),
   SENDGRID_FROM_EMAIL: optional('SENDGRID_FROM_EMAIL'),
 

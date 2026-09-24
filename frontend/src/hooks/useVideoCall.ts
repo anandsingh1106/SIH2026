@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase/client';
+import { appointmentsApi } from '../services/api/appointmentsApi';
 
 /**
  * Peer-to-peer video consultation over WebRTC.
@@ -9,9 +10,10 @@ import { getSupabase, isSupabaseConfigured } from '../lib/supabase/client';
  * server is needed. Media itself never touches Supabase — it flows directly
  * between the two peers.
  *
- * Both sides join the same channel, named after the appointment. The side that
- * arrives second sees the first already present and makes the offer, which
- * avoids both peers offering at once (glare).
+ * Both sides join the same channel, named after the appointment. Only the
+ * doctor ever makes the offer, once it sees the patient in the room. If both
+ * sides offered, their presence events can fire together and the two offers
+ * collide (glare), leaving the call stuck on "connecting".
  */
 
 export type CallStatus =
@@ -32,10 +34,10 @@ export interface UseVideoCallOptions {
   autoStart?: boolean;
 }
 
-// Public STUN only. On the same machine or the same LAN this is enough; two
-// peers on different networks behind strict NATs would additionally need a
-// TURN relay, which requires a credentialled server.
-const ICE_SERVERS: RTCIceServer[] = [
+// Used only if the server cannot be asked. STUN alone connects peers on the
+// same network or friendly NATs; mobile data and strict office networks need
+// the TURN relay the server hands out with its credentials.
+const FALLBACK_ICE_SERVERS: RTCIceServer[] = [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
 ];
 
@@ -52,8 +54,10 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<ReturnType<ReturnType<typeof getSupabase>['channel']> | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
-  const politeRef = useRef(false);
+  /** The patient presence (by join time) the doctor last offered to. */
+  const offeredToRef = useRef<number | null>(null);
   const startedRef = useRef(false);
+  const iceServersRef = useRef<RTCIceServer[]>(FALLBACK_ICE_SERVERS);
   /** ICE candidates that arrive before the remote description is set. */
   const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
 
@@ -76,11 +80,12 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
     setLocalStream(null);
     setRemoteStream(null);
     startedRef.current = false;
+    offeredToRef.current = null;
     pendingCandidates.current = [];
   }, []);
 
   const createPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
 
     pc.onicecandidate = (e) => {
       if (e.candidate) send('ice', { candidate: e.candidate.toJSON(), from: role });
@@ -107,9 +112,30 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
       }
     };
 
+    const stream = localStreamRef.current;
+    if (stream) {
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    } else {
+      // With no local media we still need to negotiate, or there is nothing to
+      // receive either.
+      pc.addTransceiver('video', { direction: 'recvonly' });
+      pc.addTransceiver('audio', { direction: 'recvonly' });
+    }
+
     pcRef.current = pc;
     return pc;
   }, [role, send]);
+
+  /**
+   * Starts a fresh connection when the other side rejoins (for example after
+   * reloading the page). The old one was negotiated with a browser that is gone.
+   */
+  const resetPeer = useCallback(() => {
+    pcRef.current?.close();
+    pendingCandidates.current = [];
+    setRemoteStream(null);
+    return createPeerConnection();
+  }, [createPeerConnection]);
 
   /** Adds a candidate now, or queues it until the remote description exists. */
   const addIceCandidate = useCallback(async (candidate: RTCIceCandidateInit) => {
@@ -187,16 +213,16 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
       setLocalStream(stream);
     }
 
-    const pc = createPeerConnection();
-
-    if (stream) {
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-    } else {
-      // With no local media we still need to negotiate, or there is nothing to
-      // receive either.
-      pc.addTransceiver('video', { direction: 'recvonly' });
-      pc.addTransceiver('audio', { direction: 'recvonly' });
+    try {
+      const { iceServers } = await appointmentsApi.iceServers();
+      if (iceServers.length) iceServersRef.current = iceServers;
+    } catch {
+      // Keep the STUN fallback; the call can still connect on friendly networks.
     }
+    // The page may have been left while waiting for the server.
+    if (!startedRef.current) return;
+
+    createPeerConnection();
 
     const supabase = getSupabase();
     const channel = supabase.channel(`call:${roomId}`, {
@@ -206,9 +232,9 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
 
     channel
       .on('broadcast', { event: 'offer' }, async ({ payload }) => {
-        if (payload.from === role) return;
-        const peer = pcRef.current;
-        if (!peer) return;
+        if (payload.from === role || !pcRef.current) return;
+        // A second offer means the doctor rejoined with a new connection.
+        const peer = pcRef.current.remoteDescription ? resetPeer() : pcRef.current;
         await peer.setRemoteDescription(payload.sdp);
         await drainCandidates();
         const answer = await peer.createAnswer();
@@ -233,13 +259,15 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
         setStatus('waiting');
       })
       .on('presence', { event: 'sync' }, () => {
-        const peers = Object.keys(channel.presenceState());
-        // Someone else is already here, so this side offers. The first arrival
-        // stays quiet and waits to be called.
-        if (peers.length > 1 && !politeRef.current) {
-          politeRef.current = true;
-          void makeOffer();
-        }
+        if (role !== 'doctor') return;
+        const patient = (channel.presenceState() as Record<string, { joinedAt?: number }[]>).patient?.[0];
+        const joinedAt = patient?.joinedAt;
+        // Offer once per patient arrival. A new join time means the patient
+        // reloaded, so the old connection is replaced before offering again.
+        if (joinedAt === undefined || offeredToRef.current === joinedAt) return;
+        if (offeredToRef.current !== null) resetPeer();
+        offeredToRef.current = joinedAt;
+        void makeOffer();
       });
 
     await channel.subscribe(async (state) => {
@@ -251,7 +279,7 @@ export function useVideoCall({ roomId, role, autoStart = false }: UseVideoCallOp
         setStatus('error');
       }
     });
-  }, [addIceCandidate, createPeerConnection, drainCandidates, makeOffer, role, roomId, send]);
+  }, [addIceCandidate, createPeerConnection, drainCandidates, makeOffer, resetPeer, role, roomId, send]);
 
   const hangUp = useCallback(() => {
     send('bye', { from: role });

@@ -6,6 +6,7 @@ import {
   rescheduleAppointment,
   listBookableDoctors,
 } from '../services/appointmentService.js';
+import { getIceServers } from '../services/iceServerService.js';
 import { getDb } from '../db/connection.js';
 import { toPublicAppointment } from '../utils/mappers.js';
 import { sendSuccess, sendPaginated } from '../utils/response.js';
@@ -43,6 +44,14 @@ export function getAppointments(req, res, next) {
     const { page, limit, ...filters } = req.validatedQuery;
     const { items, total } = listAppointments(req.user, { ...filters, page, limit });
     return sendPaginated(res, items.map(toPublicAppointment), { page, limit, total });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getCallIceServers(_req, res, next) {
+  try {
+    return sendSuccess(res, await getIceServers());
   } catch (err) {
     next(err);
   }
