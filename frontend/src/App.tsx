@@ -64,7 +64,6 @@ const DoctorDashboard = lazy(() => import('./pages/doctor/Dashboard').then(m => 
 const DoctorLiveQueue = lazy(() => import('./pages/doctor/LiveQueue').then(m => ({ default: m.DoctorLiveQueuePage })));
 const DoctorPatientRecords = lazy(() => import('./pages/doctor/PatientRecords').then(m => ({ default: m.DoctorPatientRecordsPage })));
 const DoctorConsultation = lazy(() => import('./pages/doctor/Consultation').then(m => ({ default: m.DoctorConsultationPage })));
-const DoctorAITriage = lazy(() => import('./pages/doctor/AITriage').then(m => ({ default: m.DoctorAITriagePage })));
 const DoctorPrescriptions = lazy(() => import('./pages/doctor/Prescriptions').then(m => ({ default: m.DoctorPrescriptionsPage })));
 const DoctorLabOrders = lazy(() => import('./pages/doctor/LabOrders').then(m => ({ default: m.DoctorLabOrdersPage })));
 const DoctorReferralCenter = lazy(() => import('./pages/doctor/ReferralCenter').then(m => ({ default: m.DoctorReferralCenterPage })));
@@ -104,6 +103,7 @@ const PatientAppointments = lazy(() => import('./pages/patient').then(m => ({ de
 const PatientReferralStatus = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientReferralStatus })));
 const PatientVaccinations = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientVaccinations })));
 const PatientEmergency = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientEmergency })));
+const PatientSymptomChecker = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientSymptomChecker })));
 const PatientFamilyMembers = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientFamilyMembers })));
 const PatientTeleconsult = lazy(() => import('./pages/patient').then(m => ({ default: m.PatientTeleconsult })));
 
@@ -285,7 +285,7 @@ const router = createBrowserRouter([
               { path: '/doctor/queue', element: <Suspense fallback={<PageLoader />}><DoctorLiveQueue /></Suspense> },
               { path: '/doctor/patients', element: <Suspense fallback={<PageLoader />}><DoctorPatientRecords /></Suspense> },
               { path: '/doctor/consultation', element: <Suspense fallback={<PageLoader />}><DoctorConsultation /></Suspense> },
-              { path: '/doctor/ai-triage', element: <Suspense fallback={<PageLoader />}><DoctorAITriage /></Suspense> },
+              { path: '/doctor/ai-triage', element: <Navigate to="/doctor/dashboard" replace /> },
               { path: '/doctor/prescriptions', element: <Suspense fallback={<PageLoader />}><DoctorPrescriptions /></Suspense> },
               { path: '/doctor/lab-orders', element: <Suspense fallback={<PageLoader />}><DoctorLabOrders /></Suspense> },
               { path: '/doctor/referrals', element: <Suspense fallback={<PageLoader />}><DoctorReferralCenter /></Suspense> },
@@ -347,6 +347,7 @@ const router = createBrowserRouter([
               { path: '/patient/audio-prescription', element: <Navigate to="/patient/prescriptions" replace /> },
               { path: '/patient/vaccinations', element: <Suspense fallback={<PageLoader />}><PatientVaccinations /></Suspense> },
               { path: '/patient/emergency', element: <Suspense fallback={<PageLoader />}><PatientEmergency /></Suspense> },
+              { path: '/patient/ai-triage', element: <Suspense fallback={<PageLoader />}><PatientSymptomChecker /></Suspense> },
               { path: '/patient/family', element: <Suspense fallback={<PageLoader />}><PatientFamilyMembers /></Suspense> },
               { path: '/patient/teleconsult/:appointmentId', element: <Suspense fallback={<PageLoader />}><PatientTeleconsult /></Suspense> },
             ],

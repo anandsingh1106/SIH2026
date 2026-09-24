@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   Pill,
   Video,
-  Sparkles,
   ArrowRight,
   Clock,
   CheckCircle2,
@@ -138,9 +137,9 @@ export const DoctorDashboard: React.FC = () => {
       </div>
 
       {/* Main Clinical Station Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Live OPD Queue (Left 8 Cols) */}
-        <div className="lg:col-span-8 space-y-4">
+      <div className="grid grid-cols-1 gap-6">
+        {/* Live OPD Queue */}
+        <div className="space-y-4">
           <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <SectionTitle icon={<Users className="w-4 h-4 text-gov-700" />}>
@@ -185,28 +184,6 @@ export const DoctorDashboard: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Right 4 Cols: AI Insights & Quick Clinical Links */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* AI Clinical Diagnostic Insights */}
-          <div className="bg-gradient-to-br from-gov-50 to-emerald-50/50 border border-gov-200 rounded-2xl p-5 shadow-xs space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gov-700" />
-              <h4 className="font-display text-sm font-bold text-gov-900">
-                AI diagnostic assistant
-              </h4>
-            </div>
-            <p className="text-xs text-sand-700 leading-relaxed">
-              "Patient <strong>Kavita Gaikwad (24y)</strong> presents with severe gestational anemia (Hb 7.8) and BP 138/88 at 28 weeks. Immediate tertiary parenteral iron therapy and Level-3 fetal surveillance indicated under PMSMA protocol."
-            </p>
-            <Link to="/doctor/ai-triage">
-              <Button size="sm" variant="outline" className="w-full text-xs">
-                Launch Full AI Triage Analyzer →
-              </Button>
-            </Link>
-          </div>
-
         </div>
       </div>
     </div>

@@ -67,7 +67,7 @@ export const en = {
     queue: 'Live OPD Queue',
     patients: 'Patient EHR',
     consultation: 'Clinical Consultation',
-    aiTriage: 'AI Triage Analyzer',
+    aiTriage: 'AI Symptom Checker',
     prescriptions: 'E-Prescriptions',
     labOrders: 'Lab Orders',
     telemedicine: 'Tele-Consultation',

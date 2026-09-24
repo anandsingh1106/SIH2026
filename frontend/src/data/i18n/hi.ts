@@ -67,7 +67,7 @@ export const hi = {
     queue: 'लाइव ओपीडी कतार',
     patients: 'रोगी स्वास्थ्य इतिहास',
     consultation: 'चिकित्सीय परामर्श',
-    aiTriage: 'एआई ट्रायज विश्लेषक',
+    aiTriage: 'एआई लक्षण जाँच',
     prescriptions: 'ई-पर्चे',
     labOrders: 'प्रयोगशाला जांच',
     telemedicine: 'टेली-परामर्श',

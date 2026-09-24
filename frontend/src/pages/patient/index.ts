@@ -10,3 +10,4 @@ export { PatientVaccinations } from './Vaccinations';
 export { PatientEmergency } from './Emergency';
 export { PatientFamilyMembers } from './FamilyMembers';
 export { PatientTeleconsult } from './Teleconsult';
+export { PatientSymptomChecker } from './SymptomChecker';

@@ -36,7 +36,7 @@ ArogyaSetu puts every step of a patient's journey on one shared record, and give
 1. **The ASHA worker** registers the patient and records visits, ANC checkups, vaccinations and NCD screenings. This works offline and syncs when the signal returns.
 2. **The doctor at the PHC** sees that history in the OPD queue, consults in person or by video, prescribes and orders labs. A patient who needs more care gets a referral.
 3. **The specialist** accepts the referral, allocates a bed, runs a treatment plan and writes the discharge summary. Follow-ups return to the ASHA who looks after that village.
-4. **The patient** sees their own timeline, prescriptions, lab reports and vaccinations. They can book appointments, reserve medicines and raise an emergency alert.
+4. **The patient** sees their own timeline, prescriptions, lab reports and vaccinations. They can check symptoms with AI, book appointments, reserve medicines and raise an emergency alert.
 5. **The admin** watches district and state analytics, disease heatmaps and stock levels built from the same live data, and manages facilities and staff.
 
 ---
@@ -62,7 +62,7 @@ ArogyaSetu puts every step of a patient's journey on one shared record, and give
 | OPD queue | Token queue that updates live as patients are called |
 | Consultation | Vitals, diagnosis, notes, and a signed e-prescription |
 | Telemedicine | Peer-to-peer video consultation with the patient |
-| AI triage | Risk assessment from symptoms, with drug interaction checks |
+| AI in consultation | Triage and drug interaction checks while seeing a patient |
 | Lab orders | Order tests and read results |
 | Referrals | Refer to a specialist and track the referral to completion |
 | Analytics | Weekly load, top diagnoses, antibiotic prescribing rate |
@@ -79,6 +79,7 @@ ArogyaSetu puts every step of a patient's journey on one shared record, and give
 ### Patient
 | Feature | What it does |
 | --- | --- |
+| AI symptom checker | Describe symptoms and see how urgently to get care, with a direct 108 call or visit booking |
 | Health timeline | Every visit, prescription and result in one place |
 | Appointments | Book with a real doctor at a chosen facility. Double booking is blocked |
 | Prescriptions | Includes an audio prescription for patients who cannot read |
