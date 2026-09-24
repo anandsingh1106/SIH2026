@@ -6,6 +6,7 @@ import {
   patchCancel,
   patchReschedule,
   getBookableDoctors,
+  getCallIceServers,
 } from '../controllers/appointmentController.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -23,8 +24,9 @@ router.use(requireAuth);
 
 router.get('/', validate({ query: listAppointmentsSchema }), getAppointments);
 router.post('/', validate({ body: createAppointmentSchema }), postAppointment);
-// Declared before '/:id' so 'doctors' is not read as an appointment id.
+// Declared before '/:id' so 'doctors' and 'ice-servers' are not read as appointment ids.
 router.get('/doctors', validate({ query: bookableDoctorsSchema }), getBookableDoctors);
+router.get('/ice-servers', getCallIceServers);
 router.get('/:id', validate({ params: idParamSchema }), getAppointmentById);
 router.patch('/:id/cancel', validate({ params: idParamSchema }), patchCancel);
 router.patch(

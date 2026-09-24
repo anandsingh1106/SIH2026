@@ -54,6 +54,9 @@ export const appointmentsApi = {
   doctors: (facilityId?: string) =>
     api.get<BookableDoctor[]>('/api/appointments/doctors', { query: { facilityId } }),
 
+  /** STUN, plus a TURN relay when the server has one, for video calls. */
+  iceServers: () => api.get<{ iceServers: RTCIceServer[]; relay: boolean }>('/api/appointments/ice-servers'),
+
   create: (input: NewAppointmentInput) => api.post<Appointment>('/api/appointments', input),
 
   cancel: (id: string) => api.patch<Appointment>(`/api/appointments/${id}/cancel`),
