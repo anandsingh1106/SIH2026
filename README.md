@@ -1,450 +1,259 @@
 # MahaAarogya Sangam (ArogyaSetu)
 
-Digital public health platform for Maharashtra — React + TypeScript frontend,
-Express + SQLite backend, email/password + TOTP authentication via Supabase.
+**One connected public health platform for Maharashtra, from the village ASHA worker to the state health office.**
 
-**45 database tables · 72 API operations · 409 passing tests**
+**Live demo:** https://sih-2026-frontend-phi.vercel.app
 
----
-
-## ⚠️ Migration status — read this first
-
-A migration from Firebase/SQLite to **Supabase + Vercel** is **in progress and
-incomplete**. What is true today:
-
-| Component | Status |
-| --- | --- |
-| Supabase PostgreSQL schema (42 tables) | ✅ Written, `supabase/migrations/` |
-| Row Level Security (50 policies) | ✅ Written |
-| Indexes incl. concurrency constraints | ✅ Written |
-| Supabase client wrappers | ✅ Written |
-| **SQL executed against a real database** | ❌ **Never run — no Postgres available locally** |
-| **Running backend data layer** | ❌ **Still SQLite** |
-| **Auth** | ✅ **Supabase** (email/password + TOTP second factor) |
-| **Deployment model** | ❌ Still `app.listen()` — not Vercel-compatible |
-
-The running application is unchanged and fully working on SQLite + Express;
-all 409 tests pass. The Supabase Postgres schema files are **written but not yet
-wired in**; Supabase Auth and Realtime, however, are live. Nothing has been
-deleted.
-
-**Blocker:** `node:sqlite` is synchronous, Supabase's client is async-only.
-Switching requires converting **243 call sites across 20 files** to `async`, and
-re-implementing 15 transactional flows as PostgreSQL functions, because the
-Supabase JS client has no client-side transaction API. See "Remaining work".
+| 5 roles | 46 database tables | 120+ API endpoints | 466 automated tests | 3 languages |
+| --- | --- | --- | --- | --- |
+| Patient, ASHA, Doctor, Specialist, Admin | SQLite, migrated in order | Documented in Swagger | Backend, frontend and shared | English, Hindi, Marathi |
 
 ---
 
-## Quick Start
+## The problem
 
-```bash
-# 1. Install all dependencies (root, frontend and backend)
-npm install
-npm run install:all
+Rural healthcare in Maharashtra runs on disconnected pieces:
 
-# 2. Create the env files (see "Environment Setup" below — login is blocked
-#    until the Firebase values are filled in)
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+- **ASHA workers** record home visits, pregnancies and vaccinations on paper, often in villages with no mobile signal.
+- **PHC doctors** see a patient without the history the ASHA already collected.
+- **Referrals** to a district hospital travel as a paper slip. Nobody knows whether the patient arrived or whether a bed was free.
+- **District and state officers** get figures weeks late, after an outbreak has already spread.
 
-# 3. Set up the database
-cd backend && npm run db:migrate && npm run db:seed && cd ..
+## Our solution
 
-# 4. Run backend + frontend together
-npm run dev:all
+ArogyaSetu puts every step of a patient's journey on one shared record, and gives each person in the chain the screen they need.
+
+```
+  Village                 PHC                   District hospital          State office
+ ┌──────────┐   visit   ┌──────────┐  referral  ┌──────────────┐  live data  ┌──────────┐
+ │  ASHA    │ ────────► │  Doctor  │ ─────────► │  Specialist  │ ──────────► │  Admin   │
+ │ (offline)│           │          │            │  + bed       │             │          │
+ └────┬─────┘           └────┬─────┘            └──────┬───────┘             └──────────┘
+      │                      │                         │
+      └──────────────────────┴──── one patient record ─┴──► Patient app
 ```
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:4000
-- **API docs (Swagger): http://localhost:4000/api/docs**
-- Health check: http://localhost:4000/health
+1. **The ASHA worker** registers the patient and records visits, ANC checkups, vaccinations and NCD screenings. This works offline and syncs when the signal returns.
+2. **The doctor at the PHC** sees that history in the OPD queue, consults in person or by video, prescribes and orders labs. A patient who needs more care gets a referral.
+3. **The specialist** accepts the referral, allocates a bed, runs a treatment plan and writes the discharge summary. Follow-ups return to the ASHA who looks after that village.
+4. **The patient** sees their own timeline, prescriptions, lab reports and vaccinations. They can book appointments, reserve medicines and raise an emergency alert.
+5. **The admin** watches district and state analytics, disease heatmaps and stock levels built from the same live data, and manages facilities and staff.
 
-Vite proxies `/api/*` to the backend on port 4000, so the frontend calls
-relative URLs and there are no CORS issues in development.
+---
+
+## Features by role
+
+### ASHA worker
+| Feature | What it does |
+| --- | --- |
+| Dashboard and tasks | Today's visits and due work, with this ASHA's real figures |
+| Village health grid | Every household with its health status and open alerts |
+| Home visits | Visit log with vitals and notes |
+| Immunisation | Vaccine schedule per child, with due and overdue doses |
+| Maternal care | ANC visits with automatic high-risk flags |
+| NCD screening | CBAC risk score, calculated on the server |
+| Referrals | Send a patient to the PHC or a specialist |
+| Monthly report | Generated from recorded work, ready to print |
+| Offline sync | Records are saved on the device and uploaded when online, without duplicates |
+
+### Doctor (PHC)
+| Feature | What it does |
+| --- | --- |
+| OPD queue | Token queue that updates live as patients are called |
+| Consultation | Vitals, diagnosis, notes, and a signed e-prescription |
+| Telemedicine | Peer-to-peer video consultation with the patient |
+| AI triage | Risk assessment from symptoms, with drug interaction checks |
+| Lab orders | Order tests and read results |
+| Referrals | Refer to a specialist and track the referral to completion |
+| Analytics | Weekly load, top diagnoses, antibiotic prescribing rate |
+
+### Specialist (district hospital)
+| Feature | What it does |
+| --- | --- |
+| Referral inbox | Accept or reject, mark arrival, complete, with a full timeline |
+| Treatment plans | Phased plans with progress tracking |
+| Follow-ups | Post-discharge follow-ups linked to the village ASHA |
+| Bed management | Live availability. A bed can never be allocated twice |
+| Discharge summary | Structured summary sent back into the patient record |
+
+### Patient
+| Feature | What it does |
+| --- | --- |
+| Health timeline | Every visit, prescription and result in one place |
+| Appointments | Book with a real doctor at a chosen facility. Double booking is blocked |
+| Prescriptions | Includes an audio prescription for patients who cannot read |
+| Medicine orders | Reserve medicines against pharmacy stock and collect with a token |
+| Emergency | Urgent alert to the care team, with the assigned ASHA's contact |
+| Family | Family members under one account |
+
+### Admin (district and state)
+| Feature | What it does |
+| --- | --- |
+| State and district analytics | Live figures across districts |
+| Disease heatmap | Hotspots by taluka, such as maternal high risk |
+| AI insights | Signals such as outbreak clusters and stock risk |
+| Facility and staff management | Facility registry, staff access requests and approvals |
+| Inventory | Stock levels and transfers. Stock can never go negative |
+| Reports and audit logs | Exportable reports and a full audit trail of record access |
+
+### Shared by all roles
+Messages between the care team, calendar, notifications in real time, help center, and settings for language, high contrast and alert sound.
+
+---
+
+## What makes it work
+
+- **Offline first for the field.** ASHA records go into IndexedDB on the device and sync in batches. Every operation carries an id, so replaying a sync never creates a duplicate.
+- **Safe under load.** Double booking, double bed allocation and negative stock are blocked both in the transaction and by a database constraint. Tests race these operations on purpose.
+- **Privacy by default.** Each role sees only the patients it is responsible for. A record the user cannot access returns 404, not 403, so its existence is never revealed. Every record view is audit logged.
+- **Secure sign-in.** Email and password through Supabase Auth, plus a TOTP second factor for staff. The role is always re-read from the database, never trusted from the client.
+- **Real time.** Queue, bed, referral and notification changes are pushed to the browser with Server-Sent Events.
+- **AI with a safety net.** Triage and the assistant use Gemini (or OpenAI). If no provider is configured, they answer from a built-in clinical knowledge base instead of failing.
+- **Built for the field.** Hindi, Marathi and English, large touch targets for one-handed use outdoors, a high contrast mode and an installable PWA.
 
 ---
 
 ## Architecture
 
 ```
-Request → route → validator (Zod) → controller → service → repository → SQLite
-                       ↓                ↓
-                  RBAC guard      transaction + audit log
+Browser (React PWA) ──► Vercel ──/api──► Render (Express API) ──► SQLite
+       │                                        │
+       └──── Supabase Auth, MFA, Realtime ◄─────┘
 ```
 
-Business logic lives in services, never in route handlers. Repositories own all
-SQL. Controllers only translate between HTTP and services.
+Inside the backend, each request follows one path:
 
-**Backend layout** (`backend/src/`):
+```
+route → Zod validator → controller → service → repository → SQLite
+                            │            │
+                       role guard   transaction + audit log
+```
 
-| Directory | Responsibility |
+Business logic lives in services. Repositories own all SQL. Controllers only translate between HTTP and services.
+
+### Tech stack
+
+| Layer | Technology |
 | --- | --- |
-| `config/` | Environment loading, rate-limit tiers |
-| `db/` | Connection (WAL, foreign keys), migrations, seeds, CLI |
-| `middleware/` | Auth/RBAC, Zod validation, error handler, request logging |
-| `repositories/` | All SQL — the only layer that touches the database |
-| `services/` | Business logic, transactions, audit, AI, CBAC scoring |
-| `controllers/` | HTTP ↔ service translation and response shaping |
-| `validators/` | Zod schemas for every request body/query/param |
-| `routes/` | Endpoint wiring only |
-| `docs/` | OpenAPI specification |
+| Web frontend | React, TypeScript, Vite, Tailwind CSS, Recharts, PWA with service worker |
+| Mobile app | Expo (React Native) for ASHA and patient workflows |
+| Backend | Node.js, Express, Zod, `node:sqlite`, Swagger (OpenAPI) |
+| Auth and realtime | Supabase Auth with TOTP, Supabase Realtime for video call signalling |
+| AI | Gemini or OpenAI through a provider layer, with a local knowledge base fallback |
+| Hosting | Vercel (frontend), Render (backend) |
+| Testing | Vitest and Supertest |
 
-### Where to change things
+### Repository layout
 
-| To do this… | Edit these files |
-| --- | --- |
-| Add a field to an existing table | `db/migrations/` (new file), the matching repository, its validator |
-| Change who may access something | `middleware/auth.js` or `services/accessControlService.js` |
-| Add a new endpoint | `validators/` → `services/` → `controllers/` → `routes/` |
-| Change an error message | The `throw` in the relevant service |
-| Adjust rate limits | `config/rateLimits.js` |
+```
+ArogyaSetu/
+├── frontend/     Web app: pages per role (patient, asha, doctor, specialist, admin, public)
+├── backend/      Express API: routes, validators, controllers, services, repositories, migrations
+├── shared/       Typed API client and helpers used by both web and mobile
+├── mobile/       Expo app for ASHA workers and patients
+└── supabase/     PostgreSQL schema, RLS policies and indexes (not yet in use, see below)
+```
 
 ---
 
-## Commands
+## Run it locally
 
-Run from the **project root**:
+**Requirements:** Node.js 22.13 or later (for `node:sqlite`) and a Supabase project for sign-in.
 
-| Command | What it does |
+```bash
+# 1. Install everything (npm workspaces)
+npm install
+
+# 2. Create the env files, then fill them in
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# 3. Create the database and demo data
+cd backend
+npm run db:migrate
+npm run db:seed
+npm run demo:full      # demo login per role, plus realistic data at scale
+cd ..
+
+# 4. Start backend and frontend together
+npm run dev:all
+```
+
+| Service | URL |
 | --- | --- |
-| `npm run dev:all` | Runs backend + frontend together (recommended) |
-| `npm run dev` | Frontend only (Vite dev server, port 3000) |
-| `npm run server` | Backend only (Express API, port 4000) |
-| `npm run build` | Type-checks and builds the frontend for production |
-| `npm run preview` | Serves the built frontend locally |
-| `npm run install:all` | Installs frontend + backend dependencies |
+| Web app | http://localhost:3000 |
+| API | http://localhost:4000 |
+| API docs (Swagger) | http://localhost:4000/api/docs |
+| Health check | http://localhost:4000/health |
 
-Inside `backend/`:
+Vite proxies `/api` to the backend, so there are no CORS issues in development.
 
-| Command | What it does |
-| --- | --- |
-| `npm start` | Starts the API server |
-| `npm run dev` | Starts the API with auto-restart on file changes |
-| `npm run db:migrate` | Applies pending migrations (safe to re-run) |
-| `npm run db:seed` | Inserts demo data (idempotent — never duplicates) |
-| `npm run db:reset` | Deletes the database, re-migrates and re-seeds |
-| `npm test` | Runs the full test suite (409 tests) |
-| `npm run test:watch` | Runs tests in watch mode |
+### Environment variables
 
-> `db:reset` fails with a clear message if the API server is running — stop it
-> first, since Windows keeps the database file locked.
+Both env files are gitignored. Never commit real keys.
 
-Inside `frontend/`:
+| File | Required | Optional |
+| --- | --- | --- |
+| `backend/.env` | `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | `GEMINI_API_KEY` or `OPENAI_API_KEY` with `AI_PROVIDER`, `ABDM_*`, `SENDGRID_*` |
+| `frontend/.env` | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | |
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | `tsc -b && vite build` |
-| `npx tsc --noEmit` | Type-check without emitting files |
-
----
-
-## Environment Setup
-
-Two env files are required. **Both are gitignored — never commit them, and never
-put real keys in this README or any other tracked file.**
-Templates with the exact variable names live in `backend/.env.example` and
-`frontend/.env.example`.
-
-### Where each value comes from
-
-Everything below comes from **one** Firebase project at
-[console.firebase.google.com](https://console.firebase.google.com).
-
-**Step 1 — Create project and enable Phone sign-in**
-1. Create a project (any name).
-2. Build → Authentication → Get started.
-3. Sign-in method tab → **Phone** → Enable → Save.
-   - Firebase may ask you to upgrade to the **Blaze** plan for Phone Auth.
-     The free quota still applies; light testing does not incur charges.
-
-**Step 2 — Frontend keys (`frontend/.env`)**
-1. Gear icon → Project settings → General → Your apps.
-2. Click the `</>` (Web) icon and register a web app.
-3. Copy from the shown `firebaseConfig` object:
-
-| `.env` variable | firebaseConfig field |
-| --- | --- |
-| `VITE_FIREBASE_API_KEY` | `apiKey` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` |
-| `VITE_FIREBASE_PROJECT_ID` | `projectId` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
-| `VITE_FIREBASE_APP_ID` | `appId` |
-
-> Vite only reads `.env` at startup — **restart the dev server** after editing it.
-
-**Step 3 — Backend keys (`backend/.env`)**
-1. Project settings → **Service accounts** → Generate new private key.
-2. A JSON file downloads. Copy from it:
-
-| `.env` variable | JSON field |
-| --- | --- |
-| `FIREBASE_PROJECT_ID` | `project_id` |
-| `FIREBASE_CLIENT_EMAIL` | `client_email` |
-| `FIREBASE_PRIVATE_KEY` | `private_key` — wrap in double quotes, keep the `\n` sequences literal |
-
-`JWT_SECRET` is also required (any long random string) and is used to sign this
-app's own session cookies. Generate one with:
+Generate a `JWT_SECRET` with:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-**Step 4 — Test phone numbers (recommended)**
+### Demo accounts
 
-Authentication → Sign-in method → Phone → **Phone numbers for testing**.
-Add e.g. `+91 9999999999` with fixed code `123456`. This lets you and others
-test the full login flow without sending real SMS.
+`npm run demo:accounts` creates one confirmed login per role and writes the credentials to `DEMO_ACCOUNTS.md`, which is gitignored so working logins are never committed.
 
-### Optional: welcome emails (SendGrid)
+### Useful commands
 
-`SENDGRID_API_KEY` and `SENDGRID_FROM_EMAIL` in `backend/.env` are **optional**.
-If unset, the backend logs the email to the console instead of sending it —
-everything else still works.
-
-To enable real emails: sign up at [sendgrid.com](https://sendgrid.com) →
-Settings → Sender Authentication → Verify a Single Sender → then
-Settings → API Keys → Create API Key.
-
----
-
-## Authentication
-
-There are **no usernames or passwords** in this app. Login is phone number + SMS OTP:
-
-1. User enters their mobile number on `/login` or `/register`.
-2. Firebase sends a real OTP by SMS and verifies it in the browser.
-3. The browser sends the resulting Firebase ID token to `POST /api/auth/phone-login`.
-4. The backend verifies that token with the Firebase Admin SDK, then issues its
-   own **httpOnly session cookie** (JWT, 7-day expiry).
-
-Unknown phone numbers are routed to registration; known ones are logged straight in.
-Email is an optional profile field used only for a welcome message — it is never
-used to sign in.
-
----
-
-## API Reference
-
-Full interactive documentation with request/response schemas is at
-**http://localhost:4000/api/docs** (machine-readable at `/api/openapi.json`).
-
-### Conventions
-
-Success: `{ "success": true, "data": ... }`
-Error: `{ "success": false, "error": { "code", "message", "details" } }`
-Lists: `{ items, pagination: { page, limit, total, totalPages } }` — accept `?page=&limit=`
-
-Unauthorized reads return **404, not 403**, so record existence is never leaked.
-
-### Endpoints by area
-
-| Area | Base path | Key operations |
+| Command | Where | What it does |
 | --- | --- | --- |
-| Auth | `/api/auth` | `POST /phone-login`, `GET /me`, `POST /logout` |
-| Patients | `/api/patients` | list/search, get, create, update, `+/allergies`, `+/chronic-conditions`, `+/family`, `+/vitals` |
-| Appointments | `/api/appointments` | list, book, `PATCH /:id/cancel`, `PATCH /:id/reschedule` |
-| Clinical | `/api/consultations`, `/api/prescriptions`, `/api/medicines` | record consultations, issue prescriptions, formulary |
-| Referrals | `/api/referrals` | create, `POST /:id/accept` `/reject` `/arrive` `/complete`, full timeline |
-| Labs | `/api/lab-orders` | order, status flow, `POST /:id/results` |
-| Beds | `/api/beds` | list, `/availability`, `POST /:id/allocate` `/release` |
-| ASHA | `/api/home-visits`, `/api/tasks`, `/api/vaccinations`, `/api/maternal-records`, `/api/ncd-screenings` | field workflows |
-| Inventory | `/api/inventory` | stock levels, `POST /:id/adjust`, `/transfer` |
-| Queue | `/api/queue` | `POST /token`, `GET /:facilityId`, call/start/complete/skip |
-| Notifications | `/api/notifications` | list, unread count, mark read, read-all |
-| Messaging | `/api/conversations`, `/api/messages` | conversations and messages |
-| Sync | `/api/sync/batch` | idempotent offline batch upload |
-| Analytics | `/api/analytics` | `/patient` `/asha` `/doctor` `/specialist` `/admin` `/heatmap` |
-| AI | `/api/ai` | `/triage`, `/assistant`, `/drug-interactions` |
-| Audit | `/api/audit-logs` | audit trail (admin only) |
-| Public | `/api/public` | facilities, medicines, bed availability, emergency, programmes — **no auth** |
-| Realtime | `/api/stream` | Server-Sent Events for notifications, queue, beds, referrals |
-
-### Behaviours worth knowing
-
-- **Appointments** reject a double-booked doctor slot (409). Cancelling frees the slot.
-- **Referrals** follow a state machine; illegal jumps (e.g. `SENT` → `COMPLETED`) return 409.
-- **Beds** cannot be double-allocated — enforced by transaction *and* a partial unique index.
-- **Inventory** can never go negative — enforced by transaction *and* a `CHECK` constraint.
-- **Sync** is idempotent: replaying an `operationId` returns the original result, never a duplicate.
-- **CBAC scores** and **triage risk** are computed server-side, not trusted from the client.
-
----
-
-## Database
-
-SQLite via Node's built-in `node:sqlite` at `backend/arogyasetu.sqlite` (gitignored).
-WAL mode, foreign keys enforced, 42 tables, 154 indexes.
-
-| Group | Tables |
-| --- | --- |
-| Identity | `users`, `facilities`, `audit_logs` |
-| Patients | `patients`, `family_members`, `allergies`, `chronic_conditions` |
-| Clinical | `consultations`, `vitals`, `diagnoses`, `clinical_notes`, `prescriptions`, `prescription_items`, `medicines` |
-| Scheduling | `appointments`, `opd_tokens`, `telemedicine_sessions` |
-| Referrals | `referrals`, `referral_events` |
-| Labs | `lab_tests`, `lab_orders`, `lab_results` |
-| Beds | `beds`, `bed_allocations` |
-| ASHA field | `home_visits`, `tasks`, `vaccinations`, `maternal_records`, `anc_visits`, `ncd_screenings` |
-| Supply chain | `inventory`, `inventory_transactions`, `stock_transfers` |
-| Communication | `notifications`, `conversations`, `conversation_members`, `messages` |
-| Other | `documents`, `sync_operations`, `treatment_plans`, `discharge_summaries`, `follow_ups`, `lab_tests` |
-
-Migrations live in `backend/src/db/migrations/` and run in filename order. Applied
-migrations are tracked in `_migrations`, so `db:migrate` is always safe to re-run.
-
-Inspect the database directly:
-
-```bash
-cd backend
-node -e "import('./src/db/connection.js').then(({getDb})=>console.log(getDb().prepare('SELECT * FROM users').all()))"
-```
-
-### Demo data and accounts
-
-```bash
-cd backend
-npm run demo:full     # accounts + data + scale + link, in one step
-```
-
-That runs four steps, each of which can also be run on its own:
-
-| Command | What it creates |
-| --- | --- |
-| `npm run demo:accounts` | One pre-confirmed login per role (patient, ASHA, doctor, specialist, admin) |
-| `npm run demo:data` | Beds, inventory, tasks, vaccinations, lab orders, referrals, notifications |
-| `npm run demo:scale` | Scales each entity to ~120 rows across several districts |
-| `npm run demo:link` | Points the generated data at the login accounts |
-
-Accounts are created with `email_confirm: true`, so no confirmation email is
-sent and Supabase's email rate limit does not apply. Demo addresses use the
-reserved `.test` TLD and cannot receive mail — deliberate, so they can never be
-mistaken for real accounts.
-
-**Credentials are written to `DEMO_ACCOUNTS.md`, which is gitignored.** Working
-logins are never committed. Run `npm run demo:accounts` to regenerate the file
-and see the shared password.
-
-To demonstrate that authorization is enforced by the database and not just the
-interface:
-
-```bash
-cd backend && npm run supabase:rls-test
-```
-
-It proves a patient cannot read another patient's records, cannot modify them,
-and cannot escalate their own role — checked directly against PostgreSQL.
-
----
-
-## Project Structure
-
-```
-ArogyaSetu/
-├── backend/
-│   ├── src/
-│   │   ├── server.js            # Entry point — migrate, listen, graceful shutdown
-│   │   ├── app.js               # Express assembly: helmet, CORS, routes, errors
-│   │   ├── config/              # env.js, rateLimits.js
-│   │   ├── db/
-│   │   │   ├── connection.js    # WAL, foreign keys, transaction() helper
-│   │   │   ├── migrator.js      # Repeatable-safe migration runner
-│   │   │   ├── cli.js           # db:migrate / db:seed / db:reset
-│   │   │   ├── migrations/      # 001…008, applied in filename order
-│   │   │   └── seeds/           # Idempotent demo data
-│   │   ├── middleware/          # auth (RBAC), validate (Zod), errorHandler, requestContext
-│   │   ├── repositories/        # All SQL lives here
-│   │   ├── services/            # Business logic, transactions, audit
-│   │   │   ├── accessControlService.js  # Central patient-access policy
-│   │   │   ├── cbacService.js           # NCD risk scoring
-│   │   │   ├── syncService.js           # Idempotent offline batch
-│   │   │   ├── eventBus.js              # Real domain events for SSE
-│   │   │   └── ai/                      # Provider abstraction, triage, interactions
-│   │   ├── controllers/         # HTTP ↔ service translation
-│   │   ├── validators/          # Zod schemas
-│   │   ├── routes/              # Endpoint wiring
-│   │   └── docs/openapi.js      # Swagger specification
-│   ├── tests/                   # Vitest + Supertest (350 tests)
-│   └── _legacy/                 # Superseded pre-rewrite files (not loaded)
-└── frontend/
-    └── src/
-        ├── App.tsx              # Routes + role-based guards
-        ├── pages/               # auth, patient, doctor, asha, specialist, admin, public
-        ├── components/          # ui/, layout/, healthcare/, maps/, ai/
-        ├── services/
-        │   ├── api/
-        │   │   ├── apiClient.ts       # Central fetch: cookies, envelope, ApiError, 401
-        │   │   ├── backendApi.ts      # Typed calls for every backend area
-        │   │   └── appointmentsApi.ts
-        │   ├── auth/            # Firebase client, auth context
-        │   ├── ai/              # Thin wrappers over /api/ai (no client-side logic)
-        │   └── offline/         # IndexedDB cache + real sync queue
-        ├── hooks/               # useI18n, useToast, useOfflineStatus
-        └── data/                # Reference data, i18n (en/hi/mr)
-```
-
-### Roles
-
-`patient`, `asha`, `doctor`, `specialist`, `admin` — each has its own workspace and
-route guard. A user's role is chosen at registration and stored on their account.
-
-Roles are stored uppercase in the database and mapped to lowercase at the API
-boundary (`utils/mappers.js`) so the existing frontend contract is preserved.
-**A role sent by the client is never trusted** — it is always re-read from the
-database on each request, so a role change takes effect immediately.
+| `npm run dev:all` | root | Backend and frontend together |
+| `npm test` | root | All tests: shared, frontend and backend |
+| `npm run mobile` | root | Start the Expo app |
+| `npm run db:reset` | backend | Delete, re-migrate and re-seed the database |
+| `npm run demo:boot` | backend | Full rebuild of demo data, used on every server start in production |
 
 ---
 
 ## Testing
 
 ```bash
-cd backend && npm test
+npm test
 ```
 
-162 tests across 7 files, using Vitest and Supertest against a throwaway database
-(`backend/tests/.tmp/`) — the development database is never touched.
-
-| File | Covers |
+| Package | Tests |
 | --- | --- |
-| `auth.test.js` | Session restore, forged/expired tokens, suspended accounts, audit on login |
-| `appointments.test.js` | RBAC isolation, double-booking, pagination, cancel/reschedule |
-| `patients.test.js` | Scoped visibility, search, ABHA uniqueness, record-view auditing |
-| `clinical.test.js` | Consultations, vitals (server-derived BMI), prescriptions, rollback |
-| `phase3.test.js` | Referral state machine, **concurrent bed allocation**, lab flow |
-| `asha.test.js` | CBAC scoring, home visits, tasks, immunisation, maternal alerts |
-| `phase5.test.js` | **Sync idempotency**, inventory races, queue, AI safety, privacy |
+| Backend | 402 tests in 18 files, run against a throwaway database |
+| Shared | 55 tests |
+| Frontend | 9 tests |
 
-Concurrency and idempotency are tested by actually racing the operations, not by
-assuming the constraint works.
+The backend suite covers access control between roles, the referral state machine, concurrent bed allocation, inventory races, sync idempotency, two-factor sign-in, ABHA rules, AI provider fallback, messaging and urgent alerts.
 
 ---
 
-## Troubleshooting
+## Data sources
 
-**"Phone sign-in is not configured yet"**
-`frontend/.env` is missing the Firebase values, or Vite was not restarted after
-editing it. See Environment Setup Step 2.
+Every real-world figure used on the analytics screens is listed with its government source in [DATA_SOURCES.md](DATA_SOURCES.md). Anything not listed there is demo data.
 
-**"Could not verify your phone number"**
-`backend/.env` is missing the Firebase Admin values. Check the backend console —
-it logs the specific missing variable. See Environment Setup Step 3.
+---
 
-**Backend exits immediately with a JWT_SECRET message**
-`JWT_SECRET` is not set in `backend/.env`. Generate one (see Step 3).
+## Not yet integrated
 
-**`EADDRINUSE: address already in use :::4000`**
-A backend is already running. Find and stop it:
+These parts are planned or partly built, but are **not** connected in the running system today.
 
-```bash
-# Windows
-netstat -ano | findstr :4000
-powershell -Command "Stop-Process -Id <PID> -Force"
-```
-
-**Port 3000 already in use**
-Vite will automatically switch to 3001. Note that `FRONTEND_URL` in `backend/.env`
-must match the port actually in use for CORS to allow the request.
-
-**401 on appointment endpoints**
-You are not logged in, or the session cookie expired (7 days). Log in again.
+| Component | Status | Detail |
+| --- | --- | --- |
+| Supabase PostgreSQL as the database | ❌ Not wired in | Schema (42 tables), 50 RLS policies and indexes are written in `supabase/migrations/`, but the SQL has never been run against a real database |
+| Running data layer | ❌ Still SQLite | `node:sqlite` is synchronous and the Supabase client is async only. Switching needs 243 call sites across 20 files made async, and 15 transactional flows rewritten as PostgreSQL functions |
+| Serverless deployment | ❌ Not Vercel compatible | The backend still uses `app.listen()`, so it runs as a long-lived server on Render rather than as serverless functions |
+| Persistent data in the live demo | ❌ Resets on restart | The Render free plan has no disk, so the database is rebuilt with demo data on every restart. Anything created on the live site is lost |
+| ABDM / ABHA verification | ❌ Not certified | The ABHA V3 client is written but needs NHA sandbox credentials and M1 certification. Until then ABHA numbers are stored as entered and never shown as verified |
+| Email notifications | ❌ Not sending | SendGrid settings exist, but emails are only written to the server log |
+| SMS alerts | ❌ Not built | No SMS gateway is connected. Alerts are in-app only |
+| Cloud file storage | ❌ Local only | Documents are stored on the server's disk (`STORAGE_PROVIDER=local`) |
+| Video calls on strict networks | ❌ No TURN server | Calls use public STUN servers only, so they can fail behind strict firewalls or carrier NAT |
+| Mobile app for all roles | ❌ Partial | The Expo app covers ASHA and patient workflows. Doctor, specialist and admin use the web app |
