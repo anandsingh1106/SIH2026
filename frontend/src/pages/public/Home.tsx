@@ -216,7 +216,7 @@ export const HomePage: React.FC = () => {
     {
       role: 'Citizens & Patients',
       title: 'ABHA Health Portal & Voice Rx',
-      desc: 'Simple health timeline, appointment booking, referral tracker, and trilingual voice prescription player.',
+      desc: 'Simple health timeline, AI symptom checker, appointment booking, referral tracker, and trilingual voice prescription player.',
       link: '/patient/dashboard',
       tag: 'Multilingual & Audio',
     },

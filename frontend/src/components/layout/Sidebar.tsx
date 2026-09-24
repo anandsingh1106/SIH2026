@@ -149,7 +149,6 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
               { label: t.nav.queue, to: '/doctor/queue', icon: <Users className="w-4 h-4" />, count: queueWaiting },
               { label: t.nav.consultation, to: '/doctor/consultation', icon: <Stethoscope className="w-4 h-4" /> },
               { label: t.nav.telemedicine, to: '/doctor/telemedicine', icon: <Video className="w-4 h-4" /> },
-              { label: t.nav.aiTriage, to: '/doctor/ai-triage', icon: <Sparkles className="w-4 h-4" /> },
             ],
           },
           {
@@ -237,6 +236,7 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
           {
             heading: t.nav.groupMyHealth,
             items: [
+              { label: t.nav.aiTriage, to: '/patient/ai-triage', icon: <Sparkles className="w-4 h-4" /> },
               { label: t.nav.timeline, to: '/patient/timeline', icon: <Clock className="w-4 h-4" /> },
               { label: t.nav.prescriptions, to: '/patient/prescriptions', icon: <Pill className="w-4 h-4" /> },
               { label: t.nav.labOrders, to: '/patient/lab-reports', icon: <FlaskConical className="w-4 h-4" /> },

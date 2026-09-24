@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
-import {
-  Sparkles,
-  Activity,
-  ShieldAlert,
-  CheckCircle2,
-  AlertTriangle,
-  Stethoscope,
-  PhoneCall,
-  ChevronDown,
-} from 'lucide-react';
+import { Sparkles, ShieldAlert, PhoneCall, ChevronDown, Calendar, Siren } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { VitalsInputGroup } from '../../components/healthcare/VitalsInputGroup';
@@ -18,11 +9,16 @@ import { TriageBadge } from '../../components/healthcare/TriageBadge';
 import { analyzeTriage, TriageResult } from '@arogyasetu/shared/services/ai';
 import { Vitals } from '@arogyasetu/shared/types';
 
-export const DoctorAITriagePage: React.FC = () => {
-  // Starting on a textbook cardiac emergency made every fresh visit read
-  // CRITICAL before anything was entered. Start neutral and let the clinician
-  // describe the patient in front of them.
+/**
+ * Lets a patient describe how they feel and see how urgently they should get
+ * care. It runs the same server-side triage rules the clinical team uses, but
+ * only ever points to the next step: call 108, raise an alert, or book a visit.
+ */
+export const PatientSymptomChecker: React.FC = () => {
   const [symptomInput, setSymptomInput] = useState('');
+  // Most patients have no BP cuff or oximeter at home, so readings are opt in.
+  // Sending made-up normal values would hide a real problem.
+  const [hasVitals, setHasVitals] = useState(false);
   const [vitals, setVitals] = useState<Vitals>({ bpSystolic: 120, bpDiastolic: 80, pulse: 78, spo2: 98, temperature: 98.6 });
   const [age, setAge] = useState(35);
   const [isPregnant, setIsPregnant] = useState(false);
@@ -46,15 +42,15 @@ export const DoctorAITriagePage: React.FC = () => {
     ? VERDICT_TONES[result.riskLevel as keyof typeof VERDICT_TONES] ?? VERDICT_TONES.low
     : VERDICT_TONES.low;
 
-  // Only the top two tiers make dialling an ambulance the dominant action;
-  // below that it stays available but visually secondary.
+  // Only the top two tiers make calling an ambulance the main action; below
+  // that it stays available but visually secondary.
   const isEmergency = result?.riskLevel === 'critical' || result?.riskLevel === 'high';
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     const list = symptomInput.split(',').map((s) => s.trim()).filter(Boolean);
     if (list.length === 0) {
-      setError('Enter at least one symptom before computing triage weights.');
+      setError('Please describe at least one symptom.');
       return;
     }
     // Pregnancy is passed as a symptom so the server's obstetric rules apply.
@@ -63,9 +59,9 @@ export const DoctorAITriagePage: React.FC = () => {
     setError('');
     setIsAnalyzing(true);
     try {
-      setResult(await analyzeTriage(withContext, vitals, age));
+      setResult(await analyzeTriage(withContext, hasVitals ? vitals : undefined, age));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Triage analysis failed.');
+      setError(err instanceof Error ? err.message : 'Could not check your symptoms. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -75,50 +71,57 @@ export const DoctorAITriagePage: React.FC = () => {
     <div className="space-y-6 max-w-5xl mx-auto">
       <Breadcrumbs
         items={[
-          { label: 'Doctor Workspace', href: '/doctor/dashboard' },
-          { label: 'Explainable AI Clinical Triage Analyzer' },
+          { label: 'My Health', href: '/patient/dashboard' },
+          { label: 'AI Symptom Checker' },
         ]}
       />
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-extrabold text-ink flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-gov-700" />
-          Explainable Clinical Decision Support Triage Engine
+          AI Symptom Checker
         </h1>
         <p className="text-xs text-ink-soft mt-0.5">
-          Deterministic scoring calibrated against National Health Mission Maharashtra emergency triage guidelines
+          Tell us how you feel and we will tell you how soon you should see a doctor
         </p>
       </div>
 
-      {/* Mandatory Clinician Disclaimer */}
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 flex items-start gap-2.5">
         <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
         <div>
-          <strong>Clinical Validation Notice:</strong> This AI system evaluates risk weights and physiological abnormalities to assist clinical prioritization. It is NOT an autonomous diagnostic tool and must be verified by a registered medical practitioner.
+          <strong>This is not a diagnosis.</strong> It only suggests how urgently you need care. If you feel very
+          unwell, have chest pain, trouble breathing or heavy bleeding, call 108 right away.
         </div>
       </div>
 
-      {/* Input Parameters Form */}
       <form onSubmit={handleAnalyze} className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5">
         <div>
           <label className="block text-xs font-semibold text-sand-700 mb-1.5">
-            Reported Chief Complaints & Physical Symptoms (comma separated)
+            Your symptoms (separate them with commas)
           </label>
           <textarea
             rows={2}
             value={symptomInput}
-            placeholder="e.g. chest pain, breathlessness, high fever since 2 days"
+            placeholder="e.g. fever since 2 days, headache, body pain"
             onChange={(e) => setSymptomInput(e.target.value)}
             className="w-full text-xs border border-sand-300 rounded-xl p-3 focus:outline-none focus:border-gov-600 focus:ring-2 focus:ring-gov-100"
           />
         </div>
 
-        <VitalsInputGroup vitals={vitals} onChange={setVitals} />
+        <label className="flex items-center gap-2 text-xs font-semibold text-sand-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={hasVitals}
+            onChange={(e) => setHasVitals(e.target.checked)}
+            className="rounded text-gov-700 w-4 h-4"
+          />
+          <span>I have measured my BP, pulse, oxygen or temperature</span>
+        </label>
+        {hasVitals && <VitalsInputGroup vitals={vitals} onChange={setVitals} />}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-line">
           <Input
-            label="Patient Age (Years)"
+            label="Your age (years)"
             type="number"
             value={age}
             onChange={(e) => setAge(parseInt(e.target.value) || 0)}
@@ -131,7 +134,7 @@ export const DoctorAITriagePage: React.FC = () => {
                 onChange={(e) => setIsPregnant(e.target.checked)}
                 className="rounded text-gov-700 w-4 h-4"
               />
-              <span>Patient is Pregnant (Maternal Scoring)</span>
+              <span>I am pregnant</span>
             </label>
           </div>
           <div className="space-y-3 pt-5">
@@ -148,25 +151,19 @@ export const DoctorAITriagePage: React.FC = () => {
               className="font-bold bg-gov-700 hover:bg-gov-800 w-full"
               isLoading={isAnalyzing}
             >
-              Compute Triage Weights
+              Check My Symptoms
             </Button>
           </div>
         </div>
       </form>
 
       {/*
-        Result panel.
-        The triage computation is untouched — every value below comes straight
-        from `result`. What changed is the order it is read in: verdict and
-        score first, then the findings that produced them, then the action to
-        take. The model's narrative sits last behind a disclosure, because a
-        clinician deciding whether to call an ambulance should not have to read
-        a paragraph to reach the recommendation.
+        Result panel. Every value comes straight from `result`, read in order:
+        how urgent, why, then what to do. The model's narrative sits last
+        behind a disclosure, so the next step is never buried under text.
       */}
       {result && (
         <div className="space-y-4 animate-in fade-in">
-          {/* 1. The verdict. Tinted by severity so the state is legible before
-              any text is read. */}
           <div className={`rounded-2xl border p-5 sm:p-6 shadow-card ${verdictTone.shell}`}>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="space-y-2.5 min-w-0">
@@ -175,10 +172,8 @@ export const DoctorAITriagePage: React.FC = () => {
                   {result.primaryConcern}
                 </h3>
               </div>
-
-              {/* The score reads as a figure, not a sentence. */}
               <div className="shrink-0 text-right">
-                <div className="text-[11px] font-semibold text-ink-soft">Risk score</div>
+                <div className="text-[11px] font-semibold text-ink-soft">Urgency score</div>
                 <div className="flex items-baseline gap-1 justify-end">
                   <span className={`font-display text-4xl font-extrabold tabular-nums ${verdictTone.score}`}>
                     {result.score}
@@ -189,13 +184,8 @@ export const DoctorAITriagePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Why. The same contributing factors, as a scannable list. */}
           <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 shadow-card">
             <h4 className="font-display text-base font-bold text-ink">Why this result?</h4>
-            <p className="text-xs text-ink-soft mt-0.5">
-              {result.contributingFactors.length} corroborating finding
-              {result.contributingFactors.length === 1 ? '' : 's'}
-            </p>
             <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {result.contributingFactors.map((factor, idx) => (
                 <li
@@ -209,14 +199,11 @@ export const DoctorAITriagePage: React.FC = () => {
             </ul>
           </div>
 
-          {/* 3. What to do, and the two actions that follow from it. */}
           <div className="bg-surface rounded-2xl border border-line p-5 sm:p-6 shadow-card">
-            <h4 className="font-display text-base font-bold text-ink">Recommended action</h4>
+            <h4 className="font-display text-base font-bold text-ink">What you should do</h4>
             <p className="mt-2 text-sm text-ink-muted leading-relaxed">{result.recommendedAction}</p>
 
             <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
-              {/* Dialling is a real, irreversible act, so it is only the
-                  dominant button when the tier actually warrants it. */}
               <a
                 href="tel:108"
                 className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-colors ${
@@ -228,23 +215,30 @@ export const DoctorAITriagePage: React.FC = () => {
                 <PhoneCall className="w-4 h-4 shrink-0" />
                 Call 108
               </a>
+              {isEmergency && (
+                <Link
+                  to="/patient/emergency"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
+                >
+                  <Siren className="w-4 h-4 shrink-0" />
+                  Alert my care team
+                </Link>
+              )}
               <Link
-                to="/doctor/patients"
+                to="/patient/appointments"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm border border-line-strong text-ink-muted hover:bg-raised transition-colors"
               >
-                <Stethoscope className="w-4 h-4 shrink-0" />
-                View patient EHR
+                <Calendar className="w-4 h-4 shrink-0" />
+                Book a doctor visit
               </Link>
             </div>
           </div>
 
-          {/* 4. The model's own reasoning, and the disclaimer that qualifies
-              it — available, but not in the way of the decision. */}
           {(result.explanation || result.disclaimer) && (
             <details className="group bg-surface rounded-2xl border border-line shadow-card overflow-hidden">
               <summary className="flex items-center justify-between gap-3 p-5 cursor-pointer list-none hover:bg-raised transition-colors">
                 <span className="font-display text-sm font-bold text-ink">
-                  Detailed explanation
+                  More details
                   {result.aiAssisted && (
                     <span className="ml-2 text-xs font-semibold text-gov-700">AI-assisted</span>
                   )}

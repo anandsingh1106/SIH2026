@@ -67,7 +67,7 @@ export const mr = {
     queue: 'थेट ओपीडी रांग',
     patients: 'रुग्ण आरोग्य इतिहास',
     consultation: 'वैद्यकीय तपासणी व सल्ला',
-    aiTriage: 'एआय ट्रियाज विश्लेषक',
+    aiTriage: 'एआय लक्षण तपासणी',
     prescriptions: 'ई-औषधोपचार चिठ्ठी',
     labOrders: 'प्रयोगशाळा चाचण्या',
     telemedicine: 'टेलि-कन्सल्टेशन',
