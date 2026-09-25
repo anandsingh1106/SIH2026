@@ -1,145 +1,166 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Share } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { backendApi, AshaAnalytics } from '@arogyasetu/shared/services/api';
+import { backendApi } from '@arogyasetu/shared/services/api';
+import { useAuth } from '../../services/auth/authContext';
 import type { AshaStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<AshaStackParamList, 'Reports'>;
+type MonthlyReport = Awaited<ReturnType<typeof backendApi.getAshaMonthlyReport>>;
+
+/** The current month and the five before it, newest first, as YYYY-MM. */
+const recentMonths = () => {
+  const now = new Date();
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    return {
+      value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleString('en-IN', { month: 'short', year: 'numeric' }),
+    };
+  });
+};
 
 /**
- * Mirrors frontend/src/pages/asha/Reports.tsx in spirit, but not in
- * content. The web version is a fully client-side mock: fixed target/
- * achieved numbers, ₹ incentive rates and a "Download CSV" button that
- * just shows an alert() — none of that is backed by any table (no
- * delivery-outcome tracking, no NHM incentive-rate config exists in the
- * schema). Building that properly is its own scoped piece of work.
- *
- * This screen instead surfaces the real counts the backend already computes
- * per worker (GET /api/analytics/asha, ashaAnalytics() in
- * analyticsService.js) — assigned caseload, open/completed tasks, home
- * visits logged, high-risk maternal cases, and screening backlogs. No ₹
- * figures, because none exist to report honestly.
+ * Mirrors frontend/src/pages/asha/Reports.tsx: the same Monthly Progress
+ * Report (GET /api/analytics/asha/monthly), so the phone and the web show the
+ * same counts for the same month.
  */
 export function ReportsScreen(_props: Props) {
-  const [data, setData] = useState<AshaAnalytics | null>(null);
+  const { currentUser } = useAuth();
+  const months = recentMonths();
+  const [month, setMonth] = useState(months[0].value);
+  const [report, setReport] = useState<MonthlyReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (m: string) => {
     setIsLoading(true);
     setError('');
+    setReport(null);
     try {
-      setData(await backendApi.getAshaAnalytics());
+      setReport(await backendApi.getAshaMonthlyReport(m));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load your activity summary.');
+      setError(err instanceof Error ? err.message : 'Could not build the report.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(month);
+  }, [load, month]);
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color="#15803D" />
-      </View>
-    );
-  }
+  const monthLabel = months.find((m) => m.value === month)?.label ?? month;
 
-  if (error || !data) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.centeredText}>{error || 'No activity summary available.'}</Text>
-        <Pressable style={styles.retryBtn} onPress={load}>
-          <Text style={styles.retryBtnText}>Retry</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  const taskCompletionRate =
-    data.tasksOpen + data.tasksCompleted > 0
-      ? Math.round((data.tasksCompleted / (data.tasksOpen + data.tasksCompleted)) * 100)
-      : null;
+  const shareReport = () => {
+    if (!report) return;
+    const lines = [
+      `Monthly Progress Report, ${monthLabel}`,
+      `ASHA: ${currentUser?.name ?? ''}`,
+      `Assigned patients: ${report.assignedPatients}`,
+      '',
+      ...report.rows.map((r) => `${r.indicator}: ${r.value}`),
+      '',
+      `Vaccine doses due or overdue: ${report.pending.vaccinesDue}`,
+      `High-risk pregnancies being followed: ${report.pending.highRiskPregnancies}`,
+      `Open tasks: ${report.pending.openTasks}`,
+    ];
+    void Share.share({ message: lines.join('\n') });
+  };
 
   return (
-    <ScrollView style={styles.screen}>
-      <View style={styles.noteBox}>
-        <Text style={styles.noteText}>
-          Live counts from your own caseload — not a monthly incentive statement. The Monthly
-          Progress Report (MPR) with NHM incentive rates needs its own tracked delivery-outcome
-          data, which isn't recorded anywhere yet.
-        </Text>
-      </View>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>Monthly ASHA Progress Report (MPR)</Text>
+      <Text style={styles.subtitle}>Counted from the visits, screenings and records you entered in the app</Text>
 
-      <View style={styles.grid}>
-        <StatCard label="Assigned Patients" value={data.assignedPatients} />
-        <StatCard label="Home Visits Logged" value={data.homeVisits} />
-        <StatCard label="Tasks Open" value={data.tasksOpen} tone="warn" />
-        <StatCard label="Tasks Completed" value={data.tasksCompleted} tone="good" />
-        <StatCard label="High-Risk Maternal Cases" value={data.highRiskMaternal} tone="danger" />
-        <StatCard label="High-Risk NCD Screenings" value={data.ncdHighRisk} tone="danger" />
-      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.months}>
+        {months.map((m) => (
+          <Pressable key={m.value} onPress={() => setMonth(m.value)} style={[styles.monthChip, month === m.value && styles.monthChipActive]}>
+            <Text style={[styles.monthText, month === m.value && styles.monthTextActive]}>{m.label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Vaccinations Due or Overdue</Text>
-        <Text style={styles.bigNumber}>{data.vaccinationsDue}</Text>
-        <Text style={styles.cardHint}>Across your assigned caseload — check the Immunization ledger to act on these.</Text>
-      </View>
-
-      {taskCompletionRate !== null && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Task Completion Rate</Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${taskCompletionRate}%` }]} />
-          </View>
-          <Text style={styles.progressLabel}>
-            {data.tasksCompleted} of {data.tasksOpen + data.tasksCompleted} tasks completed ({taskCompletionRate}%)
-          </Text>
+      {isLoading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator color="#15803D" />
         </View>
-      )}
+      ) : error || !report ? (
+        <View style={styles.centered}>
+          <Text style={styles.centeredText}>{error || 'No report available.'}</Text>
+          <Pressable style={styles.retryBtn} onPress={() => load(month)}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <>
+          <View style={styles.grid}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{report.assignedPatients}</Text>
+              <Text style={styles.statLabel}>Assigned Patients</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{report.rows.find((r) => r.key === 'homeVisits')?.value ?? 0}</Text>
+              <Text style={styles.statLabel}>Home Visits This Month</Text>
+            </View>
+          </View>
 
-      <Pressable style={styles.refreshBtn} onPress={load}>
-        <Text style={styles.refreshBtnText}>Refresh</Text>
-      </Pressable>
+          <View style={styles.openCard}>
+            <Text style={styles.openTitle}>STILL OPEN</Text>
+            <Text style={styles.openLine}>{report.pending.vaccinesDue} vaccine doses due</Text>
+            <Text style={styles.openLine}>{report.pending.highRiskPregnancies} high-risk pregnancies</Text>
+            <Text style={styles.openLine}>{report.pending.openTasks} open tasks</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Activity in {monthLabel}</Text>
+            {report.rows.map((r) => (
+              <View key={r.key} style={styles.row}>
+                <Text style={styles.rowLabel}>{r.indicator}</Text>
+                <Text style={styles.rowValue}>{r.value}</Text>
+              </View>
+            ))}
+            <Text style={styles.cardHint}>
+              Incentive amounts are set by the state NHM and verified by the ANM, so this report lists the activities only.
+            </Text>
+          </View>
+
+          <Pressable style={styles.shareBtn} onPress={shareReport}>
+            <Text style={styles.shareBtnText}>Share Report</Text>
+          </Pressable>
+        </>
+      )}
     </ScrollView>
   );
 }
 
-function StatCard({ label, value, tone }: { label: string; value: number; tone?: 'good' | 'warn' | 'danger' }) {
-  return (
-    <View style={[styles.statCard, tone === 'good' && styles.statGood, tone === 'warn' && styles.statWarn, tone === 'danger' && styles.statDanger]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#FAF9F6', padding: 16 },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30, backgroundColor: '#FAF9F6' },
+  screen: { flex: 1, backgroundColor: '#FAF9F6' },
+  content: { padding: 16, paddingBottom: 32 },
+  title: { fontSize: 17, fontWeight: '800', color: '#111827' },
+  subtitle: { fontSize: 12, color: '#6B7280', marginTop: 4 },
+  months: { gap: 6, paddingVertical: 12 },
+  monthChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, backgroundColor: '#F3F4F6' },
+  monthChipActive: { backgroundColor: '#15803D' },
+  monthText: { fontSize: 12, fontWeight: '600', color: '#374151' },
+  monthTextActive: { color: '#fff' },
+  centered: { alignItems: 'center', justifyContent: 'center', padding: 30 },
   centeredText: { fontSize: 13, color: '#6B7280', textAlign: 'center' },
   retryBtn: { backgroundColor: '#15803D', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10, marginTop: 14 },
   retryBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  noteBox: { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE', borderRadius: 12, padding: 12, marginBottom: 16 },
-  noteText: { fontSize: 11, color: '#1E3A8A', lineHeight: 16 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
-  statCard: { width: '47%', backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, padding: 14 },
-  statGood: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
-  statWarn: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
-  statDanger: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  grid: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  statCard: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, padding: 14 },
   statValue: { fontSize: 24, fontWeight: '800', color: '#111827' },
   statLabel: { fontSize: 11, color: '#6B7280', marginTop: 4 },
+  openCard: { backgroundColor: '#14532D', borderRadius: 14, padding: 16, marginBottom: 12, gap: 2 },
+  openTitle: { fontSize: 11, fontWeight: '800', color: '#86EFAC', marginBottom: 4 },
+  openLine: { fontSize: 13, fontWeight: '600', color: '#fff' },
   card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, padding: 16, marginBottom: 14 },
-  cardTitle: { fontSize: 12, fontWeight: '800', color: '#374151', textTransform: 'uppercase' },
-  bigNumber: { fontSize: 32, fontWeight: '800', color: '#DC2626', marginTop: 8 },
-  cardHint: { fontSize: 11, color: '#9CA3AF', marginTop: 6, lineHeight: 15 },
-  progressTrack: { height: 10, backgroundColor: '#E5E7EB', borderRadius: 5, marginTop: 12, overflow: 'hidden' },
-  progressFill: { height: 10, backgroundColor: '#15803D', borderRadius: 5 },
-  progressLabel: { fontSize: 11, color: '#6B7280', marginTop: 8 },
-  refreshBtn: { borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginBottom: 24 },
-  refreshBtnText: { fontSize: 12, fontWeight: '700', color: '#374151' },
+  cardTitle: { fontSize: 12, fontWeight: '800', color: '#374151', textTransform: 'uppercase', marginBottom: 6 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 12 },
+  rowLabel: { fontSize: 12, fontWeight: '600', color: '#111827', flexShrink: 1 },
+  rowValue: { fontSize: 13, fontWeight: '800', color: '#15803D' },
+  cardHint: { fontSize: 11, color: '#9CA3AF', marginTop: 10, lineHeight: 15 },
+  shareBtn: { backgroundColor: '#15803D', borderRadius: 10, paddingVertical: 13, alignItems: 'center' },
+  shareBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 });
