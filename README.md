@@ -2,7 +2,7 @@
 
 **One connected public health platform for Maharashtra, from the village ASHA worker to the state health office.**
 
-**Live demo:** https://sih-2026-frontend-phi.vercel.app
+**Live demo:** https://mahaarogya-sangam.vercel.app
 
 | 5 roles | 46 database tables | 120+ API endpoints | 466 automated tests | 3 languages |
 | --- | --- | --- | --- | --- |
