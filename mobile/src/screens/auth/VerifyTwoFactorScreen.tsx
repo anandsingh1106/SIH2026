@@ -51,6 +51,19 @@ export function VerifyTwoFactorScreen({ navigation }: Props) {
     setError('');
     setIsSubmitting(true);
     try {
+      // Same as the web screen: demo accounts may use the server's fixed demo
+      // code. If that is off or the code differs, fall through so an
+      // authenticator code still works.
+      if (currentUser?.email?.toLowerCase().endsWith('@arogyasetu.test')) {
+        try {
+          const { sessionToken } = await authApi.mfa.useDemoCode(code);
+          await completeMfa(sessionToken);
+          return;
+        } catch {
+          // Not the demo code; verify it as a normal authenticator code below.
+        }
+      }
+
       const factorId = await supabaseAuth.getPrimaryTotpFactorId();
       if (!factorId) {
         setError('No authenticator is registered on this account. Use a recovery code instead.');
