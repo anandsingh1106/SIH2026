@@ -3,6 +3,7 @@ import { localDateString } from '@arogyasetu/shared/utils';
 import { View, Text, ScrollView, Pressable, StyleSheet, RefreshControl } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { dataService } from '../../services/api/dataService';
+import { backendApi, AshaAnalytics } from '@arogyasetu/shared/services/api';
 import { syncQueueManager } from '../../services/offline/syncQueueManager';
 import type { Task, Referral, Patient } from '@arogyasetu/shared/types';
 import type { AshaStackParamList } from '../../navigation/types';
@@ -10,16 +11,15 @@ import type { AshaStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<AshaStackParamList, 'AshaDashboard'>;
 
 /**
- * Mirrors frontend/src/pages/asha/Dashboard.tsx's data loading exactly —
- * same three calls, same sync-queue subscription. The web version also
- * shows two metric cards with hardcoded numbers ("3 Cases", "8 Due"); those
- * are left out here rather than carried over, since there is no API behind
- * them on either platform yet.
+ * Mirrors frontend/src/pages/asha/Dashboard.tsx's data loading exactly:
+ * the same three lists, the same per-worker analytics for the high-risk and
+ * vaccine counts, and the same sync-queue subscription.
  */
 export function DashboardScreen({ navigation }: Props) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [, setPatients] = useState<Patient[]>([]);
+  const [analytics, setAnalytics] = useState<AshaAnalytics | null>(null);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -32,6 +32,8 @@ export function DashboardScreen({ navigation }: Props) {
     setTasks(tList);
     setReferrals(rList);
     setPatients(pList);
+    // Offline this fails; the cards then show a dash rather than a stale guess.
+    backendApi.getAshaAnalytics().then(setAnalytics).catch(() => setAnalytics(null));
   }, []);
 
   useEffect(() => {
@@ -93,6 +95,21 @@ export function DashboardScreen({ navigation }: Props) {
           <Text style={styles.metricLabel}>
             {pendingSyncCount > 0 ? 'Queued for Sync' : 'Fully Synced'}
           </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.metricsRow}>
+        <Pressable style={styles.metricCard} onPress={() => navigation.navigate('MaternalCare')}>
+          <Text style={[styles.metricValue, styles.metricDanger]}>
+            {analytics ? analytics.highRiskMaternal : '-'}
+          </Text>
+          <Text style={styles.metricLabel}>High-Risk Maternal (ANC)</Text>
+        </Pressable>
+        <Pressable style={styles.metricCard} onPress={() => navigation.navigate('Immunization')}>
+          <Text style={[styles.metricValue, styles.metricWarn]}>
+            {analytics ? analytics.vaccinationsDue : '-'}
+          </Text>
+          <Text style={styles.metricLabel}>Vaccines Due / Overdue</Text>
         </Pressable>
       </View>
 
@@ -192,6 +209,8 @@ const styles = StyleSheet.create({
     padding: 16, alignItems: 'center',
   },
   metricValue: { fontSize: 24, fontWeight: '800', color: '#111827' },
+  metricDanger: { color: '#DC2626' },
+  metricWarn: { color: '#D97706' },
   metricLabel: { fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'center' },
   section: { paddingHorizontal: 16, marginBottom: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },

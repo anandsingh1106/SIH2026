@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, TextInput, Linking, ActivityIndicator } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { backendApi } from '@arogyasetu/shared/services/api';
+import { backendApi, type PatientDetail } from '@arogyasetu/shared/services/api';
 import { dataService } from '../../services/api/dataService';
 import type { Patient } from '@arogyasetu/shared/types';
 import type { PatientStackParamList } from '../../navigation/types';
@@ -9,19 +9,16 @@ import type { PatientStackParamList } from '../../navigation/types';
 type Props = NativeStackScreenProps<PatientStackParamList, 'Emergency'>;
 
 /**
- * Mirrors frontend/src/pages/patient/Emergency.tsx, but reads the real
- * signed-in patient (allergies, chronic conditions, blood group) instead of
- * INITIAL_PATIENTS[0], and the real patients.emergency_contact /
- * emergency_contact_phone columns (already in the schema, exposed by
- * toPublicPatient, just not editable from any UI yet) instead of the two
- * hardcoded "Ramesh Patil" / "Sunita Patil (ASHA)" cards. Drops the fake
- * dispatched-ambulance ID, ETA and GPS-coordinate readout on SOS trigger —
- * there is no real 108 dispatch integration — and instead has the SOS
- * button place a real phone call to 108, which is something the app can
- * actually do.
+ * Mirrors frontend/src/pages/patient/Emergency.tsx: the signed-in patient's
+ * emergency card, their saved contact, their assigned ASHA, and an alert that
+ * pages that ASHA. The app has no location permission, so the alert carries
+ * the registered address, which is what the web sends when location is off.
  */
 export function EmergencyScreen(_props: Props) {
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [detail, setDetail] = useState<PatientDetail | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [alertResult, setAlertResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -40,6 +37,9 @@ export function EmergencyScreen(_props: Props) {
       if (me) {
         setContactName(me.emergencyContact?.name ?? '');
         setContactPhone(me.emergencyContact?.phone ?? '');
+        // Address and assigned ASHA come from the detail record. Offline the
+        // card above still works, so a failure here is not an error.
+        backendApi.getPatient(me.id).then(setDetail).catch(() => setDetail(null));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your emergency profile.');
@@ -67,6 +67,33 @@ export function EmergencyScreen(_props: Props) {
       setSaveError(err instanceof Error ? err.message : 'Could not save this contact.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const address = detail
+    ? [detail.address, detail.village, detail.taluka, detail.district].filter(Boolean).join(', ')
+    : '';
+
+  const raiseAlert = async () => {
+    if (!patient) return;
+    setIsSending(true);
+    setAlertResult(null);
+    try {
+      const res = await backendApi.sendUrgentAlert(
+        patient.id,
+        `${patient.name} pressed SOS and needs help now. Location not shared. Registered address: ${address || 'not recorded'}.`,
+        `SOS from ${patient.name}`
+      );
+      setAlertResult({
+        ok: true,
+        text: res.notified.includes('ASHA')
+          ? `${detail?.assignedAsha?.name ?? 'Your ASHA worker'} has been paged with a critical alert.`
+          : 'No ASHA worker is assigned to you yet, so only your own account was notified. Please call 108.',
+      });
+    } catch (err) {
+      setAlertResult({ ok: false, text: err instanceof Error ? err.message : 'Could not send the alert. Call 108 directly.' });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -98,6 +125,15 @@ export function EmergencyScreen(_props: Props) {
         <Pressable style={styles.sosBtn} onPress={() => Linking.openURL('tel:108')}>
           <Text style={styles.sosBtnText}>📞 CALL 108 AMBULANCE</Text>
         </Pressable>
+        <Pressable style={[styles.alertBtn, isSending && styles.btnDisabled]} onPress={raiseAlert} disabled={isSending}>
+          <Text style={styles.alertBtnText}>{isSending ? 'Sending alert…' : '🔔 Alert my ASHA'}</Text>
+        </Pressable>
+        {alertResult ? (
+          <Text style={[styles.alertResult, !alertResult.ok && styles.alertResultError]}>
+            {alertResult.ok ? '✓ Alert sent. ' : ''}
+            {alertResult.text}
+          </Text>
+        ) : null}
 
         <View style={styles.helplineRow}>
           <Pressable onPress={() => Linking.openURL('tel:108')}>
@@ -176,6 +212,25 @@ export function EmergencyScreen(_props: Props) {
         )}
       </View>
 
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.cardTitle}>Your ASHA Worker</Text>
+        </View>
+        <View style={styles.contactBox}>
+          <Text style={styles.contactName}>{detail?.assignedAsha?.name ?? 'No ASHA assigned'}</Text>
+          <Text style={styles.fieldValue}>
+            {detail?.assignedAsha?.village ? `${detail.assignedAsha.village} village` : 'Local health worker'}
+          </Text>
+          {detail?.assignedAsha?.phone ? (
+            <Pressable style={styles.callBtnBlue} onPress={() => Linking.openURL(`tel:${detail.assignedAsha?.phone}`)}>
+              <Text style={styles.callBtnText}>Call ASHA: {detail.assignedAsha.phone}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        <Text style={styles.fieldLabel}>Registered Residence</Text>
+        <Text style={styles.fieldValue}>{address || 'No address recorded. Your ASHA can add it.'}</Text>
+      </View>
+
       <Modal visible={editModalOpen} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -234,6 +289,11 @@ const styles = StyleSheet.create({
   contactName: { fontSize: 13, fontWeight: '700', color: '#111827' },
   callBtn: { backgroundColor: '#15803D', borderRadius: 8, paddingVertical: 9, alignItems: 'center', marginTop: 10 },
   callBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  callBtnBlue: { backgroundColor: '#2563EB', borderRadius: 8, paddingVertical: 9, alignItems: 'center', marginTop: 10 },
+  alertBtn: { borderWidth: 2, borderColor: 'rgba(255,255,255,0.7)', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 12, marginTop: 12 },
+  alertBtnText: { color: '#fff', fontSize: 14, fontWeight: '800' },
+  alertResult: { color: '#fff', fontSize: 12, marginTop: 12, textAlign: 'center', lineHeight: 17, backgroundColor: 'rgba(255,255,255,0.15)', padding: 10, borderRadius: 10, overflow: 'hidden' },
+  alertResultError: { backgroundColor: 'rgba(0,0,0,0.2)' },
   emptyContactText: { fontSize: 12, color: '#9CA3AF', marginTop: 4 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },

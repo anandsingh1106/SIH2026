@@ -1,27 +1,19 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, TextInput } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { appointmentsApi, Appointment } from '../../services/api/appointmentsApi';
+import { backendApi, type FacilityRecord } from '@arogyasetu/shared/services/api';
+import { localDateString } from '@arogyasetu/shared/utils';
+import { appointmentsApi, Appointment, BookableDoctor } from '../../services/api/appointmentsApi';
 import type { PatientStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<PatientStackParamList, 'Appointments'>;
 type Tab = 'upcoming' | 'past';
 
-// Same 7 seed facilities as frontend/src/data/mockData.ts's INITIAL_FACILITIES
-// (Maharashtra reference facility list, not fabricated patient data).
-const FACILITIES = [
-  'Primary Health Center (PHC) Paud',
-  'Community Health Center (CHC) Mulshi',
-  'Sub-District Hospital (SDH) Baramati',
-  'District Hospital Aundh, Pune',
-  'B.J. Govt Medical College & Sassoon General Hospital',
-  'King Edward Memorial (KEM) Hospital & Seth GSMC',
-  'District General Hospital Gadchiroli',
-];
-
+// Booked by id, as on the web, so the appointment lands in a real doctor's
+// queue instead of carrying a typed name that matches nobody.
 const EMPTY_FORM = {
-  facility: FACILITIES[0],
-  doctor: '',
+  facilityId: '',
+  doctorId: '',
   specialty: '',
   date: '',
   time: '',
@@ -45,6 +37,46 @@ export function AppointmentsScreen(_props: Props) {
   const [bookModalOpen, setBookModalOpen] = useState(false);
   const [bookForm, setBookForm] = useState(EMPTY_FORM);
   const [bookError, setBookError] = useState('');
+  const [facilities, setFacilities] = useState<FacilityRecord[]>([]);
+  const [doctors, setDoctors] = useState<BookableDoctor[]>([]);
+
+  // Facilities that have a bookable doctor, loaded when the form first opens.
+  useEffect(() => {
+    if (!bookModalOpen || facilities.length) return;
+    Promise.all([backendApi.getPublicFacilities(), appointmentsApi.doctors()])
+      .then(([facilityPage, allDoctors]) => {
+        const staffed = new Set(allDoctors.map((d) => d.facilityId));
+        const list = facilityPage.items.filter((f) => staffed.has(f.id));
+        setFacilities(list);
+        setBookForm((f) => (f.facilityId ? f : { ...f, facilityId: list[0]?.id ?? '' }));
+      })
+      .catch((err) => setBookError(err instanceof Error ? err.message : 'Could not load facilities.'));
+  }, [bookModalOpen, facilities.length]);
+
+  useEffect(() => {
+    if (!bookForm.facilityId) {
+      setDoctors([]);
+      return;
+    }
+    let cancelled = false;
+    appointmentsApi
+      .doctors(bookForm.facilityId)
+      .then((list) => {
+        if (cancelled) return;
+        setDoctors(list);
+        setBookForm((f) => {
+          const doctorId = list.some((d) => d.id === f.doctorId) ? f.doctorId : list[0]?.id ?? '';
+          const doctor = list.find((d) => d.id === doctorId);
+          return { ...f, doctorId, specialty: f.specialty || (doctor?.role === 'DOCTOR' ? 'General Medicine' : '') };
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setDoctors([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bookForm.facilityId]);
 
   const loadAppointments = async () => {
     setIsLoading(true);
@@ -69,13 +101,21 @@ export function AppointmentsScreen(_props: Props) {
 
   const handleBook = async () => {
     setBookError('');
-    if (!bookForm.doctor || !bookForm.specialty || !bookForm.facility || !bookForm.date || !bookForm.time) {
-      setBookError('Please fill in all required fields.');
+    if (!bookForm.facilityId || !bookForm.doctorId || !bookForm.date || !bookForm.time) {
+      setBookError('Please choose a facility, a doctor, a date and a time.');
+      return;
+    }
+    if (bookForm.date < localDateString()) {
+      setBookError('Choose today or a later date.');
       return;
     }
     setIsSubmitting(true);
     try {
-      await appointmentsApi.create(bookForm);
+      await appointmentsApi.create({
+        ...bookForm,
+        specialty: bookForm.specialty.trim() || undefined,
+        reason: bookForm.reason.trim() || undefined,
+      });
       setBookModalOpen(false);
       setBookForm(EMPTY_FORM);
       await loadAppointments();
@@ -203,28 +243,43 @@ export function AppointmentsScreen(_props: Props) {
 
             <Text style={styles.fieldLabel}>Facility *</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.facilityRow}>
-              {FACILITIES.map((f) => (
-                <Pressable
-                  key={f}
-                  style={[styles.facilityPill, bookForm.facility === f && styles.facilityPillActive]}
-                  onPress={() => setBookForm({ ...bookForm, facility: f })}
-                >
-                  <Text style={[styles.facilityPillText, bookForm.facility === f && styles.facilityPillTextActive]} numberOfLines={1}>
-                    {f}
-                  </Text>
-                </Pressable>
-              ))}
+              {facilities.length === 0 ? (
+                <Text style={styles.emptyHint}>Loading facilities…</Text>
+              ) : (
+                facilities.map((f) => (
+                  <Pressable
+                    key={f.id}
+                    style={[styles.facilityPill, bookForm.facilityId === f.id && styles.facilityPillActive]}
+                    onPress={() => setBookForm({ ...bookForm, facilityId: f.id, doctorId: '', specialty: '' })}
+                  >
+                    <Text style={[styles.facilityPillText, bookForm.facilityId === f.id && styles.facilityPillTextActive]} numberOfLines={1}>
+                      {f.name}
+                    </Text>
+                  </Pressable>
+                ))
+              )}
             </ScrollView>
 
-            <Text style={styles.fieldLabel}>Doctor Name *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Dr. Rajesh Deshmukh"
-              value={bookForm.doctor}
-              onChangeText={(v) => setBookForm({ ...bookForm, doctor: v })}
-            />
+            <Text style={styles.fieldLabel}>Doctor *</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.facilityRow}>
+              {doctors.length === 0 ? (
+                <Text style={styles.emptyHint}>{bookForm.facilityId ? 'No doctor listed here' : 'Choose a facility first'}</Text>
+              ) : (
+                doctors.map((d) => (
+                  <Pressable
+                    key={d.id}
+                    style={[styles.facilityPill, bookForm.doctorId === d.id && styles.facilityPillActive]}
+                    onPress={() => setBookForm({ ...bookForm, doctorId: d.id })}
+                  >
+                    <Text style={[styles.facilityPillText, bookForm.doctorId === d.id && styles.facilityPillTextActive]} numberOfLines={1}>
+                      {d.name} ({d.role === 'SPECIALIST' ? 'Specialist' : 'Medical Officer'})
+                    </Text>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
 
-            <Text style={styles.fieldLabel}>Specialty *</Text>
+            <Text style={styles.fieldLabel}>Specialty</Text>
             <TextInput
               style={styles.input}
               placeholder="e.g. General Medicine"
